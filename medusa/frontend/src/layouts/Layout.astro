@@ -1,0 +1,449 @@
+---
+import '../styles/global.css'
+import AnnouncementBar from '../components/common/AnnouncementBar.astro'
+import Header from '../components/common/Header.astro'
+import Footer from '../components/common/Footer.astro'
+import CartDrawer from '../components/cart/CartDrawer.astro'
+import SearchDrawer from '../components/common/SearchDrawer.astro'
+import CookieConsent from '../components/common/CookieConsent.astro'
+import NewsletterPopup from '../components/common/NewsletterPopup.astro'
+import QuickView from '../components/product/QuickView.astro'
+import SchemaOrganization from '../components/seo/SchemaOrganization.astro'
+
+interface Props {
+  title: string
+  description?: string
+  ogImage?: string
+  noindex?: boolean
+}
+
+import { getThemeSettings, getPublicIntegrations } from '../lib/medusa'
+
+const {
+  title,
+  description = 'Magic Crochet Kit — Apprenez le crochet facilement avec nos kits tout-en-un',
+  ogImage = '/og-default.png',
+  noindex = false
+} = Astro.props
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site)
+const medusaUrl = import.meta.env.PUBLIC_MEDUSA_URL || 'http://localhost:9000'
+const medusaKey = import.meta.env.PUBLIC_MEDUSA_API_KEY || ''
+
+// Load theme settings (visual + content config only — tracking IDs moved
+// to the integrations module).
+let themeSettings: Record<string, Record<string, any>> = {}
+try {
+  const { settings } = await getThemeSettings()
+  themeSettings = settings || {}
+} catch {
+  console.warn('Layout: Failed to fetch theme settings from API')
+}
+
+// Tracking IDs come from /store/integrations/public (the integrations
+// module). One source of truth.
+let publicIntegrations: Record<string, Record<string, Record<string, any>>> = {}
+let ga4Id = ''
+let metaPixelId = ''
+let gtmId = ''
+let clarityId = ''
+let tiktokPixelId = ''
+try {
+  publicIntegrations = await getPublicIntegrations()
+  const t = publicIntegrations?.tracking || {}
+  const a = publicIntegrations?.analytics || {}
+  if (a.ga4?.measurement_id) ga4Id = String(a.ga4.measurement_id)
+  if (t.gtm?.container_id) gtmId = String(t.gtm.container_id)
+  if (t.clarity?.project_id) clarityId = String(t.clarity.project_id)
+  if (t.tiktok_pixel?.pixel_id) tiktokPixelId = String(t.tiktok_pixel.pixel_id)
+  if (t.meta_pixel?.pixel_id) metaPixelId = String(t.meta_pixel.pixel_id)
+} catch {
+  // ignored — fallback chain below covers it
+}
+
+// Hardcoded last-resort fallbacks — ensures GTM/GA4 load even if both
+// the API and the theme settings are unreachable during SSG build.
+if (!gtmId) gtmId = import.meta.env.PUBLIC_GTM_ID || 'GTM-5T5V4PGT'
+if (!ga4Id) ga4Id = import.meta.env.PUBLIC_GA4_ID || 'G-JQWH974E4B'
+
+// Announcement bar settings
+const announcementSettings = themeSettings?.announcement || {}
+const announcementEnabled = announcementSettings.announcement_enabled !== 'false'
+const announcementText = announcementSettings.announcement_text || "🚚 Livraison gratuite dès 50€  ·  ⚡ Express dès 100€  ·  🎁 Cadeau dès 150€"
+const announcementLink = announcementSettings.announcement_link || ''
+const announcementBg = announcementSettings.announcement_bg_color || ''
+
+// Footer settings
+const footerSettings = themeSettings?.footer || {}
+const footerCopyright = (footerSettings.footer_copyright || '© {year} Magic Crochet Kit. Tous droits réservés.').replace('{year}', String(new Date().getFullYear()))
+const footerShowPayment = footerSettings.footer_show_payment_badges !== 'false'
+
+// Social settings
+const socialSettings = themeSettings?.social || {}
+const socialFacebook = socialSettings.social_facebook || ''
+const socialInstagram = socialSettings.social_instagram || ''
+const socialTiktok = socialSettings.social_tiktok || ''
+
+// Contact settings
+const contactSettings = themeSettings?.contact || {}
+const contactEmail = contactSettings.contact_email || 'contact@magic-crochet-kit.com'
+const contactPhone = contactSettings.contact_phone || ''
+
+// Shipping settings
+const shippingSettings = themeSettings?.shipping || {}
+const freeShippingThreshold = parseInt(shippingSettings.shipping_free_threshold || '50')
+const shippingDelay = shippingSettings.shipping_delay || '3-5 jours ouvrés'
+const shippingReturnDays = shippingSettings.shipping_return_days || '30'
+
+// SEO settings
+const seoSettings = themeSettings?.seo || {}
+const seoTitleSuffixRaw = seoSettings.seo_title_suffix || '| Magic Crochet Kit'
+// Only append suffix if total title stays under 60 chars AND title doesn't already contain the site name
+const titleHasSiteName = title.toLowerCase().includes('magic crochet')
+const seoTitleSuffix = !titleHasSiteName && (title.length + seoTitleSuffixRaw.length + 1) <= 60 ? seoTitleSuffixRaw : ''
+const seoDefaultDescription = seoSettings.seo_default_description || 'Magic Crochet Kit — Apprenez le crochet facilement avec nos kits tout-en-un pour débutants.'
+const seoOgImage = seoSettings.seo_og_image || '/og-default.png'
+
+// General settings
+const generalSettings = themeSettings?.general || {}
+const siteName = generalSettings.site_name || 'Magic Crochet Kit'
+const logoUrl = generalSettings.logo_url || '/images/logo.png'
+const faviconUrl = generalSettings.favicon_url || '/favicon.png'
+
+// Color settings (configurable from admin theme — défauts repris du thème Shopify MCK)
+const colorSettings = themeSettings?.colors || {}
+const colorPrimary = colorSettings.color_primary || '#0369a1'
+const colorSecondary = colorSettings.color_secondary || '#103166'
+const colorAccent = colorSettings.color_accent || '#50b7f1'
+const colorText = colorSettings.color_text || '#1f2937'
+const colorBackground = colorSettings.color_background || '#ffffff'
+
+// Helper: lighten/darken hex color (for hover states)
+function adjustColor(hex: string, percent: number): string {
+  const h = hex.replace('#', '')
+  const r = parseInt(h.substring(0, 2), 16)
+  const g = parseInt(h.substring(2, 4), 16)
+  const b = parseInt(h.substring(4, 6), 16)
+  const adjust = (c: number) => Math.max(0, Math.min(255, c + Math.round((percent / 100) * 255)))
+  const toHex = (c: number) => adjust(c).toString(16).padStart(2, '0')
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+}
+const colorPrimaryHover = adjustColor(colorPrimary, -15)
+const colorPrimaryLight = adjustColor(colorPrimary, 75)
+
+// Typography settings
+// Défaut MCK : 'Circe' (chargée via @font-face dans global.css depuis le CDN Shopify).
+// Si themeSettings.typography.font_heading/font_body sont définis, on charge en plus depuis Google Fonts.
+const typographySettings = themeSettings?.typography || {}
+const fontHeading = typographySettings.font_heading || 'Circe'
+const fontBody = typographySettings.font_body || 'Circe'
+const fontCustomUrl = typographySettings.font_custom_url || ''
+const fontSizeBase = typographySettings.font_size_base || '16'
+const useGoogleFonts = fontHeading !== 'Circe' || fontBody !== 'Circe'
+const googleFontsUrl = useGoogleFonts
+  ? `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontHeading)}:wght@400;700&family=${encodeURIComponent(fontBody)}:wght@400;500;600;700&display=swap`
+  : ''
+
+// Medusa config
+const medusaSettings = themeSettings?.medusa || {}
+const regionId = medusaSettings.medusa_region_id || 'reg_01KSJ3KR10FKG5RXF7DBYP3SD0'
+
+---
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title} {seoTitleSuffix}</title>
+  <meta name="description" content={description || seoDefaultDescription} />
+  <link rel="canonical" href={canonicalURL} />
+  {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+  <!-- Favicon (configurable from admin) -->
+  <link rel="icon" type="image/x-icon" href={faviconUrl} />
+  <link rel="apple-touch-icon" href={faviconUrl} />
+
+  <!-- Fonts (Circe par défaut chargée via @font-face dans global.css ; Google Fonts uniquement si override admin) -->
+  <link rel="preconnect" href="https://cdn.shopify.com" crossorigin />
+  {useGoogleFonts && (
+    <>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+      <link rel="preload" as="style" href={googleFontsUrl} />
+      <link rel="stylesheet" href={googleFontsUrl} media="print" onload="this.media='all'" />
+      <noscript><link rel="stylesheet" href={googleFontsUrl} /></noscript>
+    </>
+  )}
+  {/* Preconnect to tracking origins used on the page (saves ~100-200ms per origin) */}
+  {gtmId && <link rel="preconnect" href="https://www.googletagmanager.com" />}
+  <link rel="dns-prefetch" href="https://scripts.clarity.ms" />
+  {fontCustomUrl && <link rel="stylesheet" href={fontCustomUrl} />}
+  <style set:html={`
+    :root {
+      --color-primary: ${colorPrimary};
+      --color-primary-hover: ${colorPrimaryHover};
+      --color-primary-light: ${colorPrimaryLight};
+      --color-secondary: ${colorSecondary};
+      --color-accent: ${colorAccent};
+      --color-text: ${colorText};
+      --color-bg: ${colorBackground};
+    }
+    body { font-family: '${fontBody}', system-ui, sans-serif; font-size: ${fontSizeBase}px; background-color: ${colorBackground}; color: ${colorText}; }
+    h1, h2, h3, h4, h5, h6 { font-family: '${fontHeading}', system-ui, sans-serif; color: ${colorText}; }
+    .text-primary { color: ${colorPrimary} !important; }
+    .bg-primary { background-color: ${colorPrimary} !important; }
+    .border-primary { border-color: ${colorPrimary} !important; }
+    .ring-primary { --tw-ring-color: ${colorPrimary} !important; }
+    .text-secondary { color: ${colorSecondary} !important; }
+    .bg-secondary { background-color: ${colorSecondary} !important; }
+    .text-accent { color: ${colorAccent} !important; }
+    .bg-accent { background-color: ${colorAccent} !important; }
+    .hover\\:bg-primary-hover:hover { background-color: ${colorPrimaryHover} !important; }
+    .hover\\:bg-primary:hover { background-color: ${colorPrimary} !important; }
+    .hover\\:text-primary:hover { color: ${colorPrimary} !important; }
+    .hover\\:border-primary:hover { border-color: ${colorPrimary} !important; }
+  `} />
+
+  <!-- Medusa config for client JS -->
+  <meta name="medusa-url" content={medusaUrl} />
+  <meta name="free-shipping-threshold" content={String(freeShippingThreshold)} />
+  <meta name="medusa-key" content={medusaKey} />
+  <meta name="shipping-delay" content={shippingDelay} />
+  <meta name="shipping-return-days" content={shippingReturnDays} />
+  <meta name="site-name" content={siteName} />
+  <meta name="medusa-region-id" content={regionId} />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={`${title} ${seoTitleSuffix}`} />
+  <meta property="og:description" content={description || seoDefaultDescription} />
+  <meta property="og:image" content={ogImage || seoOgImage} />
+  <meta property="og:url" content={canonicalURL} />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:site_name" content={siteName} />
+
+  <SchemaOrganization />
+  <slot name="head" />
+
+  <!-- Google Consent Mode V2 — default DENIED before any tracking loads -->
+  <script is:inline>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    window.gtag = gtag;
+    gtag('consent', 'default', {
+      analytics_storage: 'denied',
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+      functionality_storage: 'granted',
+      security_storage: 'granted',
+      wait_for_update: 500,
+    });
+    gtag('js', new Date());
+
+    /**
+     * Track a GA4 ecommerce event. Goes through dataLayer (so GTM forwards
+     * it) and through gtag (so GA4 receives it directly when no GTM tag).
+     * Consent Mode v2 silently drops the event if analytics_storage is
+     * denied — no extra check needed here.
+     *
+     *   gaTrack('add_to_cart', { currency:'EUR', value:29.99, items:[…] })
+     */
+    window.gaTrack = function(name, params){
+      try {
+        var payload = Object.assign({ event: name }, params || {});
+        // dataLayer push for GTM-based pipelines (ecommerce schema)
+        if (params && (params.items || params.value !== undefined)) {
+          window.dataLayer.push({ ecommerce: null });
+          window.dataLayer.push(Object.assign({ event: name, ecommerce: params }));
+        } else {
+          window.dataLayer.push(payload);
+        }
+        // gtag for direct GA4 (when GTM tag not configured for this event)
+        gtag('event', name, params || {});
+      } catch (e) { /* never throw from tracking */ }
+    };
+
+    /**
+     * Send the same ecommerce event to TikTok Pixel. Maps the GA4 event
+     * name to the TikTok equivalent. No-op if the Pixel didn't load.
+     *
+     *   ttqTrack('add_to_cart', { value:29.99, currency:'EUR', items:[...] })
+     */
+    window.ttqTrack = function(name, params){
+      try {
+        if (typeof window.ttq === 'undefined' || !window.ttq) return;
+        var map = {
+          view_item: 'ViewContent',
+          add_to_cart: 'AddToCart',
+          view_cart: 'AddToCart',
+          begin_checkout: 'InitiateCheckout',
+          purchase: 'CompletePayment',
+        };
+        var ttName = map[name];
+        if (!ttName) return;
+        var p = params || {};
+        var contents = (p.items || []).map(function(it){
+          return {
+            content_id: String(it.item_id || ''),
+            content_type: 'product',
+            content_name: String(it.item_name || ''),
+            content_category: String(it.item_category || ''),
+            quantity: it.quantity || 1,
+            price: it.price || 0,
+          };
+        });
+        window.ttq.track(ttName, {
+          contents: contents,
+          value: p.value || 0,
+          currency: p.currency || 'EUR',
+        });
+      } catch (e) { /* never throw from tracking */ }
+    };
+  </script>
+
+  {/* GTM — loads but respects consent mode */}
+  {gtmId && (
+    <script set:html={`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${gtmId}');`} />
+  )}
+
+  {/* GA4 / Meta Pixel IDs passed as meta — consent script will load them conditionally */}
+  {ga4Id && <meta name="ga4-id" content={ga4Id} />}
+  {metaPixelId && <meta name="meta-pixel-id" content={metaPixelId} />}
+
+  {/* GA4 gtag.js loads always (needed for consent mode) but won't collect until consent granted */}
+  {ga4Id && !gtmId && (
+    <script async src={`https://www.googletagmanager.com/gtag/js?id=${ga4Id}`}></script>
+  )}
+
+  {/* TikTok Pixel — loaded if configured. Respects analytics_storage
+      since the base script reads consent on first event push. */}
+  {tiktokPixelId && (
+    <script set:html={`!function (w, d, t) {
+      w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"];ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e};ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
+      ttq.load('${tiktokPixelId}');
+      ttq.page();
+    }(window, document, 'ttq');`} />
+  )}
+</head>
+<body class="min-h-screen flex flex-col">
+  {gtmId && (
+    <noscript><iframe src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`} height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  )}
+  <AnnouncementBar enabled={announcementEnabled} text={announcementText} link={announcementLink} bgColor={announcementBg} />
+  <Header />
+  <main class="flex-1">
+    <slot />
+  </main>
+  <Footer copyright={footerCopyright} showPayment={footerShowPayment} socialFacebook={socialFacebook} socialInstagram={socialInstagram} socialTiktok={socialTiktok} logoUrl={logoUrl} siteName={siteName} />
+
+  <!-- Drawers & overlays -->
+  <CartDrawer />
+  <SearchDrawer />
+  <CookieConsent />
+  <NewsletterPopup />
+  <QuickView />
+
+  <!-- Back to top -->
+  <button id="back-to-top" type="button" aria-label="Retour en haut" class="fixed bottom-6 right-6 z-50 w-11 h-11 bg-white border border-border rounded-full shadow-lg flex items-center justify-center text-text-muted hover:text-primary hover:shadow-xl transition-all opacity-0 pointer-events-none">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+    </svg>
+  </button>
+
+  <script>
+    // Scroll reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible')
+          observer.unobserve(entry.target)
+        }
+      })
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' })
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
+
+    // Fix images (alt + dimensions). Run in idle time to avoid blocking LCP
+    // and minimise forced reflows by batching reads/writes.
+    const runImageFix = () => {
+      const pageTitle = document.title.split(' — ')[0].split(' | ')[0].trim()
+      const imgs = Array.from(document.querySelectorAll('img'))
+      // Batch 1: read missing alt/width info (no layout-touching reads)
+      const updates = imgs.map((img) => {
+        const el = img
+        const needAlt = !el.getAttribute('alt')
+        const needDim = !el.getAttribute('width')
+        let alt = null
+        if (needAlt) {
+          const src = el.src || ''
+          const fileName = src.split('/').pop()?.split('.')[0]?.replace(/[-_]/g, ' ') || ''
+          alt = fileName || pageTitle
+        }
+        return { el, needAlt, needDim, alt }
+      })
+      // Batch 2: writes (setAttribute) + one layout read per image (naturalWidth)
+      for (const { el, needAlt, needDim, alt } of updates) {
+        if (needAlt && alt) el.setAttribute('alt', alt)
+        if (needDim) {
+          if (el.complete && el.naturalWidth > 0) {
+            el.setAttribute('width', String(el.naturalWidth))
+            el.setAttribute('height', String(el.naturalHeight))
+          } else {
+            el.addEventListener('load', () => {
+              el.setAttribute('width', String(el.naturalWidth))
+              el.setAttribute('height', String(el.naturalHeight))
+            }, { once: true })
+          }
+        }
+      }
+    }
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(runImageFix, { timeout: 2000 })
+    } else {
+      setTimeout(runImageFix, 500)
+    }
+
+    // Back to top
+    const btt = document.getElementById('back-to-top')
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 400) {
+        btt?.classList.remove('opacity-0', 'pointer-events-none')
+        btt?.classList.add('opacity-100')
+      } else {
+        btt?.classList.add('opacity-0', 'pointer-events-none')
+        btt?.classList.remove('opacity-100')
+      }
+    })
+    btt?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }))
+
+    // Global newsletter form handler
+    const mUrl = document.querySelector('meta[name="medusa-url"]')?.getAttribute('content') || ''
+    const mKey = document.querySelector('meta[name="medusa-key"]')?.getAttribute('content') || ''
+    document.querySelectorAll('[data-newsletter-form]').forEach(form => {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault()
+        const input = (form as HTMLFormElement).querySelector('input[type="email"]') as HTMLInputElement
+        const btn = (form as HTMLFormElement).querySelector('button[type="submit"]') as HTMLButtonElement
+        if (!input?.value) return
+        const origText = btn.textContent
+        btn.disabled = true
+        btn.textContent = 'Inscription...'
+        try {
+          await fetch(`${mUrl}/store/newsletter`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-publishable-api-key': mKey },
+            body: JSON.stringify({ email: input.value }),
+          })
+          btn.textContent = 'Merci !'
+          input.value = ''
+          setTimeout(() => { btn.textContent = origText; btn.disabled = false }, 3000)
+        } catch {
+          btn.textContent = 'Erreur'
+          setTimeout(() => { btn.textContent = origText; btn.disabled = false }, 2000)
+        }
+      })
+    })
+  </script>
+</body>
+</html>

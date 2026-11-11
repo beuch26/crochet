@@ -1,0 +1,37 @@
+---
+/**
+ * Payment method icons — clean SVG badges
+ * Used in footer and checkout
+ */
+---
+
+<div class="flex items-center gap-2" role="group" aria-label="Moyens de paiement acceptes">
+  <!-- Visa -->
+  <div class="w-12 h-8 bg-white rounded-md border border-gray-700/15 flex items-center justify-center p-1.5" title="Visa">
+    <svg viewBox="0 0 750 471" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+      <path d="M278.198 334.228l33.36-195.763h53.358l-33.384 195.763H278.198zm246.463-191.23c-10.569-3.966-27.135-8.222-47.822-8.222-52.725 0-89.863 26.551-90.18 64.604-.318 28.129 26.514 43.822 46.754 53.186 20.771 9.594 27.752 15.714 27.656 24.278-.144 13.119-16.586 19.115-31.924 19.115-21.355 0-32.701-2.967-50.225-10.274l-6.878-3.111-7.487 43.822c12.464 5.467 35.508 10.199 59.438 10.445 56.09 0 92.502-26.248 92.916-66.884.199-22.27-14.016-39.216-44.801-53.188-18.65-9.056-30.072-15.099-29.951-24.269 0-8.137 9.668-16.838 30.559-16.838 17.398-.271 30.04 3.534 39.87 7.5l4.773 2.249 7.302-42.413zm131.163-4.533h-41.231c-12.773 0-22.332 3.486-27.941 16.234l-79.244 179.402h56.031s9.159-24.121 11.231-29.418c6.123 0 60.555.084 68.336.084 1.596 6.854 6.492 29.334 6.492 29.334h49.524l-43.198-195.636zm-65.417 126.408c4.414-11.279 21.26-54.724 21.26-54.724-.316.522 4.379-11.334 7.074-18.684l3.606 16.878s10.217 46.729 12.353 56.527h-44.293v.003zM209.394 138.465l-52.24 133.496-5.565-27.129c-9.726-31.274-40.025-65.157-73.898-82.12l47.767 171.204 56.456-.063 84.004-195.391h-56.524v.003z" fill="#1A1F71"/>
+      <path d="M131.92 138.465H49.503l-.682 4.073c66.939 16.204 111.232 55.363 129.618 102.415l-18.71-89.96c-3.229-12.396-12.597-16.095-27.809-16.528z" fill="#F9A533"/>
+    </svg>
+  </div>
+
+  <!-- Mastercard -->
+  <div class="w-12 h-8 bg-white rounded-md border border-gray-700/15 flex items-center justify-center p-1" title="Mastercard">
+    <svg viewBox="0 0 152 100" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="40" fill="#EB001B"/>
+      <circle cx="102" cy="50" r="40" fill="#F79E1B"/>
+      <path d="M76 20.8c11 8.5 18 21.7 18 36.5s-7 28-18 36.5c-11-8.5-18-21.7-18-36.5s7-28 18-36.5z" fill="#FF5F00"/>
+    </svg>
+  </div>
+
+  <!-- CB (Carte Bancaire) - Official colors -->
+  <div class="w-12 h-8 rounded-md overflow-hidden flex items-center justify-center" title="Carte Bancaire" style="background: linear-gradient(135deg, #005E9E 0%, #007DC3 50%, #00A651 100%);">
+    <svg viewBox="0 0 60 30" class="w-10 h-auto" xmlns="http://www.w3.org/2000/svg">
+      <text x="30" y="20" text-anchor="middle" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="16" letter-spacing="2">CB</text>
+    </svg>
+  </div>
+
+  <!-- Stripe (official wordmark) -->
+  <div class="w-14 h-8 bg-white rounded-md border border-gray-700/15 flex items-center justify-center px-2 py-1.5" title="Stripe">
+    <img src="/images/stripe-wordmark.webp" alt="Stripe" class="h-full w-auto object-contain" width="60" height="25" loading="lazy" />
+  </div>
+</div>

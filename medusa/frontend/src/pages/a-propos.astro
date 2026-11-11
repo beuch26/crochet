@@ -1,0 +1,42 @@
+---
+import Layout from '../layouts/Layout.astro'
+import SchemaBreadcrumb from '../components/seo/SchemaBreadcrumb.astro'
+import { getPage } from '../lib/medusa'
+import { normalizeInternalHrefsInHTML } from '../lib/url'
+
+let page: any = null
+try { const data = await getPage('a-propos'); page = data.page } catch {}
+
+const title = page?.seo_title || page?.title || 'À propos — Magic Crochet Kit'
+const description = page?.seo_description || 'Découvrez Magic Crochet Kit : kits de crochet tout-en-un, tutoriels pas à pas, fils de qualité. Apprenez à crocheter facilement, même en partant de zéro.'
+const fallbackContent = `
+<p>Bienvenue chez <strong>Magic Crochet Kit</strong>. Nous croyons que tout le monde peut apprendre le crochet, à son rythme, sans frustration ni achats à rallonge.</p>
+<h2>Notre mission</h2>
+<p>Vous donner tout ce qu'il faut dans un seul carton : le bon fil, le bon crochet, le rembourrage, les yeux de sécurité et un guide pas à pas qui ne vous abandonne jamais en cours de route.</p>
+<h2>Nos kits</h2>
+<p>Chaque kit est pensé pour un projet précis (un amigurumi, un accessoire, un vêtement) et un niveau précis (débutant, intermédiaire, avancé). Vous savez à l'avance combien de temps il vous faudra et à quoi va ressembler le résultat.</p>
+<h2>Fils et matériaux</h2>
+<p>Pour les projets plus libres, nous référençons les fils et accessoires de nos partenaires (notamment <strong>LoveCrafts</strong>, l'un des plus grands fournisseurs européens). Vous achetez chez eux, livré directement chez vous.</p>
+<h2>Une communauté</h2>
+<p>Inscrivez-vous à notre newsletter pour recevoir nos nouveaux modèles, des tutoriels exclusifs et les coulisses de la fabrication de nos kits.</p>
+`
+const content = normalizeInternalHrefsInHTML(page?.content || fallbackContent)
+---
+
+<Layout title={title} description={description}>
+  <SchemaBreadcrumb slot="head" items={[{ name: 'Magic Crochet Kit', url: '/' }, { name: 'À propos', url: '/a-propos/' }]} />
+  <section class="py-12 lg:py-16">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="mb-8 text-sm text-text-muted flex items-center gap-2 animate-fade-up">
+        <a href="/" class="hover:text-primary transition-colors">Magic Crochet Kit</a>
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-text">{page?.title || 'À propos'}</span>
+      </nav>
+
+      <div class="max-w-3xl mx-auto">
+        <h1 class="mb-8 animate-fade-up text-center">{page?.title || 'À propos'}</h1>
+        <div class="prose prose-lg max-w-none animate-fade-up delay-1" set:html={content} />
+      </div>
+    </div>
+  </section>
+</Layout>

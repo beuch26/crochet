@@ -1,0 +1,56 @@
+---
+import Layout from '../layouts/Layout.astro'
+import SchemaBreadcrumb from '../components/seo/SchemaBreadcrumb.astro'
+import { getPage } from '../lib/medusa'
+import { normalizeInternalHrefsInHTML } from '../lib/url'
+
+let page: any = null
+try { const data = await getPage('livraison'); page = data.page } catch {}
+
+const title = page?.seo_title || page?.title || 'Livraison & retours — Magic Crochet Kit'
+const description = page?.seo_description || 'Modalités de livraison et de retour Magic Crochet Kit : délais, tarifs, paliers offerts (50€/100€/150€).'
+const fallbackContent = `
+<h2>Délais</h2>
+<p>Vos kits sont préparés sous <strong>1 à 2 jours ouvrés</strong> dans notre atelier. Une fois confiés au transporteur, comptez <strong>2 à 5 jours ouvrés</strong> pour la France métropolitaine.</p>
+
+<h2>Tarifs et paliers offerts</h2>
+<ul>
+  <li>Colissimo standard : <strong>4,90 €</strong></li>
+  <li>🚚 <strong>Livraison gratuite</strong> dès <strong>50 € d'achat</strong></li>
+  <li>⚡ <strong>Express gratuit</strong> dès <strong>100 € d'achat</strong></li>
+  <li>🎁 <strong>Cadeau offert</strong> dans le colis dès <strong>150 € d'achat</strong></li>
+</ul>
+
+<h2>Suivi</h2>
+<p>Dès l'expédition, vous recevez un email avec le numéro de suivi. Vous pouvez aussi suivre votre colis depuis la page <a href="/suivi-commande/">Suivi de commande</a>.</p>
+
+<h2>Zones de livraison</h2>
+<p>Nous livrons en <strong>France métropolitaine</strong>, en <strong>Belgique</strong>, en <strong>Suisse</strong> et au <strong>Luxembourg</strong>. Pour les autres pays, contactez-nous à <a href="mailto:contact@magic-crochet-kit.com">contact@magic-crochet-kit.com</a> avant de commander pour un devis sur mesure.</p>
+
+<h2>Retours</h2>
+<p>Vous avez <strong>30 jours</strong> après réception pour nous renvoyer un produit non utilisé dans son emballage d'origine. Pour ouvrir un retour, écrivez-nous avec votre numéro de commande à <a href="mailto:contact@magic-crochet-kit.com">contact@magic-crochet-kit.com</a>.</p>
+<ul>
+  <li>Produit défectueux : retour gratuit, remboursement ou échange à votre choix.</li>
+  <li>Changement d'avis : frais de retour à votre charge, remboursement à réception du colis.</li>
+</ul>
+
+<h2>Produits affiliés (LoveCrafts)</h2>
+<p>Les fils et accessoires expédiés par notre partenaire <strong>LoveCrafts</strong> suivent leur propre politique de livraison et de retour (généralement 30 jours également). Vous achetez et êtes livré directement par eux.</p>
+`
+const content = normalizeInternalHrefsInHTML(page?.content || fallbackContent)
+---
+
+<Layout title={title} description={description}>
+  <SchemaBreadcrumb slot="head" items={[{ name: 'Magic Crochet Kit', url: '/' }, { name: 'Livraison', url: '/livraison/' }]} />
+  <section class="py-12 lg:py-16">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="mb-8 text-sm text-text-muted flex items-center gap-2 animate-fade-up">
+        <a href="/" class="hover:text-primary transition-colors">Magic Crochet Kit</a>
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-text">{page?.title || 'Livraison'}</span>
+      </nav>
+      <h1 class="mb-8 animate-fade-up">{page?.title || 'Livraison'}</h1>
+      <div class="prose max-w-none animate-fade-up delay-1" set:html={content} />
+    </div>
+  </section>
+</Layout>

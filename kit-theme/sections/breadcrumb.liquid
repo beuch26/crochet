@@ -1,0 +1,142 @@
+{%- comment -%}
+  Breadcrumb Navigation Section
+  Displays hierarchical navigation path
+{%- endcomment -%}
+
+{%- render 'breadcrumbs', section: section -%}
+
+{% schema %}
+{
+  "name": "Fil d'Ariane",
+  "class": "section-breadcrumb",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Paramètres du fil d'Ariane"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumb",
+      "label": "Afficher le fil d'Ariane",
+      "default": true,
+      "info": "Afficher la navigation fil d'Ariane sur toutes les pages sauf l'accueil et la page 404"
+    },
+    {
+      "type": "range",
+      "id": "spacing_top_desktop",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "label": "Espace depuis l'en-tête (PC)",
+      "default": 0,
+      "info": "Ajouter un espace supplémentaire entre l'en-tête et le fil d'Ariane sur ordinateur"
+    },
+    {
+      "type": "range",
+      "id": "spacing_top_mobile",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "label": "Espace depuis l'en-tête (Mobile)",
+      "default": 0,
+      "info": "Ajouter un espace supplémentaire entre l'en-tête et le fil d'Ariane sur mobile"
+    },
+    {
+      "type": "range",
+      "id": "spacing_bottom",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "label": "Espace vers la section suivante",
+      "default": 0,
+      "info": "Espace entre le fil d'Ariane et la section Informations produit"
+    },
+    {
+      "type": "range",
+      "id": "section_height",
+      "min": 1,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
+      "label": "Hauteur de la section",
+      "default": 40,
+      "info": "Hauteur totale de la section fil d'Ariane (le texte sera centré verticalement)"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Couleur de fond",
+      "default": "#f9f9f9",
+      "info": "Couleur de fond du fil d'Ariane"
+    },
+    {
+      "type": "header",
+      "content": "Texte du fil d'Ariane"
+    },
+    {
+      "type": "text",
+      "id": "text_home",
+      "label": "Accueil",
+      "default": "Accueil",
+      "info": "Texte pour le lien vers l'accueil"
+    },
+    {
+      "type": "text",
+      "id": "text_products",
+      "label": "Produits",
+      "default": "Produits",
+      "info": "Texte pour le lien vers le catalogue de produits"
+    },
+    {
+      "type": "text",
+      "id": "text_search",
+      "label": "Recherche",
+      "default": "Recherche",
+      "info": "Texte pour la page de résultats de recherche"
+    },
+    {
+      "type": "text",
+      "id": "text_cart",
+      "label": "Panier",
+      "default": "Panier",
+      "info": "Texte pour la page panier"
+    },
+    {
+      "type": "text",
+      "id": "text_collections",
+      "label": "Collections",
+      "default": "Collections",
+      "info": "Texte pour la page liste des collections"
+    },
+    {
+      "type": "text",
+      "id": "text_account",
+      "label": "Compte",
+      "default": "Compte",
+      "info": "Texte pour les pages compte"
+    },
+    {
+      "type": "text",
+      "id": "text_addresses",
+      "label": "Adresses",
+      "default": "Adresses",
+      "info": "Texte pour la page adresses"
+    },
+    {
+      "type": "text",
+      "id": "text_order",
+      "label": "Commande",
+      "default": "Commande",
+      "info": "Texte pour la page détails de commande"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Fil d'Ariane"
+    }
+  ]
+}
+{% endschema %}

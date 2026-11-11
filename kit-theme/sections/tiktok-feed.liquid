@@ -1,0 +1,793 @@
+{%- comment -%}
+  TikTok Feed Section
+  Display TikTok videos in a grid or carousel
+
+  Usage: Add via Theme Editor
+{%- endcomment -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign heading = section.settings.heading
+  assign subheading = section.settings.subheading
+  assign layout = section.settings.layout | default: 'grid'
+  assign columns = section.settings.columns | default: 4
+  assign show_username = section.settings.show_username
+  assign show_likes = section.settings.show_likes
+  assign tiktok_handle = section.settings.tiktok_handle
+-%}
+
+<section class="tiktok-feed section section--{{ section_id }}" id="tiktok-{{ section_id }}">
+  <div class="container">
+    {%- if heading != blank or subheading != blank -%}
+      <div class="section-header section-header--center">
+        {%- if heading != blank -%}
+          {%- if section.settings.enable_heading_style -%}
+            {%- render 'heading-styles',
+              text: heading,
+              tag: 'h2',
+              style: section.settings.heading_style,
+              color: section.settings.heading_style_color,
+              align: 'center',
+              size: 'xl',
+              typing_texts: section.settings.typing_texts
+            -%}
+          {%- else -%}
+            <h2 class="section-header__title">{{ heading }}</h2>
+          {%- endif -%}
+        {%- endif -%}
+        {%- if subheading != blank -%}
+          <p class="section-header__subtitle">{{ subheading }}</p>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <div
+        class="tiktok-feed__wrapper tiktok-feed__wrapper--{{ layout }}"
+        style="--tiktok-columns: {{ columns }};"
+        data-tiktok-feed
+        {% if layout == 'carousel' %}data-tiktok-carousel{% endif %}
+      >
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign video_url = block.settings.video_url
+            assign video_id = ''
+
+            # Extract TikTok video ID from URL
+            # Format: https://www.tiktok.com/@username/video/1234567890123456789
+            if video_url contains '/video/'
+              assign video_id = video_url | split: '/video/' | last | split: '?' | first | split: '/' | first
+            endif
+          -%}
+
+          <div class="tiktok-feed__item" {{ block.shopify_attributes }}>
+            <button
+              type="button"
+              class="tiktok-feed__card"
+              data-video-id="{{ video_id }}"
+              data-video-url="{{ video_url }}"
+              aria-label="{{ block.settings.caption | default: 'Lire la vidéo TikTok' }}"
+            >
+              <div class="tiktok-feed__thumbnail" data-tiktok-thumbnail data-video-url="{{ video_url }}">
+                {%- if block.settings.thumbnail != blank -%}
+                  <img
+                    src="{{ block.settings.thumbnail | image_url: width: 400 }}"
+                    alt="{{ block.settings.caption | default: 'TikTok video' }}"
+                    width="400"
+                    height="711"
+                    loading="lazy"
+                    class="tiktok-feed__image"
+                  >
+                {%- else -%}
+                  <div class="tiktok-feed__placeholder" data-tiktok-placeholder>
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                      <path d="M41.5 24c0-2.2-.4-4.3-1.2-6.2-.8-1.9-2-3.6-3.5-5.1s-3.2-2.7-5.1-3.5c-1.9-.8-4-1.2-6.2-1.2h-3.1v21.6c0 2.1-1.7 3.8-3.8 3.8s-3.8-1.7-3.8-3.8 1.7-3.8 3.8-3.8c.5 0 .9.1 1.4.2V18c-.5-.1-.9-.1-1.4-.1-5.5 0-10 4.5-10 10s4.5 10 10 10c5.5 0 10-4.5 10-10V20c2.7 1.9 5.9 3 9.2 3h.7V16h-.7c-3.3 0-6.5-1.1-9.2-3h3.1c4 0 7.8 1.6 10.6 4.4 2.8 2.8 4.4 6.6 4.4 10.6h6.8z" fill="currentColor"/>
+                    </svg>
+                    <div class="tiktok-feed__loading" style="display: none;">
+                      <div class="tiktok-feed__spinner"></div>
+                    </div>
+                  </div>
+                {%- endif -%}
+
+                {%- comment -%} TikTok badge {%- endcomment -%}
+                <div class="tiktok-feed__badge">
+                  <svg width="16" height="18" viewBox="0 0 48 48" fill="currentColor">
+                    <path d="M41.5 24c0-2.2-.4-4.3-1.2-6.2-.8-1.9-2-3.6-3.5-5.1s-3.2-2.7-5.1-3.5c-1.9-.8-4-1.2-6.2-1.2h-3.1v21.6c0 2.1-1.7 3.8-3.8 3.8s-3.8-1.7-3.8-3.8 1.7-3.8 3.8-3.8c.5 0 .9.1 1.4.2V18c-.5-.1-.9-.1-1.4-.1-5.5 0-10 4.5-10 10s4.5 10 10 10c5.5 0 10-4.5 10-10V20c2.7 1.9 5.9 3 9.2 3h.7V16h-.7c-3.3 0-6.5-1.1-9.2-3h3.1c4 0 7.8 1.6 10.6 4.4 2.8 2.8 4.4 6.6 4.4 10.6h6.8z"/>
+                  </svg>
+                </div>
+
+                <div class="tiktok-feed__overlay">
+                  <svg class="tiktok-feed__play" width="64" height="64" viewBox="0 0 64 64" fill="none">
+                    <circle cx="32" cy="32" r="30" fill="rgba(0,0,0,0.6)" stroke="white" stroke-width="2"/>
+                    <path d="M26 20L46 32L26 44V20Z" fill="white"/>
+                  </svg>
+                </div>
+
+                {%- comment -%} Inline video container {%- endcomment -%}
+                <div class="tiktok-feed__video-container" data-video-container style="display: none;"></div>
+              </div>
+
+              <div class="tiktok-feed__content">
+                {%- if block.settings.caption != blank -%}
+                  <p class="tiktok-feed__caption">{{ block.settings.caption | truncate: 80 }}</p>
+                {%- endif -%}
+
+                <div class="tiktok-feed__meta">
+                  {%- if show_username and block.settings.username != blank -%}
+                    <span class="tiktok-feed__username">@{{ block.settings.username }}</span>
+                  {%- endif -%}
+
+                  {%- if show_likes and block.settings.likes != blank -%}
+                    <span class="tiktok-feed__likes">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M7 12.5L1.5 7C0.5 6 0.5 4.3 1.5 3.3C2.5 2.3 4.2 2.3 5.2 3.3L7 5.1L8.8 3.3C9.8 2.3 11.5 2.3 12.5 3.3C13.5 4.3 13.5 6 12.5 7L7 12.5Z" fill="currentColor"/>
+                      </svg>
+                      {{ block.settings.likes }}
+                    </span>
+                  {%- endif -%}
+
+                  {%- if block.settings.views != blank -%}
+                    <span class="tiktok-feed__views">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M7 3C3.5 3 1 7 1 7C1 7 3.5 11 7 11C10.5 11 13 7 13 7C13 7 10.5 3 7 3Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/>
+                      </svg>
+                      {{ block.settings.views }}
+                    </span>
+                  {%- endif -%}
+                </div>
+              </div>
+            </button>
+          </div>
+        {%- endfor -%}
+      </div>
+
+      {%- if layout == 'carousel' -%}
+        <div class="tiktok-feed__nav">
+          <button class="tiktok-feed__nav-btn tiktok-feed__nav-btn--prev" data-tiktok-prev aria-label="{{ 'accessibility.previous' | t | default: 'Précédent' }}">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="tiktok-feed__nav-btn tiktok-feed__nav-btn--next" data-tiktok-next aria-label="{{ 'accessibility.next' | t | default: 'Suivant' }}">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      {%- endif -%}
+    {%- else -%}
+      <div class="tiktok-feed__empty">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+          <path d="M55.3 32c0-2.9-.5-5.7-1.6-8.3-1.1-2.5-2.7-4.8-4.7-6.8s-4.3-3.6-6.8-4.7c-2.5-1.1-5.3-1.6-8.3-1.6h-4.1v28.8c0 2.8-2.3 5.1-5.1 5.1s-5.1-2.3-5.1-5.1 2.3-5.1 5.1-5.1c.7 0 1.2.1 1.9.3V24c-.6-.1-1.2-.1-1.9-.1-7.3 0-13.3 6-13.3 13.3s6 13.3 13.3 13.3 13.3-6 13.3-13.3v-10.6c3.6 2.5 7.9 4 12.3 4h.9v-9.3h-.9c-4.4 0-8.7-1.5-12.3-4h4.1c5.3 0 10.4 2.1 14.1 5.9 3.7 3.7 5.9 8.8 5.9 14.1h9.1z" fill="currentColor" opacity="0.3"/>
+        </svg>
+        <p>{{ 'sections.tiktok.add_videos' | t | default: "Ajoutez des vidéos TikTok via l'éditeur de thème" }}</p>
+      </div>
+    {%- endif -%}
+
+    {%- if tiktok_handle != blank -%}
+      <div class="tiktok-feed__cta">
+        <a href="https://www.tiktok.com/@{{ tiktok_handle }}" class="btn btn--outline" target="_blank" rel="noopener noreferrer">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M17.3 10c0-1.2-.2-2.3-.6-3.4-.4-1-1-1.9-1.8-2.7-.8-.8-1.7-1.4-2.7-1.8-1-.4-2.2-.6-3.4-.6h-1.6v11.3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2c.3 0 .5 0 .7.1V7.5c-.2 0-.5-.1-.7-.1-2.9 0-5.2 2.4-5.2 5.2s2.4 5.2 5.2 5.2 5.2-2.4 5.2-5.2v-5.5c1.4 1 3.1 1.6 4.8 1.6h.4V6h-.4c-1.7 0-3.4-.6-4.8-1.6h1.6c2.1 0 4.1.8 5.5 2.3 1.5 1.5 2.3 3.5 2.3 5.5h3.5z" fill="currentColor"/>
+          </svg>
+          {{ 'sections.tiktok.follow_us' | t | default: 'Suivez-nous sur TikTok' }}
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<style>
+  .tiktok-feed {
+    padding: var(--spacing-2xl) 0;
+  }
+
+  /* Grid Layout */
+  .tiktok-feed__wrapper--grid {
+    display: grid;
+    grid-template-columns: repeat(var(--tiktok-columns, 4), 1fr);
+    gap: var(--spacing-md);
+  }
+
+  /* Carousel Layout */
+  .tiktok-feed__wrapper--carousel {
+    display: flex;
+    gap: var(--spacing-md);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: var(--spacing-sm);
+  }
+
+  .tiktok-feed__wrapper--carousel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tiktok-feed__wrapper--carousel .tiktok-feed__item {
+    flex: 0 0 calc(100% / var(--tiktok-columns, 4) - var(--spacing-md));
+    scroll-snap-align: start;
+  }
+
+  /* Item Styles */
+  .tiktok-feed__item {
+    position: relative;
+  }
+
+  .tiktok-feed__card {
+    display: block;
+    width: 100%;
+    text-decoration: none;
+    color: inherit;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .tiktok-feed__thumbnail {
+    position: relative;
+    aspect-ratio: 9/16;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background-color: var(--color-background-light);
+  }
+
+  .tiktok-feed__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .tiktok-feed__card:hover .tiktok-feed__image {
+    transform: scale(1.05);
+  }
+
+  .tiktok-feed__placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #25f4ee 0%, #fe2c55 50%, #000 100%);
+    color: white;
+    position: relative;
+  }
+
+  /* TikTok Badge */
+  .tiktok-feed__badge {
+    position: absolute;
+    top: var(--spacing-sm);
+    left: var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #000;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+    font-weight: 600;
+    z-index: 2;
+  }
+
+  .tiktok-feed__badge svg {
+    width: 14px;
+    height: 16px;
+  }
+
+  /* Loading spinner */
+  .tiktok-feed__loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .tiktok-feed__spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: tiktok-spin 0.8s linear infinite;
+  }
+
+  @keyframes tiktok-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .tiktok-feed__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.7) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .tiktok-feed__card:hover .tiktok-feed__overlay {
+    opacity: 1;
+  }
+
+  .tiktok-feed__play {
+    color: white;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+  }
+
+  .tiktok-feed__card:hover .tiktok-feed__play {
+    transform: scale(1);
+  }
+
+  /* Content */
+  .tiktok-feed__content {
+    padding: var(--spacing-sm) 0;
+  }
+
+  .tiktok-feed__caption {
+    font-size: 0.875rem;
+    line-height: 1.4;
+    margin: 0 0 var(--spacing-xs);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .tiktok-feed__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+  }
+
+  .tiktok-feed__username {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .tiktok-feed__likes,
+  .tiktok-feed__views {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .tiktok-feed__likes svg,
+  .tiktok-feed__views svg {
+    color: #fe2c55;
+  }
+
+  .tiktok-feed__views svg {
+    color: var(--color-text-light);
+  }
+
+  /* Navigation */
+  .tiktok-feed__nav {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+  }
+
+  .tiktok-feed__nav-btn {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-background);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .tiktok-feed__nav-btn:hover {
+    border-color: var(--color-text);
+    background-color: var(--color-text);
+    color: var(--color-background);
+  }
+
+  .tiktok-feed__nav-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Empty State */
+  .tiktok-feed__empty {
+    text-align: center;
+    padding: var(--spacing-2xl);
+    color: var(--color-text-light);
+  }
+
+  .tiktok-feed__empty svg {
+    margin-bottom: var(--spacing-sm);
+  }
+
+  /* CTA */
+  .tiktok-feed__cta {
+    text-align: center;
+    margin-top: var(--spacing-lg);
+  }
+
+  .tiktok-feed__cta .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 999px) {
+    .tiktok-feed__wrapper--grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .tiktok-feed__wrapper--carousel .tiktok-feed__item {
+      flex: 0 0 calc(100% / 3 - var(--spacing-md));
+    }
+  }
+
+  @media (max-width: 767px) {
+    .tiktok-feed__wrapper--grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tiktok-feed__wrapper--carousel .tiktok-feed__item {
+      flex: 0 0 calc(50% - var(--spacing-sm));
+    }
+
+    .tiktok-feed__nav {
+      display: none;
+    }
+  }
+
+  @media (max-width: 479px) {
+    .tiktok-feed__wrapper--carousel .tiktok-feed__item {
+      flex: 0 0 80%;
+    }
+  }
+
+  /* Inline Video */
+  .tiktok-feed__video-container {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    background: #000;
+  }
+
+  .tiktok-feed__video-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  .tiktok-feed__card.is-playing .tiktok-feed__overlay,
+  .tiktok-feed__card.is-playing .tiktok-feed__badge,
+  .tiktok-feed__card.is-playing .tiktok-feed__image,
+  .tiktok-feed__card.is-playing .tiktok-feed__placeholder {
+    display: none;
+  }
+
+  .tiktok-feed__card.is-playing {
+    cursor: default;
+  }
+</style>
+
+<script>
+  (function() {
+    'use strict';
+
+    // Fetch TikTok thumbnails via oEmbed API with timeout and fallback
+    async function fetchTikTokThumbnail(videoUrl) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
+        const oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(videoUrl)}`;
+        const response = await fetch(oembedUrl, {
+          signal: controller.signal,
+          mode: 'cors'
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) throw new Error('Failed to fetch');
+        const data = await response.json();
+        return data.thumbnail_url || null;
+      } catch (error) {
+        // CORS errors or timeout - silently fail, thumbnail stays as placeholder
+        return null;
+      }
+    }
+
+    // Initialize thumbnails for videos without custom thumbnails
+    async function initTikTokThumbnails(container) {
+      const thumbnailContainers = container.querySelectorAll('[data-tiktok-thumbnail]');
+
+      for (const thumb of thumbnailContainers) {
+        const videoUrl = thumb.dataset.videoUrl;
+        const placeholder = thumb.querySelector('[data-tiktok-placeholder]');
+
+        // Skip if already has an image or no video URL
+        if (!placeholder || !videoUrl || videoUrl === '#') continue;
+
+        const loading = placeholder.querySelector('.tiktok-feed__loading');
+        if (loading) loading.style.display = 'flex';
+
+        const thumbnailUrl = await fetchTikTokThumbnail(videoUrl);
+
+        if (thumbnailUrl) {
+          const img = document.createElement('img');
+          img.src = thumbnailUrl;
+          img.alt = 'TikTok video';
+          img.className = 'tiktok-feed__image';
+          img.loading = 'lazy';
+          img.style.opacity = '0';
+          img.style.transition = 'opacity 0.3s ease';
+
+          img.onload = () => {
+            placeholder.style.display = 'none';
+            thumb.insertBefore(img, thumb.firstChild);
+            requestAnimationFrame(() => {
+              img.style.opacity = '1';
+            });
+          };
+
+          img.onerror = () => {
+            if (loading) loading.style.display = 'none';
+          };
+        } else {
+          if (loading) loading.style.display = 'none';
+        }
+      }
+    }
+
+    function initTikTokCarousel(container) {
+      const wrapper = container.querySelector('[data-tiktok-carousel]');
+      if (!wrapper) return;
+
+      const prevBtn = container.querySelector('[data-tiktok-prev]');
+      const nextBtn = container.querySelector('[data-tiktok-next]');
+      const items = wrapper.querySelectorAll('.tiktok-feed__item');
+
+      if (!items.length) return;
+
+      const itemWidth = items[0].offsetWidth + parseInt(getComputedStyle(wrapper).gap);
+
+      function updateButtons() {
+        if (prevBtn) {
+          prevBtn.disabled = wrapper.scrollLeft <= 0;
+        }
+        if (nextBtn) {
+          nextBtn.disabled = wrapper.scrollLeft >= wrapper.scrollWidth - wrapper.clientWidth - 10;
+        }
+      }
+
+      function scrollTo(direction) {
+        const scrollAmount = direction === 'next' ? itemWidth : -itemWidth;
+        wrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      }
+
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => scrollTo('prev'));
+      }
+
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => scrollTo('next'));
+      }
+
+      wrapper.addEventListener('scroll', updateButtons);
+      updateButtons();
+    }
+
+    function initTikTokInlineVideo(container) {
+      const cards = container.querySelectorAll('.tiktok-feed__card');
+
+      cards.forEach(card => {
+        card.addEventListener('click', () => {
+          // If already playing, do nothing
+          if (card.classList.contains('is-playing')) return;
+
+          const videoId = card.dataset.videoId;
+          const videoUrl = card.dataset.videoUrl;
+          const videoContainer = card.querySelector('[data-video-container]');
+
+          if (!videoId || !videoContainer) {
+            // Fallback: open video URL in new tab
+            if (videoUrl) window.open(videoUrl, '_blank');
+            return;
+          }
+
+          // Create TikTok embed
+          videoContainer.innerHTML = `
+            <iframe
+              src="https://www.tiktok.com/embed/v2/${videoId}"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+            ></iframe>
+          `;
+
+          videoContainer.style.display = 'block';
+          card.classList.add('is-playing');
+        });
+      });
+    }
+
+    function initTikTokSection(container) {
+      initTikTokCarousel(container);
+      initTikTokThumbnails(container);
+      initTikTokInlineVideo(container);
+    }
+
+    document.querySelectorAll('.tiktok-feed').forEach(initTikTokSection);
+
+    if (Shopify.designMode) {
+      document.addEventListener('shopify:section:load', (e) => {
+        const feed = e.target.querySelector('.tiktok-feed');
+        if (feed) initTikTokSection(feed);
+      });
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Flux TikTok",
+  "tag": "section",
+  "class": "section-tiktok-feed",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre",
+      "default": "Suivez-nous sur TikTok"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Sous-titre"
+    },
+    {
+      "type": "text",
+      "id": "tiktok_handle",
+      "label": "Pseudo TikTok",
+      "info": "Sans le symbole @"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Disposition",
+      "options": [
+        { "value": "grid", "label": "Grille" },
+        { "value": "carousel", "label": "Carrousel" }
+      ],
+      "default": "grid"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Colonnes (bureau)",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "checkbox",
+      "id": "show_username",
+      "label": "Afficher le pseudo",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_likes",
+      "label": "Afficher le nombre de likes",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#fe2c55"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "video",
+      "name": "Vidéo TikTok",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "thumbnail",
+          "label": "Image miniature"
+        },
+        {
+          "type": "url",
+          "id": "video_url",
+          "label": "URL de la vidéo TikTok",
+          "info": "La miniature est récupérée automatiquement depuis TikTok"
+        },
+        {
+          "type": "text",
+          "id": "caption",
+          "label": "Légende"
+        },
+        {
+          "type": "text",
+          "id": "username",
+          "label": "Pseudo"
+        },
+        {
+          "type": "text",
+          "id": "likes",
+          "label": "Nombre de likes",
+          "info": "ex: 12,5K"
+        },
+        {
+          "type": "text",
+          "id": "views",
+          "label": "Nombre de vues",
+          "info": "ex: 1,2M"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Flux TikTok",
+      "blocks": [
+        { "type": "video", "settings": { "caption": "Découvrez notre dernier produit !", "username": "votremarque", "likes": "5,2K", "views": "45K" } },
+        { "type": "video", "settings": { "caption": "Dans les coulisses", "username": "votremarque", "likes": "3,8K", "views": "28K" } },
+        { "type": "video", "settings": { "caption": "Unboxing client", "username": "votremarque", "likes": "8,1K", "views": "92K" } },
+        { "type": "video", "settings": { "caption": "Comment c'est fait", "username": "votremarque", "likes": "6,4K", "views": "67K" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

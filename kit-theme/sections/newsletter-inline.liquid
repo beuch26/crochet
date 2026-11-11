@@ -1,0 +1,392 @@
+{%- comment -%}
+  Newsletter Inline Section
+  Email subscription form for homepage
+{%- endcomment -%}
+
+{%- render 'section-spacing', id: section.id, margin_top: section.settings.section_margin_top, margin_bottom: section.settings.section_margin_bottom -%}
+
+<div class="newsletter-section section {% if section.settings.color_scheme == 'accent' %}newsletter-section--accent{% endif %}">
+  <div class="container">
+    <div class="newsletter-content">
+
+      {%- if section.settings.show_icon -%}
+        <div class="newsletter-icon">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <path d="M4 12h40v24c0 2.2-1.8 4-4 4H8c-2.2 0-4-1.8-4-4V12z" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M44 12L24 28 4 12" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      {%- endif -%}
+
+      <div class="newsletter-text">
+        {%- if section.settings.title != blank -%}
+          <p class="newsletter-title">{{ section.settings.title }}</p>
+        {%- endif -%}
+
+        {%- if section.settings.subtitle != blank -%}
+          <p class="newsletter-subtitle">{{ section.settings.subtitle }}</p>
+        {%- endif -%}
+      </div>
+
+      <div class="newsletter-form-wrapper">
+        {%- form 'customer', class: 'newsletter-form' -%}
+          <input type="hidden" name="contact[tags]" value="newsletter">
+
+          <div class="newsletter-form-group">
+            <input
+              type="email"
+              name="contact[email]"
+              class="newsletter-input"
+              placeholder="{{ section.settings.placeholder | default: 'Entrez votre email' }}"
+              aria-label="{{ 'newsletter.email_placeholder' | t }}"
+              required
+            >
+            <button type="submit" class="btn btn--primary newsletter-submit">
+              {{ section.settings.button_label | default: "S'inscrire" }}
+            </button>
+          </div>
+
+          {%- if form.posted_successfully? -%}
+            <div class="newsletter-success">
+              ✓ {{ section.settings.success_message | default: 'Merci de vous être inscrit !' }}
+            </div>
+          {%- endif -%}
+
+          {%- if form.errors -%}
+            <div class="newsletter-error">
+              {{ 'newsletter.error' | t }}
+            </div>
+          {%- endif -%}
+        {%- endform -%}
+
+        {%- if section.settings.show_privacy_text -%}
+          <p class="newsletter-privacy">
+            {{ section.settings.privacy_text | default: 'Nous respectons votre vie privée. Désabonnez-vous à tout moment.' }}
+          </p>
+        {%- endif -%}
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+.newsletter-section {
+  background-color: var(--color-background-light);
+  padding: clamp(3rem, 8vw, 5rem) 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Warm cream/beige theme to contrast with blue CTA above */
+.newsletter-section--accent {
+  background: linear-gradient(135deg, #FEF7ED 0%, #FDF4E7 50%, #FCF0DF 100%);
+  color: var(--color-text);
+}
+
+/* Decorative yarn ball pattern */
+.newsletter-section--accent::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(80, 183, 241, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.newsletter-section--accent::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -5%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.newsletter-section--accent .newsletter-title,
+.newsletter-section--accent .newsletter-subtitle {
+  color: var(--color-text);
+}
+
+.newsletter-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: center;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 768px) {
+  .newsletter-content {
+    grid-template-columns: auto 1fr 1.2fr;
+    text-align: left;
+  }
+}
+
+.newsletter-icon {
+  color: var(--color-primary);
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 4px 20px rgba(80, 183, 241, 0.2);
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .newsletter-icon {
+    margin: 0;
+  }
+}
+
+.newsletter-section--accent .newsletter-icon {
+  color: var(--color-primary);
+  background: white;
+}
+
+.newsletter-title {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: var(--color-text);
+}
+
+.newsletter-subtitle {
+  font-size: 0.9375rem;
+  color: var(--color-text-light);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.newsletter-section--accent .newsletter-subtitle {
+  color: var(--color-text-light);
+}
+
+.newsletter-form-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.newsletter-form-group {
+  display: flex;
+  gap: 0.5rem;
+  background: white;
+  padding: 0.375rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.newsletter-form-group:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 20px rgba(80, 183, 241, 0.15);
+}
+
+.newsletter-input {
+  flex: 1;
+  padding: 0.875rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  background-color: transparent;
+  color: var(--color-text);
+}
+
+.newsletter-section--accent .newsletter-input {
+  background-color: transparent;
+}
+
+.newsletter-input:focus {
+  outline: none;
+}
+
+.newsletter-input::placeholder {
+  color: #9CA3AF;
+}
+
+.newsletter-submit {
+  white-space: nowrap;
+  padding: 0.875rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.newsletter-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(80, 183, 241, 0.3);
+}
+
+.newsletter-success {
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: white;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.newsletter-error {
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  color: white;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.newsletter-privacy {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  margin: 0;
+  text-align: center;
+}
+
+.newsletter-section--accent .newsletter-privacy {
+  color: var(--color-text-light);
+  opacity: 0.8;
+}
+
+@media (max-width: 767px) {
+  .newsletter-form-group {
+    flex-direction: column;
+    padding: 0.5rem;
+  }
+
+  .newsletter-submit {
+    width: 100%;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .newsletter-form-group,
+  .newsletter-submit {
+    transition: none;
+  }
+
+  .newsletter-submit:hover {
+    transform: none;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Newsletter",
+  "class": "section-newsletter",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_icon",
+      "label": "Afficher l'icone",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre",
+      "default": "Restez Informé"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Sous-titre",
+      "default": "Inscrivez-vous pour recevoir nos offres spéciales et actualités"
+    },
+    {
+      "type": "text",
+      "id": "placeholder",
+      "label": "Placeholder de l'email",
+      "default": "Entrez votre email"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Texte du bouton",
+      "default": "S'inscrire"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Couleurs",
+      "options": [
+        {
+          "value": "default",
+          "label": "Par défaut"
+        },
+        {
+          "value": "accent",
+          "label": "Accent (Dégradé)"
+        }
+      ],
+      "default": "accent"
+    },
+    {
+      "type": "header",
+      "content": "Confidentialité"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_privacy_text",
+      "label": "Afficher le texte de confidentialité",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "privacy_text",
+      "label": "Texte de confidentialité",
+      "default": "Nous respectons votre vie privée. Désabonnez-vous à tout moment."
+    },
+    {
+      "type": "text",
+      "id": "success_message",
+      "label": "Message de succès",
+      "default": "Merci de vous être inscrit !"
+    },
+    {
+      "type": "header",
+      "content": "Espacement de la section"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_top",
+      "label": "Marge en haut (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_bottom",
+      "label": "Marge en bas (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Newsletter"
+    }
+  ]
+}
+{% endschema %}

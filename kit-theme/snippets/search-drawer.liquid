@@ -1,0 +1,884 @@
+{%- comment -%}
+  Search Drawer Enhanced
+  Full-screen search overlay with suggestions, history, and live results
+
+  Parameters:
+  - show_suggestions: Show trending/popular searches (default: true)
+  - show_history: Show recent search history (default: true)
+  - show_collections: Show collection suggestions (default: true)
+
+  Usage:
+  {%- render 'search-drawer' -%}
+{%- endcomment -%}
+
+{%- liquid
+  assign show_suggestions = show_suggestions | default: true
+  assign show_history = show_history | default: true
+  assign show_collections = show_collections | default: true
+  assign max_results = settings.search_max_results | default: 6
+-%}
+
+<div class="search-drawer" id="search-drawer" data-search-drawer aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="search-drawer-title">
+  <div class="search-drawer__backdrop" data-search-close></div>
+
+  <div class="search-drawer__panel">
+    <div class="search-drawer__header">
+      <span id="search-drawer-title" class="visually-hidden">{{ 'search.title' | t | default: 'Recherche' }}</span>
+
+      <form action="{{ routes.search_url }}" method="get" class="search-drawer__form" role="search" data-search-form>
+        <div class="search-drawer__input-wrapper">
+          <svg class="search-drawer__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M9 17C13.4183 17 17 13.4183 17 9C17 4.58172 13.4183 1 9 1C4.58172 1 1 4.58172 1 9C1 13.4183 4.58172 17 9 17Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 19L14.65 14.65" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+
+          <input
+            type="search"
+            name="q"
+            id="search-drawer-input"
+            class="search-drawer__input"
+            placeholder="{{ 'search.placeholder' | t | default: 'Rechercher produits, collections...' }}"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            data-search-input
+          >
+
+          <button type="button" class="search-drawer__clear" data-search-clear aria-label="{{ 'search.clear' | t | default: 'Effacer la recherche' }}" style="display: none;">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <input type="hidden" name="type" value="product">
+
+        <button type="button" class="search-drawer__close" data-search-close aria-label="{{ 'accessibility.close' | t | default: 'Fermer la recherche' }}">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+
+    <div class="search-drawer__body" data-search-body>
+      {%- comment -%} Initial State: Suggestions & History {%- endcomment -%}
+      <div class="search-drawer__initial" data-search-initial>
+        {%- if show_history -%}
+          <div class="search-drawer__section search-drawer__history" data-search-history style="display: none;">
+            <div class="search-drawer__section-header">
+              <span class="search-drawer__section-title">{{ 'search.recent_searches' | t | default: 'Recherches récentes' }}</span>
+              <button type="button" class="search-drawer__clear-history" data-clear-history>
+                {{ 'search.clear_history' | t | default: 'Effacer' }}
+              </button>
+            </div>
+            <ul class="search-drawer__history-list" data-history-list></ul>
+          </div>
+        {%- endif -%}
+
+        {%- if show_suggestions -%}
+          <div class="search-drawer__section search-drawer__suggestions">
+            <span class="search-drawer__section-title">{{ 'search.trending' | t | default: 'Recherches tendances' }}</span>
+            <ul class="search-drawer__suggestion-list">
+              {%- assign trending_searches = settings.trending_searches | default: 'Nouveautés,Meilleures ventes,Promotions,Idées cadeaux' | split: ',' -%}
+              {%- for search_term in trending_searches -%}
+                {%- assign term = search_term | strip -%}
+                {%- if term != blank -%}
+                  <li>
+                    <a href="{{ routes.search_url }}?q={{ term | url_encode }}&type=product" class="search-drawer__suggestion-link" data-suggestion="{{ term }}">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M7 1V13M1 7L7 1L13 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                      {{ term }}
+                    </a>
+                  </li>
+                {%- endif -%}
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+
+        {%- if show_collections -%}
+          <div class="search-drawer__section search-drawer__collections">
+            <span class="search-drawer__section-title">{{ 'search.popular_collections' | t | default: 'Collections populaires' }}</span>
+            <ul class="search-drawer__collection-list">
+              {%- for collection in collections limit: 6 -%}
+                {%- if collection.products_count > 0 -%}
+                  <li>
+                    <a href="{{ collection.url }}" class="search-drawer__collection-link">
+                      {%- if collection.image -%}
+                        <img
+                          src="{{ collection.image | image_url: width: 80 }}"
+                          alt="{{ collection.title }}"
+                          width="40"
+                          height="40"
+                          loading="lazy"
+                        >
+                      {%- else -%}
+                        <span class="search-drawer__collection-placeholder">
+                          {{ collection.title | slice: 0 }}
+                        </span>
+                      {%- endif -%}
+                      <span>{{ collection.title }}</span>
+                    </a>
+                  </li>
+                {%- endif -%}
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} Results State {%- endcomment -%}
+      <div class="search-drawer__results" data-search-results style="display: none;">
+        <div class="search-drawer__loading" data-search-loading style="display: none;">
+          <div class="search-drawer__spinner"></div>
+          <p>{{ 'search.searching' | t | default: 'Recherche en cours...' }}</p>
+        </div>
+
+        <div class="search-drawer__products" data-search-products></div>
+
+        <div class="search-drawer__no-results" data-search-no-results style="display: none;">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <path d="M21 39C30.9411 39 39 30.9411 39 21C39 11.0589 30.9411 3 21 3C11.0589 3 3 11.0589 3 21C3 30.9411 11.0589 39 21 39Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M45 45L34 34" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M15 21H27M21 15V27" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+          </svg>
+          <p>{{ 'search.no_results' | t | default: 'Aucun résultat trouvé' }}</p>
+          <span data-no-results-query></span>
+        </div>
+
+        <a href="#" class="search-drawer__view-all btn btn--outline" data-search-view-all style="display: none;">
+          {{ 'search.view_all_results' | t | default: 'Voir tous les résultats' }}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .search-drawer {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .search-drawer.is-open {
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .search-drawer__backdrop {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .search-drawer.is-open .search-drawer__backdrop {
+    opacity: 1;
+  }
+
+  .search-drawer__panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    max-height: 90vh;
+    background-color: var(--color-background);
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .search-drawer.is-open .search-drawer__panel {
+    transform: translateY(0);
+  }
+
+  .search-drawer__header {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .search-drawer__form {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+
+  .search-drawer__input-wrapper {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .search-drawer__icon {
+    position: absolute;
+    left: var(--spacing-md);
+    color: var(--color-text-light);
+    pointer-events: none;
+  }
+
+  .search-drawer__input {
+    width: 100%;
+    height: 56px;
+    padding: 0 var(--spacing-xl) 0 calc(var(--spacing-md) + 28px);
+    font-size: 1.125rem;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background-color: #f8f9fa;
+    color: var(--color-text);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .search-drawer__input::-webkit-input-placeholder {
+    color: #6b7280;
+  }
+
+  .search-drawer__input::placeholder {
+    color: #6b7280;
+  }
+
+  .search-drawer__input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb, 37, 99, 235), 0.1);
+  }
+
+  .search-drawer__input::placeholder {
+    color: var(--color-text-light);
+  }
+
+  .search-drawer__clear {
+    position: absolute;
+    right: var(--spacing-sm);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-light);
+    border-radius: var(--radius-full);
+    transition: background-color 0.2s ease;
+  }
+
+  .search-drawer__clear:hover {
+    background-color: var(--color-background);
+    color: var(--color-text);
+  }
+
+  .search-drawer__close {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text);
+    border-radius: var(--radius-md);
+    transition: background-color 0.2s ease;
+  }
+
+  .search-drawer__close:hover {
+    background-color: var(--color-background-light);
+  }
+
+  .search-drawer__body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-lg);
+  }
+
+  .search-drawer__section {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .search-drawer__section:last-child {
+    margin-bottom: 0;
+  }
+
+  .search-drawer__section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .search-drawer__section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-light);
+    margin: 0 0 var(--spacing-sm);
+  }
+
+  .search-drawer__clear-history {
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  .search-drawer__clear-history:hover {
+    color: var(--color-text);
+  }
+
+  /* History List */
+  .search-drawer__history-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+
+  .search-drawer__history-list li {
+    display: flex;
+  }
+
+  .search-drawer__history-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--color-background-light);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: all 0.2s ease;
+  }
+
+  .search-drawer__history-item:hover {
+    border-color: var(--color-text);
+    background-color: var(--color-text);
+    color: var(--color-background);
+  }
+
+  .search-drawer__history-item svg {
+    opacity: 0.5;
+  }
+
+  /* Suggestions */
+  .search-drawer__suggestion-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+
+  .search-drawer__suggestion-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background-color: var(--color-background-light);
+    border-radius: var(--radius-full);
+    font-size: 0.9375rem;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: all 0.2s ease;
+  }
+
+  .search-drawer__suggestion-link:hover {
+    background-color: var(--color-primary);
+    color: white;
+  }
+
+  .search-drawer__suggestion-link svg {
+    color: var(--color-primary);
+  }
+
+  .search-drawer__suggestion-link:hover svg {
+    color: white;
+  }
+
+  /* Collections */
+  .search-drawer__collection-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--spacing-sm);
+  }
+
+  .search-drawer__collection-link {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    background-color: var(--color-background-light);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--color-text);
+    transition: all 0.2s ease;
+  }
+
+  .search-drawer__collection-link:hover {
+    background-color: var(--color-primary);
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .search-drawer__collection-link img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+  }
+
+  .search-drawer__collection-placeholder {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-primary);
+    color: white;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Results */
+  .search-drawer__loading {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--color-text-light);
+  }
+
+  .search-drawer__spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    margin: 0 auto var(--spacing-sm);
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .search-drawer__products {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-md);
+  }
+
+  .search-drawer__product {
+    display: flex;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    background-color: var(--color-background-light);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+  }
+
+  .search-drawer__product:hover {
+    background-color: var(--color-background);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .search-drawer__product-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    background-color: var(--color-background);
+  }
+
+  .search-drawer__product-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .search-drawer__product-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .search-drawer__product-price {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+  }
+
+  .search-drawer__product-price s {
+    margin-right: 0.5rem;
+    opacity: 0.6;
+  }
+
+  .search-drawer__product-price .sale-price {
+    color: var(--color-sale);
+    font-weight: 600;
+  }
+
+  .search-drawer__no-results {
+    text-align: center;
+    padding: var(--spacing-2xl);
+    color: var(--color-text-light);
+  }
+
+  .search-drawer__no-results svg {
+    margin-bottom: var(--spacing-sm);
+    opacity: 0.5;
+  }
+
+  .search-drawer__no-results p {
+    font-size: 1.125rem;
+    margin: 0 0 var(--spacing-xs);
+  }
+
+  .search-drawer__no-results span {
+    font-size: 0.875rem;
+  }
+
+  .search-drawer__view-all {
+    display: block;
+    width: 100%;
+    margin-top: var(--spacing-md);
+    text-align: center;
+  }
+
+  /* Responsive */
+  @media (max-width: 767px) {
+    .search-drawer__panel {
+      max-height: 100vh;
+      height: 100%;
+    }
+
+    .search-drawer__header {
+      padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .search-drawer__input {
+      height: 48px;
+      font-size: 1rem;
+    }
+
+    .search-drawer__body {
+      padding: var(--spacing-md);
+    }
+
+    .search-drawer__products {
+      grid-template-columns: 1fr;
+    }
+
+    .search-drawer__collection-list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  (function() {
+    'use strict';
+
+    const HISTORY_KEY = 'search_history';
+    const MAX_HISTORY = 8;
+    const DEBOUNCE_DELAY = 300;
+
+    class SearchDrawer {
+      constructor(container) {
+        this.container = container;
+        this.input = container.querySelector('[data-search-input]');
+        this.form = container.querySelector('[data-search-form]');
+        this.clearBtn = container.querySelector('[data-search-clear]');
+        this.closeButtons = container.querySelectorAll('[data-search-close]');
+        this.initialContent = container.querySelector('[data-search-initial]');
+        this.resultsContent = container.querySelector('[data-search-results]');
+        this.productsContainer = container.querySelector('[data-search-products]');
+        this.loadingEl = container.querySelector('[data-search-loading]');
+        this.noResultsEl = container.querySelector('[data-search-no-results]');
+        this.viewAllBtn = container.querySelector('[data-search-view-all]');
+        this.historySection = container.querySelector('[data-search-history]');
+        this.historyList = container.querySelector('[data-history-list]');
+        this.clearHistoryBtn = container.querySelector('[data-clear-history]');
+
+        this.debounceTimer = null;
+        this.currentQuery = '';
+
+        this.init();
+      }
+
+      init() {
+        this.bindEvents();
+        this.loadHistory();
+      }
+
+      bindEvents() {
+        this.closeButtons.forEach(btn => {
+          btn.addEventListener('click', () => this.close());
+        });
+
+        this.input.addEventListener('input', (e) => this.handleInput(e));
+        this.input.addEventListener('keydown', (e) => this.handleKeydown(e));
+
+        this.clearBtn.addEventListener('click', () => this.clearInput());
+
+        this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+
+        if (this.clearHistoryBtn) {
+          this.clearHistoryBtn.addEventListener('click', () => this.clearHistory());
+        }
+
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && this.container.classList.contains('is-open')) {
+            this.close();
+          }
+        });
+
+        this.container.querySelectorAll('[data-suggestion]').forEach(link => {
+          link.addEventListener('click', (e) => {
+            const term = e.currentTarget.dataset.suggestion;
+            this.input.value = term;
+            this.search(term);
+            e.preventDefault();
+          });
+        });
+      }
+
+      open() {
+        this.container.classList.add('is-open');
+        this.container.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => this.input.focus(), 100);
+      }
+
+      close() {
+        this.container.classList.remove('is-open');
+        this.container.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        this.input.value = '';
+        this.clearBtn.style.display = 'none';
+        this.showInitialContent();
+      }
+
+      handleInput(e) {
+        const query = e.target.value.trim();
+        this.clearBtn.style.display = query ? 'flex' : 'none';
+
+        clearTimeout(this.debounceTimer);
+
+        if (query.length < 2) {
+          this.showInitialContent();
+          return;
+        }
+
+        this.debounceTimer = setTimeout(() => {
+          this.search(query);
+        }, DEBOUNCE_DELAY);
+      }
+
+      handleKeydown(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          this.form.submit();
+        }
+      }
+
+      handleSubmit(e) {
+        const query = this.input.value.trim();
+        if (query) {
+          this.saveToHistory(query);
+        }
+      }
+
+      clearInput() {
+        this.input.value = '';
+        this.clearBtn.style.display = 'none';
+        this.showInitialContent();
+        this.input.focus();
+      }
+
+      showInitialContent() {
+        this.initialContent.style.display = 'block';
+        this.resultsContent.style.display = 'none';
+      }
+
+      showResultsContent() {
+        this.initialContent.style.display = 'none';
+        this.resultsContent.style.display = 'block';
+      }
+
+      async search(query) {
+        if (query === this.currentQuery) return;
+        this.currentQuery = query;
+
+        this.showResultsContent();
+        this.loadingEl.style.display = 'block';
+        this.productsContainer.innerHTML = '';
+        this.noResultsEl.style.display = 'none';
+        this.viewAllBtn.style.display = 'none';
+
+        try {
+          const response = await fetch(
+            `${window.Shopify.routes.root}search/suggest.json?q=${encodeURIComponent(query)}&resources[type]=product&resources[limit]=6`
+          );
+          const data = await response.json();
+
+          this.loadingEl.style.display = 'none';
+
+          const products = data.resources?.results?.products || [];
+
+          if (products.length === 0) {
+            this.noResultsEl.style.display = 'block';
+            this.noResultsEl.querySelector('[data-no-results-query]').textContent = `"${query}"`;
+            return;
+          }
+
+          this.renderProducts(products);
+          this.viewAllBtn.href = `${window.Shopify.routes.root}search?q=${encodeURIComponent(query)}&type=product`;
+          this.viewAllBtn.style.display = 'block';
+
+        } catch (error) {
+          console.error('Search error:', error);
+          this.loadingEl.style.display = 'none';
+          this.noResultsEl.style.display = 'block';
+        }
+      }
+
+      renderProducts(products) {
+        const html = products.map(product => {
+          const priceHtml = product.compare_at_price_max > product.price
+            ? `<s>${this.formatMoney(product.compare_at_price_max)}</s> <span class="sale-price">${this.formatMoney(product.price)}</span>`
+            : this.formatMoney(product.price);
+
+          return `
+            <a href="${product.url}" class="search-drawer__product">
+              <img
+                src="${product.image || product.featured_image?.url || ''}"
+                alt="${product.title}"
+                class="search-drawer__product-image"
+                width="80"
+                height="80"
+                loading="lazy"
+              >
+              <div class="search-drawer__product-info">
+                <h4 class="search-drawer__product-title">${product.title}</h4>
+                <p class="search-drawer__product-price">${priceHtml}</p>
+              </div>
+            </a>
+          `;
+        }).join('');
+
+        this.productsContainer.innerHTML = html;
+      }
+
+      formatMoney(cents) {
+        const formatter = new Intl.NumberFormat(Shopify.locale || 'en-US', {
+          style: 'currency',
+          currency: Shopify.currency?.active || 'USD'
+        });
+        return formatter.format(cents / 100);
+      }
+
+      loadHistory() {
+        if (!this.historySection) return;
+
+        const history = this.getHistory();
+        if (history.length === 0) {
+          this.historySection.style.display = 'none';
+          return;
+        }
+
+        this.historySection.style.display = 'block';
+        this.historyList.innerHTML = history.map(term => `
+          <li>
+            <a href="${window.Shopify.routes.root}search?q=${encodeURIComponent(term)}&type=product" class="search-drawer__history-item" data-history-term="${term}">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M7 4V7L9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              ${term}
+            </a>
+          </li>
+        `).join('');
+
+        this.historyList.querySelectorAll('[data-history-term]').forEach(link => {
+          link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const term = e.currentTarget.dataset.historyTerm;
+            this.input.value = term;
+            this.search(term);
+          });
+        });
+      }
+
+      getHistory() {
+        try {
+          return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+        } catch {
+          return [];
+        }
+      }
+
+      saveToHistory(query) {
+        let history = this.getHistory();
+        history = history.filter(item => item.toLowerCase() !== query.toLowerCase());
+        history.unshift(query);
+        history = history.slice(0, MAX_HISTORY);
+
+        try {
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+        } catch (e) {
+          console.warn('Could not save search history');
+        }
+      }
+
+      clearHistory() {
+        try {
+          localStorage.removeItem(HISTORY_KEY);
+        } catch (e) {
+          console.warn('Could not clear search history');
+        }
+
+        if (this.historySection) {
+          this.historySection.style.display = 'none';
+        }
+      }
+    }
+
+    const searchDrawer = document.querySelector('[data-search-drawer]');
+    if (searchDrawer) {
+      window.searchDrawer = new SearchDrawer(searchDrawer);
+    }
+
+    document.querySelectorAll('[data-open-search]').forEach(trigger => {
+      trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (window.searchDrawer) {
+          window.searchDrawer.open();
+        }
+      });
+    });
+  })();
+</script>

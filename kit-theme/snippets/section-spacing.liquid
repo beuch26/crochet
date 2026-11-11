@@ -1,0 +1,111 @@
+{%- comment -%}
+  Section Spacing System
+  Utility snippet for consistent section spacing
+
+  Parameters (class-based):
+  - padding_top: 'none', 'small', 'medium', 'large' (default: 'medium')
+  - padding_bottom: 'none', 'small', 'medium', 'large' (default: 'medium')
+
+  Parameters (pixel-based margin):
+  - id: section.id (required)
+  - margin_top: pixels (0 = no extra margin)
+  - margin_bottom: pixels (0 = no extra margin)
+{%- endcomment -%}
+
+{%- comment -%} Pixel-based section margins {%- endcomment -%}
+{%- if id != blank and margin_top > 0 or margin_bottom > 0 -%}
+  <style>
+    #shopify-section-{{ id }} {
+      {%- if margin_top > 0 %} margin-top: {{ margin_top }}px;{% endif -%}
+      {%- if margin_bottom > 0 %} margin-bottom: {{ margin_bottom }}px;{% endif -%}
+    }
+  </style>
+{%- endif -%}
+
+{%- liquid
+  assign padding_top = padding_top | default: 'medium'
+  assign padding_bottom = padding_bottom | default: 'medium'
+  assign container = container | default: 'default'
+
+  assign pt_class = 'section--pt-' | append: padding_top
+  assign pb_class = 'section--pb-' | append: padding_bottom
+  assign container_class = 'container--' | append: container
+
+  assign section_spacing_class = pt_class | append: ' ' | append: pb_class
+  if container != 'default'
+    assign section_spacing_class = section_spacing_class | append: ' ' | append: container_class
+  endif
+-%}
+
+{%- comment -%} Output CSS Variables if not already included {%- endcomment -%}
+{%- unless section_spacing_css_loaded -%}
+  {%- assign section_spacing_css_loaded = true -%}
+  <style id="section-spacing-css">
+    /* Section Padding Classes */
+    .section--pt-none { padding-top: 0; }
+    .section--pt-small { padding-top: var(--spacing-md); }
+    .section--pt-medium { padding-top: var(--spacing-xl); }
+    .section--pt-large { padding-top: var(--spacing-2xl); }
+
+    .section--pb-none { padding-bottom: 0; }
+    .section--pb-small { padding-bottom: var(--spacing-md); }
+    .section--pb-medium { padding-bottom: var(--spacing-xl); }
+    .section--pb-large { padding-bottom: var(--spacing-2xl); }
+
+    /* Container Variants */
+    .container--narrow {
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .container--wide {
+      max-width: 1400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .container--full {
+      max-width: none;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    /* Responsive Spacing */
+    @media (max-width: 767px) {
+      .section--pt-medium { padding-top: var(--spacing-lg); }
+      .section--pt-large { padding-top: var(--spacing-xl); }
+      .section--pb-medium { padding-bottom: var(--spacing-lg); }
+      .section--pb-large { padding-bottom: var(--spacing-xl); }
+    }
+
+    /* Section Backgrounds */
+    .section--bg-light {
+      background-color: var(--color-background-light);
+    }
+
+    .section--bg-dark {
+      background-color: var(--color-text);
+      color: var(--color-background);
+    }
+
+    .section--bg-primary {
+      background-color: var(--color-primary);
+      color: white;
+    }
+
+    .section--bg-gradient {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+      color: white;
+    }
+
+    /* Section Dividers */
+    .section--divider-top {
+      border-top: 1px solid var(--color-border);
+    }
+
+    .section--divider-bottom {
+      border-bottom: 1px solid var(--color-border);
+    }
+  </style>
+{%- endunless -%}

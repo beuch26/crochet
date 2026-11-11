@@ -1,0 +1,485 @@
+{%- comment -%}
+  Size Chart Modal Component
+  Displays a size guide modal for products
+
+  Parameters:
+  - product: Product object (optional, for product-specific size charts)
+  - title: Modal title (default: 'Size Guide')
+  - trigger_text: Trigger link text (default: 'Size Guide')
+  - show_trigger: Show the trigger link (default: true)
+
+  Metafield:
+  - custom.size_chart (rich_text_field): Custom size chart HTML content
+
+  Usage:
+  {%- render 'size-chart-modal', product: product, trigger_text: 'View Size Guide' -%}
+{%- endcomment -%}
+
+{%- liquid
+  assign title = title | default: 'Guide des tailles'
+  assign trigger_text = trigger_text | default: 'Guide des tailles'
+  assign show_trigger = show_trigger | default: true
+  assign modal_id = 'size-chart-modal-' | append: product.id | default: 'global'
+
+  assign has_custom_chart = false
+  if product != blank and product.metafields.custom.size_chart != blank
+    assign has_custom_chart = true
+    assign custom_chart = product.metafields.custom.size_chart
+  endif
+-%}
+
+{%- if show_trigger -%}
+  <button type="button"
+          class="size-chart-trigger"
+          data-size-chart-open="{{ modal_id }}"
+          aria-haspopup="dialog"
+          aria-expanded="false">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <rect x="1" y="4" width="14" height="8" rx="1" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M4 4v3M7 4v2M10 4v3M13 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <span>{{ trigger_text }}</span>
+  </button>
+{%- endif -%}
+
+<div class="size-chart-modal" id="{{ modal_id }}" data-size-chart-modal role="dialog" aria-modal="true" aria-labelledby="{{ modal_id }}-title" style="display: none;">
+  <div class="size-chart-modal__overlay" data-size-chart-close></div>
+
+  <div class="size-chart-modal__content">
+    <div class="size-chart-modal__header">
+      <h2 class="size-chart-modal__title" id="{{ modal_id }}-title">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
+          <path d="M6 6v4M10 6v3M14 6v4M18 6v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        {{ title }}
+      </h2>
+      <button type="button" class="size-chart-modal__close" data-size-chart-close aria-label="Close">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M6 6l12 12M6 18L18 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="size-chart-modal__body">
+      {%- if has_custom_chart -%}
+        <div class="size-chart-modal__custom rte">
+          {{ custom_chart | metafield_tag }}
+        </div>
+      {%- else -%}
+        {%- comment -%} Default size chart {%- endcomment -%}
+        <div class="size-chart-modal__tabs" data-size-tabs>
+          <button type="button" class="size-chart-tab active" data-tab="women">Femmes</button>
+          <button type="button" class="size-chart-tab" data-tab="men">Hommes</button>
+        </div>
+
+        <div class="size-chart-panel active" data-panel="women">
+          <h3 class="size-chart-panel__title">{{ 'products.size_chart.women_sizes' | t | default: "Tailles Femmes" }}</h3>
+
+          <div class="size-chart-table-wrapper">
+            <table class="size-chart-table">
+              <thead>
+                <tr>
+                  <th>{{ 'products.size_chart.size' | t | default: 'Taille' }}</th>
+                  <th>US</th>
+                  <th>EU</th>
+                  <th>UK</th>
+                  <th>{{ 'products.size_chart.bust' | t | default: 'Poitrine' }} (cm)</th>
+                  <th>{{ 'products.size_chart.waist' | t | default: 'Taille (tour)' }} (cm)</th>
+                  <th>{{ 'products.size_chart.hips' | t | default: 'Hanches' }} (cm)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>XS</td><td>0-2</td><td>32-34</td><td>4-6</td><td>78-82</td><td>60-64</td><td>86-90</td></tr>
+                <tr><td>S</td><td>4-6</td><td>36-38</td><td>8-10</td><td>83-87</td><td>65-69</td><td>91-95</td></tr>
+                <tr><td>M</td><td>8-10</td><td>40-42</td><td>12-14</td><td>88-92</td><td>70-74</td><td>96-100</td></tr>
+                <tr><td>L</td><td>12-14</td><td>44-46</td><td>16-18</td><td>93-98</td><td>75-80</td><td>101-106</td></tr>
+                <tr><td>XL</td><td>16-18</td><td>48-50</td><td>20-22</td><td>99-105</td><td>81-87</td><td>107-113</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="size-chart-panel" data-panel="men" style="display: none;">
+          <h3 class="size-chart-panel__title">{{ 'products.size_chart.men_sizes' | t | default: "Tailles Hommes" }}</h3>
+
+          <div class="size-chart-table-wrapper">
+            <table class="size-chart-table">
+              <thead>
+                <tr>
+                  <th>{{ 'products.size_chart.size' | t | default: 'Taille' }}</th>
+                  <th>US</th>
+                  <th>EU</th>
+                  <th>UK</th>
+                  <th>{{ 'products.size_chart.chest' | t | default: 'Poitrine' }} (cm)</th>
+                  <th>{{ 'products.size_chart.waist' | t | default: 'Taille (tour)' }} (cm)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>XS</td><td>32-34</td><td>42-44</td><td>32-34</td><td>86-91</td><td>71-76</td></tr>
+                <tr><td>S</td><td>34-36</td><td>44-46</td><td>34-36</td><td>91-96</td><td>76-81</td></tr>
+                <tr><td>M</td><td>38-40</td><td>48-50</td><td>38-40</td><td>96-101</td><td>81-86</td></tr>
+                <tr><td>L</td><td>42-44</td><td>52-54</td><td>42-44</td><td>101-106</td><td>86-91</td></tr>
+                <tr><td>XL</td><td>46-48</td><td>56-58</td><td>46-48</td><td>106-111</td><td>91-96</td></tr>
+                <tr><td>XXL</td><td>50-52</td><td>60-62</td><td>50-52</td><td>111-116</td><td>96-101</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="size-chart-tips">
+          <h4>{{ 'products.size_chart.how_to_measure' | t | default: 'Comment mesurer' }}</h4>
+          <ul>
+            <li><strong>{{ 'products.size_chart.bust' | t | default: 'Poitrine' }}:</strong> {{ 'products.size_chart.bust_tip' | t | default: 'Mesurez autour de la partie la plus large de votre poitrine.' }}</li>
+            <li><strong>{{ 'products.size_chart.waist' | t | default: 'Taille (tour)' }}:</strong> {{ 'products.size_chart.waist_tip' | t | default: 'Mesurez autour de votre taille naturelle.' }}</li>
+            <li><strong>{{ 'products.size_chart.hips' | t | default: 'Hanches' }}:</strong> {{ 'products.size_chart.hips_tip' | t | default: 'Mesurez autour de la partie la plus large de vos hanches.' }}</li>
+          </ul>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+<style>
+  .size-chart-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-primary);
+    background: transparent;
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .size-chart-trigger:hover {
+    background-color: var(--color-primary);
+    color: white;
+  }
+
+  .size-chart-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md);
+  }
+
+  .size-chart-modal__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+  }
+
+  .size-chart-modal__content {
+    position: relative;
+    width: 100%;
+    max-width: 700px;
+    max-height: 90vh;
+    background-color: var(--color-background);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: modal-in 0.3s ease;
+  }
+
+  @keyframes modal-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .size-chart-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-background-light);
+  }
+
+  .size-chart-modal__title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--color-text);
+  }
+
+  .size-chart-modal__title svg {
+    color: var(--color-primary);
+  }
+
+  .size-chart-modal__close {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    color: var(--color-text-light);
+    transition: all 0.2s ease;
+  }
+
+  .size-chart-modal__close:hover {
+    background-color: var(--color-background);
+    color: var(--color-text);
+  }
+
+  .size-chart-modal__body {
+    padding: var(--spacing-md);
+    overflow-y: auto;
+  }
+
+  .size-chart-modal__tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .size-chart-tab {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text-light);
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .size-chart-tab:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .size-chart-tab.active {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+  }
+
+  .size-chart-panel__title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-text);
+  }
+
+  .size-chart-table-wrapper {
+    overflow-x: auto;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .size-chart-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    min-width: 500px;
+  }
+
+  .size-chart-table th,
+  .size-chart-table td {
+    padding: 0.75rem;
+    text-align: center;
+    border: 1px solid var(--color-border);
+  }
+
+  .size-chart-table th {
+    background-color: var(--color-background-light);
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .size-chart-table tbody tr:nth-child(even) {
+    background-color: var(--color-background-light);
+  }
+
+  .size-chart-table tbody tr:hover {
+    background-color: rgba(var(--color-primary-rgb, 37, 99, 235), 0.05);
+  }
+
+  .size-chart-tips {
+    background-color: var(--color-background-light);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-md);
+  }
+
+  .size-chart-tips h4 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--color-text);
+  }
+
+  .size-chart-tips ul {
+    margin: 0;
+    padding-left: 1.25rem;
+  }
+
+  .size-chart-tips li {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    margin-bottom: 0.375rem;
+  }
+
+  .size-chart-tips li strong {
+    color: var(--color-text);
+  }
+
+  @media (max-width: 767px) {
+    .size-chart-modal {
+      padding: 0;
+      align-items: flex-end;
+    }
+
+    .size-chart-modal__content {
+      max-width: 100%;
+      max-height: 85vh;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+  }
+</style>
+
+<script>
+  (function() {
+    'use strict';
+
+    const openButtons = document.querySelectorAll('[data-size-chart-open]');
+    const modals = document.querySelectorAll('[data-size-chart-modal]');
+
+    /**
+     * Focus trap utility - keeps focus within modal
+     * @param {HTMLElement} modal - The modal element
+     * @param {KeyboardEvent} e - Keyboard event
+     */
+    function handleFocusTrap(modal, e) {
+      if (e.key !== 'Tab') return;
+
+      const focusableElements = modal.querySelectorAll(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+
+      if (focusableElements.length === 0) return;
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (e.shiftKey && document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement.focus();
+      } else if (!e.shiftKey && document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement.focus();
+      }
+    }
+
+    function openModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (!modal) return;
+
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+
+      const openBtn = document.querySelector(`[data-size-chart-open="${modalId}"]`);
+      if (openBtn) openBtn.setAttribute('aria-expanded', 'true');
+
+      setTimeout(() => {
+        const closeBtn = modal.querySelector('[data-size-chart-close]');
+        if (closeBtn) closeBtn.focus();
+      }, 100);
+    }
+
+    function closeModal(modal) {
+      if (!modal) return;
+
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+
+      const modalId = modal.id;
+      const openBtn = document.querySelector(`[data-size-chart-open="${modalId}"]`);
+      if (openBtn) {
+        openBtn.setAttribute('aria-expanded', 'false');
+        openBtn.focus();
+      }
+    }
+
+    openButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const modalId = btn.dataset.sizeChartOpen;
+        openModal(modalId);
+      });
+    });
+
+    modals.forEach(modal => {
+      const closeElements = modal.querySelectorAll('[data-size-chart-close]');
+      closeElements.forEach(el => {
+        el.addEventListener('click', () => closeModal(modal));
+      });
+
+      modal.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeModal(modal);
+          return;
+        }
+        // Focus trap
+        handleFocusTrap(modal, e);
+      });
+
+      const tabs = modal.querySelectorAll('[data-tab]');
+      const panels = modal.querySelectorAll('[data-panel]');
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const tabName = tab.dataset.tab;
+
+          tabs.forEach(t => {
+            t.classList.remove('active');
+            t.setAttribute('aria-selected', 'false');
+          });
+          tab.classList.add('active');
+          tab.setAttribute('aria-selected', 'true');
+
+          panels.forEach(panel => {
+            if (panel.dataset.panel === tabName) {
+              panel.style.display = 'block';
+              panel.classList.add('active');
+              panel.removeAttribute('hidden');
+            } else {
+              panel.style.display = 'none';
+              panel.classList.remove('active');
+              panel.setAttribute('hidden', '');
+            }
+          });
+        });
+      });
+    });
+  })();
+</script>

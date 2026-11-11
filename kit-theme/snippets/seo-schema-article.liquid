@@ -1,0 +1,163 @@
+{%- comment -%}
+  Schema.org BlogPosting/Article JSON-LD
+  Shows article info, author, publication dates in search results
+  Critical for E-E-A-T (Experience, Expertise, Authoritativeness, Trust)
+  Usage: {% render 'seo-schema-article', article: article %}
+{%- endcomment -%}
+
+{%- liquid
+  # Get author information from metafields or fallback to article.author
+  assign author_name = article.author
+  assign author_image = ''
+  assign author_bio = ''
+  assign author_url = shop.url | append: '/pages/about-' | append: article.author | handleize
+
+  if article.metafields.custom.author_image
+    assign author_image = article.metafields.custom.author_image | image_url: width: 400
+  elsif settings.default_author_image
+    assign author_image = settings.default_author_image | image_url: width: 400
+  endif
+
+  if article.metafields.custom.author_bio
+    assign author_bio = article.metafields.custom.author_bio
+  elsif settings.default_author_bio
+    assign author_bio = settings.default_author_bio
+  endif
+
+  # Article image
+  assign article_image = article.image | image_url: width: 1200
+  if article.image == blank and article.content contains '<img'
+    # Extract first image from content if no featured image
+    assign first_img = article.content | split: '<img ' | last | split: 'src="' | last | split: '"' | first
+    if first_img != blank
+      assign article_image = first_img
+    endif
+  endif
+
+  # Word count estimation for reading time
+  assign word_count = article.content | strip_html | split: ' ' | size
+  assign reading_time_minutes = word_count | divided_by: 200 | at_least: 1
+
+  # Article modified date (use updated_at if different from published_at)
+  assign date_modified = article.published_at
+  if article.updated_at and article.updated_at != article.published_at
+    assign date_modified = article.updated_at
+  endif
+-%}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": {{ article.title | json }},
+  "alternativeHeadline": {{ article.excerpt | strip_html | truncate: 110 | json }},
+  "description": {{ article.excerpt | default: article.content | strip_html | truncate: 300 | json }},
+  "url": {{ shop.url | append: article.url | json }},
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": {{ shop.url | append: article.url | json }}
+  },
+  {% if article_image != blank %}
+  "image": {
+    "@type": "ImageObject",
+    "url": {{ article_image | prepend: 'https:' | json }},
+    "width": "1200",
+    "height": "630"
+  },
+  {% endif %}
+  "datePublished": {{ article.published_at | date: '%Y-%m-%dT%H:%M:%SZ' | json }},
+  "dateModified": {{ date_modified | date: '%Y-%m-%dT%H:%M:%SZ' | json }},
+  "dateCreated": {{ article.created_at | date: '%Y-%m-%dT%H:%M:%SZ' | json }},
+  "author": {
+    "@type": "Person",
+    "name": {{ author_name | json }},
+    {% if author_image != blank %}
+    "image": {
+      "@type": "ImageObject",
+      "url": {{ author_image | prepend: 'https:' | json }}
+    },
+    {% endif %}
+    {% if author_bio != blank %}
+    "description": {{ author_bio | strip_html | json }},
+    {% endif %}
+    "url": {{ author_url | json }}
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": {{ shop.name | json }},
+    "url": {{ shop.url | json }},
+    {% if settings.logo %}
+    "logo": {
+      "@type": "ImageObject",
+      "url": {{ settings.logo | image_url: width: 600 | prepend: 'https:' | json }},
+      "width": "600",
+      "height": "600"
+    }
+    {% endif %}
+  },
+  "inLanguage": {{ request.locale.iso_code | json }},
+  "isFamilyFriendly": "true",
+  "wordCount": {{ word_count | json }},
+  "timeRequired": "PT{{ reading_time_minutes }}M",
+  {% if article.tags.size > 0 %}
+  "keywords": {{ article.tags | join: ', ' | json }},
+  "articleSection": {{ article.tags | first | json }},
+  {% endif %}
+  {% if blog.title %}
+  "isPartOf": {
+    "@type": "Blog",
+    "name": {{ blog.title | json }},
+    "url": {{ shop.url | append: blog.url | json }}
+  },
+  {% endif %}
+  "commentCount": {{ article.comments_count | json }},
+  "comment": [
+    {% for comment in article.comments limit: 10 %}
+      {
+        "@type": "Comment",
+        "author": {
+          "@type": "Person",
+          "name": {{ comment.author | json }}
+        },
+        "datePublished": {{ comment.created_at | date: '%Y-%m-%dT%H:%M:%SZ' | json }},
+        "text": {{ comment.content | strip_html | truncate: 200 | json }}
+      }{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ]
+}
+</script>
+
+{%- comment -%} BreadcrumbList Schema for Article {%- endcomment -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": {{ 'general.breadcrumbs.home' | t | json }},
+      "item": {{ shop.url | json }}
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": {{ blog.title | json }},
+      "item": {{ shop.url | append: blog.url | json }}
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": {{ article.title | json }},
+      "item": {{ shop.url | append: article.url | json }}
+    }
+  ]
+}
+</script>
+
+{%- comment -%} FAQPage Schema if article contains FAQ content {%- endcomment -%}
+{%- if article.metafields.custom.faq_data or article.content contains 'faq' or article.tags contains 'FAQ' -%}
+  {%- if article.metafields.custom.faq_data -%}
+    {%- render 'seo-schema-faq', faq_data: article.metafields.custom.faq_data -%}
+  {%- endif -%}
+{%- endif -%}

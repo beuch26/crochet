@@ -1,0 +1,241 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import { getBlogPosts } from '../../lib/medusa'
+import { blogImageUrl, blogPostPath } from '../../lib/blog'
+import { slugify } from '../../lib/url'
+
+let posts: any[] = []
+try {
+  const data = await getBlogPosts(50)
+  posts = data.blog_posts || []
+} catch (e) {
+  console.error('Failed to fetch blog:', e)
+}
+
+// Get unique categories
+const categories = [...new Set(posts.map((p: any) => p.category).filter(Boolean))]
+---
+
+<Layout title="Blog — Conseils bebe et maman" description="Retrouvez nos articles, guides et conseils d'experts pour accompagner la grossesse, l'allaitement et les premiers mois de bebe.">
+  <section class="py-12 lg:py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Breadcrumb -->
+      <nav class="mb-6 text-sm text-text-muted flex items-center gap-2 animate-fade-up">
+        <a href="/" class="hover:text-primary transition-colors">Magic Crochet Kit</a>
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-text">Blog</span>
+      </nav>
+
+      <!-- Header -->
+      <div class="text-center mb-12 animate-fade-up">
+        <h1>Conseils & astuces</h1>
+        <p class="mt-4 text-text-light text-lg max-w-2xl mx-auto">
+          Des articles pour vous accompagner au quotidien dans votre maternité
+        </p>
+      </div>
+
+      <!-- Category filters -->
+      {categories.length > 0 && (
+        <div class="-mx-4 px-4 sm:mx-0 sm:px-0 mb-12 animate-fade-up delay-1">
+          <div class="flex sm:flex-wrap sm:justify-center gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide snap-x snap-mandatory">
+            <button data-filter="all" class="blog-filter active px-5 py-2 bg-primary text-white rounded-full text-sm font-medium transition-all shrink-0 snap-start">
+              Tous
+            </button>
+            {categories.map((cat: string) => (
+              <button data-filter={cat} data-filter-slug={slugify(cat)} class="blog-filter px-5 py-2 bg-white border border-border rounded-full text-sm font-medium text-text-light hover:bg-primary hover:text-white hover:border-primary transition-all shrink-0 snap-start whitespace-nowrap">
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- Featured post (first one) -->
+      {posts.length > 0 && (
+        <article data-category={posts[0].category} class="blog-post group mb-12 bg-white rounded-2xl overflow-hidden border border-border-light card-hover animate-fade-up delay-2">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
+            {blogImageUrl(posts[0].featured_image) && (
+              <div class="aspect-video md:aspect-auto overflow-hidden">
+                <img
+                  src={blogImageUrl(posts[0].featured_image)!}
+                  alt={posts[0].title}
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+            )}
+            <div class="p-8 lg:p-10 flex flex-col justify-center">
+              {posts[0].category && (
+                <span class="text-xs font-semibold text-primary uppercase tracking-widest">{posts[0].category}</span>
+              )}
+              <h2 class="mt-3 text-2xl lg:text-3xl group-hover:text-primary transition-colors">
+                <a href={blogPostPath(posts[0])}>{posts[0].title}</a>
+              </h2>
+              {posts[0].excerpt && (
+                <p class="mt-4 text-text-light line-clamp-3 leading-relaxed">{posts[0].excerpt}</p>
+              )}
+              <div class="mt-6">
+                <a href={blogPostPath(posts[0])} class="btn btn-outline text-sm py-2 px-5">
+                  Lire l'article
+                </a>
+              </div>
+            </div>
+          </div>
+        </article>
+      )}
+
+      <!-- Articles grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        {posts.slice(1).map((post: any, i: number) => (
+          <article data-category={post.category} class="blog-post group bg-white rounded-2xl overflow-hidden border border-border-light card-hover reveal">
+            {blogImageUrl(post.featured_image) && (
+              <div class="aspect-video overflow-hidden">
+                <img
+                  src={blogImageUrl(post.featured_image)!}
+                  alt={post.title}
+                  loading="lazy"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+            )}
+            <div class="p-5 lg:p-6">
+              {post.category && (
+                <span class="text-xs font-semibold text-primary uppercase tracking-widest">
+                  {post.category}
+                </span>
+              )}
+              <h2 class="mt-2 text-lg leading-snug group-hover:text-primary transition-colors">
+                <a href={blogPostPath(post)}>{post.title}</a>
+              </h2>
+              {post.excerpt && (
+                <p class="mt-3 text-sm text-text-light line-clamp-2">{post.excerpt}</p>
+              )}
+              <div class="mt-4 pt-4 border-t border-border-light flex items-center justify-between text-xs text-text-muted">
+                <span>{post.author || 'Fanny'}</span>
+                {post.published_at && (
+                  <time datetime={post.published_at}>
+                    {new Date(post.published_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </time>
+                )}
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <!-- Pagination -->
+      <nav id="blog-pagination" class="hidden mt-12 flex items-center justify-center gap-2" aria-label="Pagination"></nav>
+
+      <p id="blog-count" class="text-center text-text-muted mt-6">{posts.length} article{posts.length > 1 ? 's' : ''}</p>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const blogPosts = document.querySelectorAll('.blog-post') as NodeListOf<HTMLElement>
+  const blogGrid = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3') as HTMLElement
+  const paginationEl = document.getElementById('blog-pagination')!
+  const countEl = document.getElementById('blog-count')!
+
+  const POSTS_PER_PAGE = 9
+  let activeFilter = 'all'
+  let currentPage = 1
+
+  function getFilteredPosts() {
+    return Array.from(blogPosts).filter(post => {
+      const cat = post.getAttribute('data-category')
+      return activeFilter === 'all' || cat === activeFilter
+    })
+  }
+
+  function applyBlogFilters() {
+    const filtered = getFilteredPosts()
+    // Featured post is always shown if matches filter (it's outside the grid)
+    const featured = document.querySelector('article.blog-post.group.mb-12') as HTMLElement
+    if (featured) {
+      const cat = featured.getAttribute('data-category')
+      featured.style.display = (activeFilter === 'all' || cat === activeFilter) ? '' : 'none'
+    }
+
+    // Grid posts only
+    const gridPosts = filtered.filter(p => !p.classList.contains('mb-12'))
+    const totalPages = Math.ceil(gridPosts.length / POSTS_PER_PAGE)
+    if (currentPage > totalPages) currentPage = 1
+
+    // Hide all grid posts, show current page
+    blogPosts.forEach(p => {
+      if (!p.classList.contains('mb-12')) p.style.display = 'none'
+    })
+    const start = (currentPage - 1) * POSTS_PER_PAGE
+    gridPosts.slice(start, start + POSTS_PER_PAGE).forEach(p => p.style.display = '')
+
+    countEl.textContent = `${filtered.length} article${filtered.length > 1 ? 's' : ''}`
+    renderBlogPagination(totalPages)
+  }
+
+  function renderBlogPagination(totalPages: number) {
+    if (totalPages <= 1) { paginationEl.classList.add('hidden'); return }
+    paginationEl.classList.remove('hidden')
+
+    let html = ''
+    html += `<button data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''} class="w-10 h-10 rounded-xl border border-border flex items-center justify-center text-text-muted hover:bg-primary hover:text-white hover:border-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    </button>`
+
+    for (let i = 1; i <= totalPages; i++) {
+      html += `<button data-page="${i}" class="w-10 h-10 rounded-xl border text-sm font-medium transition-all ${
+        i === currentPage ? 'bg-primary text-white border-primary' : 'border-border text-text-muted hover:bg-primary hover:text-white hover:border-primary'
+      }">${i}</button>`
+    }
+
+    html += `<button data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''} class="w-10 h-10 rounded-xl border border-border flex items-center justify-center text-text-muted hover:bg-primary hover:text-white hover:border-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+    </button>`
+
+    paginationEl.innerHTML = html
+    paginationEl.querySelectorAll('button[data-page]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = parseInt(btn.getAttribute('data-page') || '1')
+        if (p >= 1 && p <= totalPages) {
+          currentPage = p
+          applyBlogFilters()
+          blogGrid?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      })
+    })
+  }
+
+  // Category filter
+  document.querySelectorAll('.blog-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeFilter = btn.getAttribute('data-filter') || 'all'
+      currentPage = 1
+
+      document.querySelectorAll('.blog-filter').forEach(b => {
+        b.classList.remove('active', 'bg-primary', 'text-white')
+        b.classList.add('bg-white', 'text-text-light', 'border', 'border-border')
+      })
+      btn.classList.add('active', 'bg-primary', 'text-white')
+      btn.classList.remove('bg-white', 'text-text-light', 'border', 'border-border')
+
+      applyBlogFilters()
+    })
+  })
+
+  // Honor ?cat=<slug> from the URL — used by the sidebar category links
+  // on /blog/[handle]/. Matches against the data-filter-slug attribute
+  // we render on each button.
+  function slugifyClient(s: string): string {
+    return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+  }
+  try {
+    const wanted = new URLSearchParams(window.location.search).get('cat')
+    if (wanted) {
+      const slug = slugifyClient(wanted)
+      const btn = document.querySelector(`.blog-filter[data-filter-slug="${slug}"]`) as HTMLButtonElement | null
+      if (btn) btn.click()
+    }
+  } catch {}
+
+  // Initial
+  applyBlogFilters()
+</script>

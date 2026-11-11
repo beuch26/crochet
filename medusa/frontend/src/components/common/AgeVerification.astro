@@ -1,0 +1,64 @@
+---
+/**
+ * Age Verification popup
+ * Configurable via theme settings (enabled/disabled)
+ */
+interface Props {
+  enabled?: boolean
+  minAge?: number
+  message?: string
+}
+
+const {
+  enabled = false,
+  minAge = 18,
+  message = '',
+} = Astro.props
+---
+
+{enabled && (
+  <div id="age-gate" class="fixed inset-0 z-[500] hidden">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-10 text-center relative animate-fade-up">
+        <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary/10 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+          </svg>
+        </div>
+
+        <h2 class="text-xl font-semibold font-['DM_Sans'] mb-2">Vérification d'âge</h2>
+        <p class="text-text-light text-sm mb-8">
+          {message || `Vous devez avoir au moins ${minAge} ans pour accéder à ce site.`}
+        </p>
+
+        <div class="flex gap-3">
+          <button type="button" id="age-confirm" class="flex-1 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-hover transition-all">
+            J'ai {minAge}+ ans
+          </button>
+          <button type="button" id="age-deny" class="flex-1 py-3 bg-bg-light text-text-muted font-semibold rounded-xl hover:bg-border transition-all">
+            Non
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+<script>
+  const gate = document.getElementById('age-gate')
+  if (gate && !sessionStorage.getItem('age_verified')) {
+    gate.classList.remove('hidden')
+    document.body.style.overflow = 'hidden'
+  }
+
+  document.getElementById('age-confirm')?.addEventListener('click', () => {
+    sessionStorage.setItem('age_verified', '1')
+    gate?.classList.add('hidden')
+    document.body.style.overflow = ''
+  })
+
+  document.getElementById('age-deny')?.addEventListener('click', () => {
+    window.location.href = 'https://google.com'
+  })
+</script>

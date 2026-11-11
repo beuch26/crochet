@@ -1,0 +1,89 @@
+---
+/**
+ * Stats Counter - animated number counters
+ * Like Olympus theme's product-stats section
+ */
+interface Stat {
+  value: string
+  label: string
+  prefix?: string
+  suffix?: string
+}
+
+interface Props {
+  title?: string
+  stats?: Stat[]
+  bgColor?: string
+}
+
+const {
+  title = '',
+  stats = [
+    { value: '10000', label: 'Mamans satisfaites', suffix: '+' },
+    { value: '50', label: 'Produits sélectionnés', suffix: '+' },
+    { value: '4.8', label: 'Note moyenne', suffix: '/5' },
+    { value: '30', label: 'Jours de retour', prefix: '', suffix: 'j' },
+  ],
+  bgColor = '',
+} = Astro.props
+---
+
+<section class="py-16 lg:py-20 reveal" style={bgColor ? `background-color: ${bgColor}` : ''}>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    {title && <h2 class="text-center mb-12">{title}</h2>}
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+      {stats.map((stat) => (
+        <div class="text-center">
+          <div class="flex items-baseline justify-center gap-0.5">
+            {stat.prefix && <span class="text-2xl lg:text-3xl font-bold text-primary font-['DM_Sans']">{stat.prefix}</span>}
+            <span
+              class="stat-number text-4xl lg:text-5xl font-bold text-primary font-['DM_Sans']"
+              data-target={stat.value}
+            >
+              0
+            </span>
+            {stat.suffix && <span class="text-xl lg:text-2xl font-bold text-primary/70 font-['DM_Sans']">{stat.suffix}</span>}
+          </div>
+          <p class="mt-2 text-sm text-text-light font-medium">{stat.label}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target as HTMLElement
+        const target = el.dataset.target || '0'
+        const isFloat = target.includes('.')
+        const end = parseFloat(target)
+        const duration = 2000
+        const start = performance.now()
+
+        function animate(now: number) {
+          const elapsed = now - start
+          const progress = Math.min(elapsed / duration, 1)
+          // Ease out cubic
+          const ease = 1 - Math.pow(1 - progress, 3)
+          const current = ease * end
+
+          if (isFloat) {
+            el.textContent = current.toFixed(1)
+          } else {
+            el.textContent = Math.floor(current).toLocaleString('fr-FR')
+          }
+
+          if (progress < 1) requestAnimationFrame(animate)
+        }
+
+        requestAnimationFrame(animate)
+        observer.unobserve(el)
+      }
+    })
+  }, { threshold: 0.3 })
+
+  document.querySelectorAll('.stat-number').forEach(el => observer.observe(el))
+</script>

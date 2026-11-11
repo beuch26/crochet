@@ -1,0 +1,76 @@
+import type { SectionSchema } from "../schema-types"
+
+export const heroSchema: SectionSchema = {
+  type: "hero",
+  label: "Bannière hero",
+  description: "Grande section d'accueil avec titre, sous-titre et boutons d'appel à l'action",
+  icon: "🎯",
+  category: "header",
+  fields: [
+    {
+      key: "variant",
+      label: "Mise en page",
+      type: "select",
+      default: "split-right",
+      description: "Comment positionner le texte et l'image",
+      options: [
+        { value: "split-right", label: "Texte à gauche, image à droite", icon: "⇄" },
+        { value: "split-left", label: "Image à gauche, texte à droite", icon: "⇆" },
+        { value: "centered", label: "Centré (texte uniquement)", icon: "↕" },
+        { value: "fullscreen", label: "Plein écran avec image en fond", icon: "□" },
+      ],
+    },
+    { key: "_content_section", label: "Contenu", type: "section" },
+    {
+      key: "badge",
+      label: "Badge (au-dessus du titre)",
+      type: "text",
+      placeholder: "Livraison gratuite dès 50€",
+      maxLength: 60,
+    },
+    {
+      key: "title",
+      label: "Titre principal",
+      type: "richtext",
+      required: true,
+      default: "Bienvenue chez nous",
+      description: "HTML autorisé : <span>, <strong>, <em>, <br>",
+    },
+    {
+      key: "subtitle",
+      label: "Sous-titre",
+      type: "textarea",
+      maxLength: 200,
+    },
+    { key: "_cta_section", label: "Boutons d'action", type: "section" },
+    {
+      key: "cta_primary",
+      label: "Bouton principal",
+      type: "link",
+      default: { text: "Découvrir", url: "/collections" },
+    },
+    {
+      key: "cta_secondary",
+      label: "Bouton secondaire",
+      type: "link",
+      default: { text: "", url: "" },
+    },
+    { key: "_visual_section", label: "Visuel", type: "section" },
+    {
+      key: "image_url",
+      label: "Image",
+      type: "image",
+      recommended: "1600×1000px, WebP",
+      conditional: { field: "variant", equals: ["split-right", "split-left", "fullscreen"] },
+    },
+  ],
+  default_props: {
+    variant: "split-right",
+    badge: "Livraison gratuite dès 50€",
+    title: "Bienvenue dans votre boutique",
+    subtitle: "Découvrez notre sélection de produits",
+    cta_primary: { text: "Découvrir", url: "/collections" },
+    cta_secondary: { text: "", url: "" },
+    image_url: "/images/hero/hero-mother-baby.webp",
+  },
+}

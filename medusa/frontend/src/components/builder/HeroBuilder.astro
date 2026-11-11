@@ -1,0 +1,137 @@
+---
+/**
+ * Hero — Builder version (data-driven from page_layout JSON)
+ *
+ * Props match the schema in backend/src/page-builder/sections/hero.ts
+ */
+import { normalizeHref } from '../../lib/url'
+
+interface Props {
+  variant?: 'split-right' | 'split-left' | 'centered' | 'fullscreen'
+  badge?: string
+  title?: string
+  subtitle?: string
+  cta_primary?: { text: string; url: string }
+  cta_secondary?: { text: string; url: string }
+  image_url?: string
+}
+
+const {
+  variant = 'split-right',
+  badge,
+  title = '',
+  subtitle,
+  cta_primary,
+  cta_secondary,
+  image_url,
+} = Astro.props
+
+const primaryHref = normalizeHref(cta_primary?.url) || '/'
+const secondaryHref = normalizeHref(cta_secondary?.url) || '/'
+
+const isSplit = variant === 'split-right' || variant === 'split-left'
+const isCentered = variant === 'centered'
+const isFullscreen = variant === 'fullscreen'
+const imageFirst = variant === 'split-left'
+---
+
+<section class={`relative overflow-hidden py-16 lg:py-24 ${isFullscreen ? 'min-h-[80vh] flex items-center' : 'bg-gradient-to-br from-blue-50 via-white to-purple-50'}`}>
+  <!-- Decorative blobs -->
+  {!isFullscreen && (
+    <>
+      <div class="absolute top-10 -left-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-float"></div>
+      <div class="absolute bottom-10 -right-20 w-96 h-96 bg-secondary/5 rounded-full blur-3xl animate-float delay-3"></div>
+    </>
+  )}
+
+  <!-- Fullscreen background image -->
+  {isFullscreen && image_url && (
+    <>
+      <img src={image_url} alt="Image de fond hero" class="absolute inset-0 w-full h-full object-cover" />
+      <div class="absolute inset-0 bg-black/40"></div>
+    </>
+  )}
+
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    {isSplit ? (
+      <div class={`grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center ${imageFirst ? 'lg:grid-flow-col-dense' : ''}`}>
+        <!-- Text -->
+        <div class={`text-center lg:text-left ${imageFirst ? 'lg:col-start-2' : ''}`}>
+          {badge && (
+            <span class="animate-fade-up inline-block px-4 py-1.5 bg-primary/10 text-primary text-sm font-semibold rounded-full mb-6 tracking-wide">
+              {badge}
+            </span>
+          )}
+          <h1 class="animate-fade-up delay-1 text-text" set:html={title} />
+          {subtitle && (
+            <p class="animate-fade-up delay-2 mt-6 text-lg sm:text-xl text-text-light leading-relaxed">
+              {subtitle}
+            </p>
+          )}
+          {(cta_primary?.text || cta_secondary?.text) && (
+            <div class="animate-fade-up delay-3 mt-10 flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4">
+              {cta_primary?.text && (
+                <a href={primaryHref} class="btn btn-primary text-base px-8 py-3.5">
+                  {cta_primary.text}
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </a>
+              )}
+              {cta_secondary?.text && (
+                <a href={secondaryHref} class="btn btn-outline text-base px-8 py-3.5">
+                  {cta_secondary.text}
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+
+        <!-- Image -->
+        {image_url && (
+          <div class={`relative animate-fade-up delay-2 ${imageFirst ? 'lg:col-start-1' : ''}`}>
+            <div class="absolute -top-6 -left-6 w-32 h-32 bg-primary/10 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-6 -right-6 w-40 h-40 bg-secondary/10 rounded-full blur-2xl"></div>
+            <img
+              src={image_url}
+              alt="Kit crochet débutant — Magic Crochet Kit"
+              width="1200"
+              height="1200"
+              fetchpriority="high"
+              class="relative w-full h-auto rounded-3xl shadow-2xl shadow-primary/10 object-cover aspect-square"
+            />
+          </div>
+        )}
+      </div>
+    ) : (
+      <!-- Centered + Fullscreen variants -->
+      <div class={`text-center max-w-3xl mx-auto ${isFullscreen ? 'text-white' : ''}`}>
+        {badge && (
+          <span class={`animate-fade-up inline-block px-4 py-1.5 ${isFullscreen ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'} text-sm font-semibold rounded-full mb-6 tracking-wide`}>
+            {badge}
+          </span>
+        )}
+        <h1 class={`animate-fade-up delay-1 ${isFullscreen ? 'text-white' : 'text-text'}`} set:html={title} />
+        {subtitle && (
+          <p class={`animate-fade-up delay-2 mt-6 text-lg sm:text-xl ${isFullscreen ? 'text-white/90' : 'text-text-light'} leading-relaxed`}>
+            {subtitle}
+          </p>
+        )}
+        {(cta_primary?.text || cta_secondary?.text) && (
+          <div class="animate-fade-up delay-3 mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+            {cta_primary?.text && (
+              <a href={primaryHref} class="btn btn-primary text-base px-8 py-3.5">
+                {cta_primary.text}
+              </a>
+            )}
+            {cta_secondary?.text && (
+              <a href={secondaryHref} class={`btn ${isFullscreen ? 'btn-white' : 'btn-outline'} text-base px-8 py-3.5`}>
+                {cta_secondary.text}
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+</section>

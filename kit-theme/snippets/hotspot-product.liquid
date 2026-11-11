@@ -1,0 +1,64 @@
+{%- comment -%}
+  Hotspot Product Popup
+  Quick product view for shoppable image hotspots
+
+  Parameters:
+  - product: Product object (required)
+  - hotspot_id: Unique identifier for ARIA
+{%- endcomment -%}
+
+{%- liquid
+  assign hotspot_id = hotspot_id | default: 'hotspot'
+  assign current_variant = product.selected_or_first_available_variant
+-%}
+
+{%- if product != blank -%}
+  <div class="hotspot-product" data-hotspot-product id="hotspot-product-{{ hotspot_id }}">
+    <button type="button" class="hotspot-product__close" data-hotspot-close aria-label="{{ 'general.close' | t | default: 'Fermer' }}">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M4 4L12 12M4 12L12 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <a href="{{ product.url }}" class="hotspot-product__image">
+      {%- if product.featured_image != blank -%}
+        <img
+          src="{{ product.featured_image | image_url: width: 200 }}"
+          alt="{{ product.title }}"
+          width="80"
+          height="80"
+          loading="lazy"
+        >
+      {%- else -%}
+        {{ 'product-1' | placeholder_svg_tag: 'hotspot-product__placeholder' }}
+      {%- endif -%}
+    </a>
+
+    <div class="hotspot-product__info">
+      <a href="{{ product.url }}" class="hotspot-product__title">{{ product.title }}</a>
+
+      <div class="hotspot-product__price">
+        {%- if current_variant.compare_at_price > current_variant.price -%}
+          <span class="hotspot-product__price--compare">{{ current_variant.compare_at_price | money }}</span>
+        {%- endif -%}
+        <span class="hotspot-product__price--current">{{ current_variant.price | money }}</span>
+      </div>
+
+      {%- if product.available -%}
+        <button
+          type="button"
+          class="hotspot-product__add btn btn--primary btn--small"
+          data-hotspot-add-to-cart
+          data-variant-id="{{ current_variant.id }}"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 4V12M4 8H12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          {{ 'products.product.add_to_cart' | t | default: 'Ajouter' }}
+        </button>
+      {%- else -%}
+        <span class="hotspot-product__sold-out">{{ 'products.product.sold_out' | t | default: 'Épuisé' }}</span>
+      {%- endif -%}
+    </div>
+  </div>
+{%- endif -%}

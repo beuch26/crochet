@@ -1,0 +1,248 @@
+{%- comment -%}
+  Featured Products Section
+  Display selected products in a grid
+{%- endcomment -%}
+
+<div class="featured-products section {% if section.settings.background_color %}section--{{ section.settings.background_color }}{% endif %}">
+  <div class="container">
+
+    {%- if section.settings.title != blank -%}
+      {%- liquid
+        assign heading_tag = section.settings.heading_tag | default: 'h2'
+      -%}
+      <header class="section-header text-center">
+        {%- if section.settings.enable_heading_style -%}
+          {%- render 'heading-styles',
+            text: section.settings.title,
+            tag: 'h2',
+            style: section.settings.heading_style,
+            color: section.settings.heading_style_color,
+            align: 'center',
+            size: 'xl',
+            typing_texts: section.settings.typing_texts
+          -%}
+        {%- else -%}
+          <{{ heading_tag }} class="section-title">{{ section.settings.title }}</{{ heading_tag }}>
+        {%- endif -%}
+        {%- if section.settings.subtitle != blank -%}
+          <p class="section-subtitle">{{ section.settings.subtitle }}</p>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <div class="grid {% if section.settings.columns_desktop == 2 %}grid--2{% elsif section.settings.columns_desktop == 3 %}grid--3{% else %}grid--4{% endif %}">
+        {%- for block in section.blocks -%}
+          {%- assign product = all_products[block.settings.product] -%}
+          {%- if product != blank -%}
+            {%- render 'product-card', product: product -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <div class="placeholder-products">
+        <p>{{ 'sections.featured_products.no_products' | t | default: 'Ajoutez des produits dans le theme editor' }}</p>
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.button_label != blank -%}
+      <div class="section-footer text-center mt-xl">
+        <a href="{{ section.settings.button_link | default: routes.all_products_collection_url }}" class="btn btn--primary btn--large">
+          {{ section.settings.button_label }}
+        </a>
+      </div>
+    {%- endif -%}
+
+  </div>
+</div>
+
+<style>
+.section--light {
+  background-color: var(--color-background-light);
+}
+
+.section-header {
+  padding-bottom: var(--spacing-md);
+}
+
+.section-title {
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  margin-bottom: var(--spacing-sm);
+}
+
+.section-subtitle {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--color-text-light);
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 1.6em;
+}
+
+.placeholder-products {
+  padding: var(--spacing-2xl);
+  text-align: center;
+  background-color: var(--color-background-light);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-light);
+}
+</style>
+
+{% schema %}
+{
+  "name": "Produits vedettes",
+  "class": "section-featured-products",
+  "max_blocks": 12,
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre",
+      "default": "Produits vedettes"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "SEO : Niveau de titre",
+      "options": [
+        {"value": "h1", "label": "H1"},
+        {"value": "h2", "label": "H2 (Recommande)"},
+        {"value": "h3", "label": "H3"},
+        {"value": "h4", "label": "H4"}
+      ],
+      "default": "h2",
+      "info": "SEO : H2 recommande pour les sections"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Sous-titre"
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "Colonnes (Bureau)",
+      "options": [
+        {
+          "value": "2",
+          "label": "2 colonnes"
+        },
+        {
+          "value": "3",
+          "label": "3 colonnes"
+        },
+        {
+          "value": "4",
+          "label": "4 colonnes"
+        }
+      ],
+      "default": "4"
+    },
+    {
+      "type": "select",
+      "id": "background_color",
+      "label": "Couleur de fond",
+      "options": [
+        {
+          "value": "default",
+          "label": "Par defaut"
+        },
+        {
+          "value": "light",
+          "label": "Clair"
+        }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "header",
+      "content": "Bouton"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Texte du bouton",
+      "default": "Voir tout"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Lien du bouton"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product",
+      "name": "Produit",
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Produit"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Produits vedettes",
+      "blocks": [
+        {
+          "type": "product"
+        },
+        {
+          "type": "product"
+        },
+        {
+          "type": "product"
+        },
+        {
+          "type": "product"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

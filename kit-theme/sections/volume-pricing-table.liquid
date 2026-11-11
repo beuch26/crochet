@@ -1,0 +1,386 @@
+{%- comment -%}
+  Volume Pricing Table Section
+  Displays a standalone pricing table with volume discounts
+
+  Usage: Add to any page via Theme Editor
+{%- endcomment -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign product = section.settings.product
+  assign heading = section.settings.heading
+  assign subheading = section.settings.subheading
+  assign show_product_image = section.settings.show_product_image
+  assign layout = section.settings.layout
+-%}
+
+<section class="volume-pricing-section section section--{{ section_id }}" id="volume-pricing-{{ section_id }}">
+  <div class="container">
+    {%- if heading != blank or subheading != blank -%}
+      <div class="section-header">
+        {%- if heading != blank -%}
+          {%- if section.settings.enable_heading_style -%}
+            {%- render 'heading-styles',
+              text: heading,
+              tag: 'h2',
+              style: section.settings.heading_style,
+              color: section.settings.heading_style_color,
+              align: 'center',
+              size: 'xl',
+              typing_texts: section.settings.typing_texts
+            -%}
+          {%- else -%}
+            <h2 class="section-header__title">{{ heading }}</h2>
+          {%- endif -%}
+        {%- endif -%}
+        {%- if subheading != blank -%}
+          <p class="section-header__subtitle">{{ subheading }}</p>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if product != blank -%}
+      <div class="volume-pricing-table {% if show_product_image %}volume-pricing-table--with-image{% endif %}">
+        {%- if show_product_image and product.featured_image -%}
+          <div class="volume-pricing-table__image">
+            <a href="{{ product.url }}">
+              <img
+                src="{{ product.featured_image | image_url: width: 400 }}"
+                alt="{{ product.title }}"
+                width="400"
+                height="auto"
+                loading="lazy"
+              >
+            </a>
+            <h3 class="volume-pricing-table__product-title">
+              <a href="{{ product.url }}">{{ product.title }}</a>
+            </h3>
+          </div>
+        {%- endif -%}
+
+        <div class="volume-pricing-table__content">
+          {%- render 'quantity-breaks', product: product, layout: layout, show_savings: true -%}
+
+          {%- if section.settings.show_cta -%}
+            <a href="{{ product.url }}" class="btn btn--primary btn--large volume-pricing-table__cta">
+              {{ section.settings.cta_text | default: 'Acheter maintenant' }}
+            </a>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- else -%}
+      <div class="volume-pricing-table__empty">
+        <p>{{ 'products.volume_pricing.no_product' | t | default: "Veuillez sélectionner un produit dans l'éditeur de thème" }}</p>
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} Custom Tiers from Blocks {%- endcomment -%}
+    {%- if section.blocks.size > 0 and product == blank -%}
+      <div class="volume-pricing-table__custom">
+        <div class="volume-pricing-table__tiers volume-pricing-table__tiers--{{ layout | default: 'horizontal' }}">
+          {%- for block in section.blocks -%}
+            <div class="volume-pricing-tier {% if block.settings.featured %}volume-pricing-tier--featured{% endif %}" {{ block.shopify_attributes }}>
+              {%- if block.settings.badge != blank -%}
+                <span class="volume-pricing-tier__badge">{{ block.settings.badge }}</span>
+              {%- endif -%}
+              <div class="volume-pricing-tier__quantity">{{ block.settings.quantity }}+</div>
+              <div class="volume-pricing-tier__discount">-{{ block.settings.discount_percent }}%</div>
+              <div class="volume-pricing-tier__description">{{ block.settings.description }}</div>
+            </div>
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<style>
+  .volume-pricing-section {
+    padding: var(--spacing-2xl) 0;
+  }
+
+  .volume-pricing-table {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .volume-pricing-table--with-image {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: var(--spacing-lg);
+    align-items: start;
+    max-width: 900px;
+  }
+
+  .volume-pricing-table__image img {
+    width: 100%;
+    border-radius: var(--radius-md);
+  }
+
+  .volume-pricing-table__product-title {
+    font-size: 1rem;
+    margin-top: var(--spacing-sm);
+    text-align: center;
+  }
+
+  .volume-pricing-table__product-title a {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .volume-pricing-table__product-title a:hover {
+    color: var(--color-primary);
+  }
+
+  .volume-pricing-table__cta {
+    width: 100%;
+    margin-top: var(--spacing-md);
+  }
+
+  .volume-pricing-table__empty {
+    text-align: center;
+    padding: var(--spacing-xl);
+    background-color: var(--color-background-light);
+    border-radius: var(--radius-lg);
+    color: var(--color-text-light);
+  }
+
+  .volume-pricing-table__tiers {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+  }
+
+  .volume-pricing-table__tiers--vertical {
+    flex-direction: column;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .volume-pricing-tier {
+    position: relative;
+    flex: 1;
+    max-width: 200px;
+    padding: var(--spacing-lg) var(--spacing-md);
+    background-color: var(--color-background);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+
+  .volume-pricing-tier:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  }
+
+  .volume-pricing-tier--featured {
+    border-color: var(--color-primary);
+    transform: scale(1.05);
+  }
+
+  .volume-pricing-tier--featured:hover {
+    transform: scale(1.05) translateY(-4px);
+  }
+
+  .volume-pricing-tier__badge {
+    position: absolute;
+    top: -0.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--color-primary);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+  }
+
+  .volume-pricing-tier__quantity {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 0.5rem;
+  }
+
+  .volume-pricing-tier__discount {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-success);
+    margin-bottom: 0.5rem;
+  }
+
+  .volume-pricing-tier__description {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+  }
+
+  @media (max-width: 767px) {
+    .volume-pricing-table--with-image {
+      grid-template-columns: 1fr;
+    }
+
+    .volume-pricing-table__image {
+      max-width: 200px;
+      margin: 0 auto;
+    }
+
+    .volume-pricing-table__tiers {
+      flex-wrap: wrap;
+    }
+
+    .volume-pricing-tier {
+      flex: 1 1 calc(50% - var(--spacing-md));
+      max-width: none;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Tableau prix dégressifs",
+  "tag": "section",
+  "class": "section-volume-pricing",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre",
+      "default": "Achetez plus, économisez plus"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Sous-titre",
+      "default": "Profitez de prix réduits en achetant en quantité"
+    },
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Produit",
+      "info": "Sélectionnez un produit avec le metafield volume_pricing"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_image",
+      "label": "Afficher l'image du produit",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Disposition",
+      "options": [
+        { "value": "horizontal", "label": "Horizontal" },
+        { "value": "vertical", "label": "Vertical" }
+      ],
+      "default": "horizontal"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cta",
+      "label": "Afficher le bouton d'action",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "cta_text",
+      "label": "Texte du bouton",
+      "default": "Acheter maintenant"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "tier",
+      "name": "Palier de prix",
+      "settings": [
+        {
+          "type": "number",
+          "id": "quantity",
+          "label": "Quantité minimum",
+          "default": 2
+        },
+        {
+          "type": "range",
+          "id": "discount_percent",
+          "label": "Pourcentage de réduction",
+          "min": 5,
+          "max": 50,
+          "step": 5,
+          "default": 10
+        },
+        {
+          "type": "text",
+          "id": "badge",
+          "label": "Texte du badge",
+          "info": "Badge optionnel (ex: 'Meilleure offre')"
+        },
+        {
+          "type": "text",
+          "id": "description",
+          "label": "Description",
+          "default": "Économisez sur chaque article"
+        },
+        {
+          "type": "checkbox",
+          "id": "featured",
+          "label": "Palier mis en avant",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Tableau prix dégressifs",
+      "blocks": [
+        { "type": "tier", "settings": { "quantity": 2, "discount_percent": 10, "description": "Réduction de départ" } },
+        { "type": "tier", "settings": { "quantity": 3, "discount_percent": 15, "badge": "Populaire", "featured": true, "description": "Le choix le plus populaire" } },
+        { "type": "tier", "settings": { "quantity": 5, "discount_percent": 20, "badge": "Meilleure offre", "description": "Économies maximales" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

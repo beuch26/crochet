@@ -1,0 +1,56 @@
+---
+import { normalizeHref } from '../../lib/url'
+
+interface Props {
+  layout?: 'left' | 'right'
+  image_url?: string
+  tagline?: string
+  title?: string
+  content?: string
+  cta?: { text: string; url: string }
+  background_color?: string
+}
+
+const {
+  layout = 'left',
+  image_url,
+  tagline,
+  title = '',
+  content = '',
+  cta,
+  background_color = '#ffffff',
+} = Astro.props
+
+const ctaHref = normalizeHref(cta?.url) || '/'
+---
+
+<section class="py-16 lg:py-20 reveal" style={`background-color:${background_color}`}>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class={`grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center ${layout === 'right' ? 'lg:grid-flow-col-dense' : ''}`}>
+      <!-- Image -->
+      {image_url && (
+        <div class={layout === 'right' ? 'lg:col-start-2' : ''}>
+          <img src={image_url} alt={title} loading="lazy" class="w-full h-auto rounded-3xl shadow-xl object-cover aspect-[4/3]" />
+        </div>
+      )}
+
+      <!-- Content -->
+      <div class={layout === 'right' ? 'lg:col-start-1' : ''}>
+        {tagline && (
+          <span class="inline-block text-xs font-semibold uppercase tracking-widest text-primary mb-3">
+            {tagline}
+          </span>
+        )}
+        {title && <h2>{title}</h2>}
+        {content && (
+          <div class="prose mt-6 max-w-none text-text-light" set:html={normalizeInternalHrefsInHTML(content)} />
+        )}
+        {cta?.text && (
+          <a href={ctaHref} class="btn btn-primary mt-8 px-7 py-3.5">
+            {cta.text}
+          </a>
+        )}
+      </div>
+    </div>
+  </div>
+</section>

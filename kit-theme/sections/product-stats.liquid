@@ -1,0 +1,354 @@
+{%- comment -%}
+  Product Stats Section
+  Image on left, 3 large statistics on right
+{%- endcomment -%}
+
+<section class="product-stats" style="--stats-accent: {{ section.settings.accent_color }}; --stats-bg: {{ section.settings.background_color }};">
+  <div class="product-stats__inner">
+
+    {%- comment -%} LEFT: Image {%- endcomment -%}
+    <div class="product-stats__media">
+      {%- if section.settings.image != blank -%}
+        <div class="product-stats__image-wrap">
+          <img
+            src="{{ section.settings.image | image_url: width: 600 }}"
+            srcset="{{ section.settings.image | image_url: width: 400 }} 400w,
+                    {{ section.settings.image | image_url: width: 600 }} 600w"
+            sizes="(max-width: 900px) 100vw, 40vw"
+            alt="{{ section.settings.image.alt | default: 'Statistics image' }}"
+            width="600"
+            height="{{ 600 | divided_by: section.settings.image.aspect_ratio | default: 1 | round }}"
+            loading="lazy"
+            class="product-stats__image"
+          >
+        </div>
+      {%- else -%}
+        <div class="product-stats__placeholder">
+          {{ 'product-1' | placeholder_svg_tag }}
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} RIGHT: Statistics {%- endcomment -%}
+    <div class="product-stats__content" data-stats-container>
+      {%- for block in section.blocks -%}
+        <div class="product-stats__stat" {{ block.shopify_attributes }}>
+          <div class="product-stats__number" data-counter="{{ block.settings.number }}">0</div>
+          <div class="product-stats__text">{{ block.settings.text }}</div>
+        </div>
+      {%- endfor -%}
+    </div>
+
+  </div>
+</section>
+
+<style>
+/* ========================================
+   PRODUCT STATS
+   ======================================== */
+
+.product-stats {
+  --_accent: var(--stats-accent, var(--color-primary, #0369a1));
+  --_bg: var(--stats-bg, #ffffff);
+  background: var(--_bg);
+  padding: clamp(3rem, 8vw, 5rem) 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.product-stats__inner {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: clamp(2rem, 5vw, 4rem);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 4vw, 2rem);
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .product-stats__inner {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}
+
+/* ========================================
+   LEFT - Image
+   ======================================== */
+
+.product-stats__media {
+  position: relative;
+}
+
+.product-stats__image-wrap {
+  position: relative;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+
+.product-stats__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.product-stats__image-wrap:hover .product-stats__image {
+  transform: scale(1.03);
+}
+
+.product-stats__placeholder {
+  aspect-ratio: 4/5;
+  background: #f3f4f6;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-stats__placeholder svg {
+  width: 50%;
+  height: auto;
+  opacity: 0.3;
+}
+
+/* ========================================
+   RIGHT - Statistics
+   ======================================== */
+
+.product-stats__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.product-stats__stat {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.product-stats__stat.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.product-stats__stat:nth-child(1) { transition-delay: 0.1s; }
+.product-stats__stat:nth-child(2) { transition-delay: 0.25s; }
+.product-stats__stat:nth-child(3) { transition-delay: 0.4s; }
+
+.product-stats__stat:last-child {
+  border-bottom: none;
+}
+
+.product-stats__number {
+  font-family: var(--font-heading, 'Georgia', serif);
+  font-size: clamp(3rem, 8vw, 5rem);
+  font-weight: 700;
+  color: var(--_accent);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.03em;
+}
+
+.product-stats__text {
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
+  color: #4b5563;
+  line-height: 1.6;
+  max-width: 400px;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 900px) {
+  .product-stats__media {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .product-stats__content {
+    text-align: center;
+  }
+
+  .product-stats__text {
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 500px) {
+  .product-stats__number {
+    font-size: 2.5rem;
+  }
+
+  .product-stats__stat {
+    padding: 1rem 0;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .product-stats__stat {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .product-stats__image {
+    transition: none;
+  }
+}
+</style>
+
+<script>
+(function() {
+  const container = document.querySelector('[data-stats-container]');
+  if (!container) return;
+
+  const stats = container.querySelectorAll('.product-stats__stat');
+  const counters = container.querySelectorAll('[data-counter]');
+  let animated = false;
+
+  // Parse value like "93%", "5h", "1,234" into { number, suffix, hasDecimal }
+  function parseValue(str) {
+    const match = str.match(/^([\d,.]+)(.*)$/);
+    if (!match) return { number: 0, suffix: str, hasDecimal: false };
+
+    const numStr = match[1].replace(',', '.');
+    const number = parseFloat(numStr);
+    const suffix = match[2] || '';
+    const hasDecimal = numStr.includes('.');
+
+    return { number, suffix, hasDecimal };
+  }
+
+  // Animate counter from 0 to target
+  function animateCounter(el, target, suffix, hasDecimal, duration = 2000) {
+    const start = performance.now();
+    const startValue = 0;
+
+    function easeOutExpo(t) {
+      return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+    }
+
+    function update(currentTime) {
+      const elapsed = currentTime - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = easeOutExpo(progress);
+      const current = startValue + (target - startValue) * easedProgress;
+
+      if (hasDecimal) {
+        el.textContent = current.toFixed(1) + suffix;
+      } else {
+        el.textContent = Math.round(current) + suffix;
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      }
+    }
+
+    requestAnimationFrame(update);
+  }
+
+  // Trigger animations
+  function triggerAnimations() {
+    if (animated) return;
+    animated = true;
+
+    // Fade in stats
+    stats.forEach(stat => stat.classList.add('is-visible'));
+
+    // Animate counters
+    counters.forEach(counter => {
+      const rawValue = counter.dataset.counter;
+      const { number, suffix, hasDecimal } = parseValue(rawValue);
+      animateCounter(counter, number, suffix, hasDecimal);
+    });
+  }
+
+  // Intersection Observer
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && entry.intersectionRatio >= 0.3) {
+        triggerAnimations();
+        observer.disconnect();
+      }
+    });
+  }, {
+    threshold: [0.3]
+  });
+
+  observer.observe(container);
+
+  // Fallback: if reduced motion, show immediately
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    counters.forEach(counter => {
+      counter.textContent = counter.dataset.counter;
+    });
+    stats.forEach(stat => stat.classList.add('is-visible'));
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Statistiques Produit",
+  "tag": "section",
+  "class": "section-product-stats",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Couleur des chiffres",
+      "default": "#0369a1"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Couleur de fond",
+      "default": "#ffffff"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "stat",
+      "name": "Statistique",
+      "settings": [
+        {
+          "type": "text",
+          "id": "number",
+          "label": "Chiffre",
+          "default": "93%"
+        },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Description",
+          "default": "De nos clients sont satisfaits de leur premier projet réalisé avec nos kits."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Statistiques Produit",
+      "blocks": [
+        { "type": "stat", "settings": { "number": "93%", "text": "De nos clients réussissent leur premier projet du premier coup grâce à nos instructions détaillées." } },
+        { "type": "stat", "settings": { "number": "87%", "text": "Recommandent nos kits à leurs amis et famille pour débuter le crochet." } },
+        { "type": "stat", "settings": { "number": "5h", "text": "C'est le temps moyen pour créer votre première peluche, même en partant de zéro." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

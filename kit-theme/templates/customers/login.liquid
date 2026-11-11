@@ -1,0 +1,236 @@
+{%- comment -%}
+  Customer Login Template
+{%- endcomment -%}
+
+<div class="customer-login section">
+  <div class="container">
+    <div class="customer-form-wrapper">
+
+      <header class="customer-header">
+        <h1>{{ 'customer.login.title' | t }}</h1>
+      </header>
+
+      <div class="customer-forms">
+
+        {%- comment -%} Login Form {%- endcomment -%}
+        <div class="customer-form">
+          <h2>{{ 'customer.login.returning_customer' | t }}</h2>
+
+          {%- form 'customer_login', novalidate: 'novalidate', class: 'form' -%}
+            {%- if form.errors -%}
+              <div class="form-errors">
+                <h3 class="form-errors__title">
+                  {{ 'customer.login.error' | t }}
+                </h3>
+                <ul class="form-errors__list">
+                  {%- for field in form.errors -%}
+                    <li>
+                      {%- if field == 'form' -%}
+                        {{ form.errors.messages[field] }}
+                      {%- else -%}
+                        <a href="#{{ field }}">
+                          {{ form.errors.translated_fields[field] | capitalize }}
+                          {{ form.errors.messages[field] }}
+                        </a>
+                      {%- endif -%}
+                    </li>
+                  {%- endfor -%}
+                </ul>
+              </div>
+            {%- endif -%}
+
+            <div class="form-group">
+              <label for="customer-email">
+                {{ 'customer.login.email' | t }} <span class="required">*</span>
+              </label>
+              <input
+                type="email"
+                name="customer[email]"
+                id="customer-email"
+                autocomplete="email"
+                autocapitalize="off"
+                required
+                {%- if form.errors contains 'email' %}aria-invalid="true"{% endif %}
+              >
+            </div>
+
+            {%- if form.password_needed -%}
+              <div class="form-group">
+                <label for="customer-password">
+                  {{ 'customer.login.password' | t }} <span class="required">*</span>
+                </label>
+                <input
+                  type="password"
+                  name="customer[password]"
+                  id="customer-password"
+                  autocomplete="current-password"
+                  required
+                  {%- if form.errors contains 'password' %}aria-invalid="true"{% endif %}
+                >
+              </div>
+
+              <div class="form-actions">
+                <a href="{{ routes.account_recover_url }}">
+                  {{ 'customer.login.forgot_password' | t }}
+                </a>
+              </div>
+            {%- endif -%}
+
+            <button type="submit" class="btn btn--primary btn--full">
+              {{ 'customer.login.sign_in' | t }}
+            </button>
+          {%- endform -%}
+        </div>
+
+        {%- comment -%} Register Link {%- endcomment -%}
+        <div class="customer-form customer-form--register">
+          <h2>{{ 'customer.login.new_customer' | t }}</h2>
+          <p>{{ 'customer.login.new_customer_text' | t }}</p>
+          <a href="{{ routes.account_register_url }}" class="btn btn--secondary btn--full">
+            {{ 'customer.login.create_account' | t }}
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+.customer-login {
+  padding: var(--spacing-2xl) 0;
+  min-height: 60vh;
+}
+
+.customer-form-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.customer-header {
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.customer-header h1 {
+  font-size: clamp(2rem, 4vw, 2.5rem);
+}
+
+.customer-forms {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-2xl);
+}
+
+@media (min-width: 768px) {
+  .customer-forms {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.customer-form {
+  padding: var(--spacing-xl);
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.customer-form h2 {
+  font-size: 1.5rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.customer-form--register {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  background-color: var(--color-background-light);
+}
+
+.customer-form--register p {
+  color: var(--color-text-light);
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-errors {
+  padding: var(--spacing-md);
+  background-color: var(--color-error-light);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-errors__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-error);
+  margin-bottom: 0.5rem;
+}
+
+.form-errors__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.form-errors__list li {
+  color: var(--color-error);
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.form-errors__list a {
+  color: var(--color-error);
+  text-decoration: underline;
+}
+
+.form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  transition: border-color var(--transition-speed);
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.form-group input[aria-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+.required {
+  color: var(--color-error);
+}
+
+.form-actions {
+  margin-bottom: var(--spacing-md);
+  text-align: right;
+}
+
+.form-actions a {
+  font-size: 0.875rem;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.form-actions a:hover {
+  text-decoration: underline;
+}
+</style>

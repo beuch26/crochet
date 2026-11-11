@@ -1,0 +1,89 @@
+---
+interface Props {
+  productId: string
+  productHandle: string
+}
+const { productId, productHandle } = Astro.props
+---
+
+<button
+  type="button"
+  data-wishlist-toggle
+  data-product-id={productId}
+  data-product-handle={productHandle}
+  aria-label="Ajouter aux favoris"
+  class="wishlist-btn absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-sm border border-border-light text-text-muted hover:text-accent hover:border-accent transition-all duration-200"
+>
+  <!-- Empty heart -->
+  <svg class="wishlist-empty h-4.5 w-4.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+  </svg>
+  <!-- Filled heart -->
+  <svg class="wishlist-filled h-4.5 w-4.5 hidden" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+  </svg>
+</button>
+
+<script>
+  // Wishlist: localStorage-based
+  function getWishlist(): string[] {
+    try { return JSON.parse(localStorage.getItem('mck_wishlist') || '[]') }
+    catch { return [] }
+  }
+
+  function saveWishlist(list: string[]) {
+    localStorage.setItem('mck_wishlist', JSON.stringify(list))
+  }
+
+  function updateButton(btn: Element, isInWishlist: boolean) {
+    const empty = btn.querySelector('.wishlist-empty')
+    const filled = btn.querySelector('.wishlist-filled')
+    if (isInWishlist) {
+      empty?.classList.add('hidden')
+      filled?.classList.remove('hidden')
+      btn.classList.add('text-accent', 'border-accent')
+      btn.classList.remove('text-text-muted')
+    } else {
+      empty?.classList.remove('hidden')
+      filled?.classList.add('hidden')
+      btn.classList.remove('text-accent', 'border-accent')
+      btn.classList.add('text-text-muted')
+    }
+  }
+
+  // Init all buttons
+  document.querySelectorAll('[data-wishlist-toggle]').forEach(btn => {
+    const handle = btn.getAttribute('data-product-handle') || ''
+    const wishlist = getWishlist()
+    updateButton(btn, wishlist.includes(handle))
+
+    btn.addEventListener('click', (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      const list = getWishlist()
+      const idx = list.indexOf(handle)
+      if (idx > -1) {
+        list.splice(idx, 1)
+        updateButton(btn, false)
+      } else {
+        list.push(handle)
+        updateButton(btn, true)
+      }
+      saveWishlist(list)
+
+      // Update header badge in real-time
+      const badge = document.getElementById('wishlist-count')
+      if (badge) {
+        const count = list.length
+        badge.textContent = String(count)
+        if (count > 0) {
+          badge.classList.remove('hidden')
+          badge.classList.add('animate-bounce')
+          setTimeout(() => badge.classList.remove('animate-bounce'), 500)
+        } else {
+          badge.classList.add('hidden')
+        }
+      }
+    })
+  })
+</script>

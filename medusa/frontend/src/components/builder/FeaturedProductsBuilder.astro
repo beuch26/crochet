@@ -1,0 +1,86 @@
+---
+import ProductCard from '../product/ProductCard.astro'
+import { getProducts, getCollections, getCollectionProducts, getProductPrice, getProductHoverImage } from '../../lib/medusa'
+import { normalizeHref } from '../../lib/url'
+
+interface Props {
+  title?: string
+  subtitle?: string
+  source?: 'latest' | 'bestsellers' | 'collection' | 'manual'
+  collection_handle?: string
+  limit?: number
+  columns?: '2' | '3' | '4' | '5'
+  show_cta?: boolean
+  cta_text?: string
+  cta_url?: string
+}
+
+const {
+  title = 'Nos produits phares',
+  subtitle,
+  source = 'latest',
+  collection_handle,
+  limit = 8,
+  columns = '4',
+  show_cta = true,
+  cta_text = 'Tout voir',
+  cta_url = '/collections/',
+} = Astro.props
+
+const ctaHref = normalizeHref(cta_url) || '/collections/'
+
+let products: any[] = []
+try {
+  if (source === 'collection' && collection_handle) {
+    const cols = await getCollections()
+    const col = (cols.collections || []).find((c: any) => c.handle === collection_handle)
+    if (col) {
+      const data = await getCollectionProducts(col.id, limit)
+      products = data.products || []
+    }
+  } else {
+    const data = await getProducts(limit)
+    products = data.products || []
+  }
+} catch {}
+
+const colClass = {
+  '2': 'lg:grid-cols-2',
+  '3': 'lg:grid-cols-3',
+  '4': 'lg:grid-cols-4',
+  '5': 'lg:grid-cols-5',
+}[columns] || 'lg:grid-cols-4'
+---
+
+{products.length > 0 && (
+  <section class="py-16 lg:py-20 bg-bg-light reveal">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-12 gap-4">
+        <div>
+          {title && <h2>{title}</h2>}
+          {subtitle && <p class="mt-3 text-text-light text-lg">{subtitle}</p>}
+        </div>
+        {show_cta && cta_text && (
+          <a href={ctaHref} class="btn btn-outline text-sm py-2.5 px-5 shrink-0">
+            {cta_text}
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </a>
+        )}
+      </div>
+      <div class={`grid grid-cols-2 md:grid-cols-3 ${colClass} gap-5 lg:gap-6`}>
+        {products.map((product: any) => (
+          <ProductCard
+            id={product.id}
+            title={product.title}
+            handle={product.handle}
+            price={getProductPrice(product)}
+            thumbnail={product.thumbnail}
+            hoverImage={getProductHoverImage(product)}
+          />
+        ))}
+      </div>
+    </div>
+  </section>
+)}

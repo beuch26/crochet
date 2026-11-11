@@ -1,0 +1,284 @@
+{%- comment -%}
+  Product "Buy it with" Section
+  Displays cross-sell products from metafield custom.buy_with (list.product_reference)
+  Configurable per product via metafield in Shopify admin
+{%- endcomment -%}
+
+{%- liquid
+  assign buy_with_products = product.metafields.custom.buy_with.value
+  assign heading = section.settings.heading | default: 'Achetez-le avec'
+  assign columns = section.settings.columns_desktop | default: 4
+  assign show_add_all = section.settings.show_add_all
+  assign add_all_text = section.settings.add_all_text | default: 'Tout ajouter au panier'
+-%}
+
+{%- if buy_with_products != blank and buy_with_products.size > 0 -%}
+  <section class="buy-with section" id="buy-with-{{ section.id }}">
+    <div class="container">
+
+      <header class="buy-with__header">
+        {%- if section.settings.enable_heading_style -%}
+          {%- render 'heading-styles',
+            text: heading,
+            tag: 'h2',
+            style: section.settings.heading_style,
+            color: section.settings.heading_style_color,
+            align: 'center',
+            size: 'xl',
+            typing_texts: section.settings.typing_texts
+          -%}
+        {%- else -%}
+          <h2 class="buy-with__title">{{ heading }}</h2>
+        {%- endif -%}
+        <div class="buy-with__title-line"></div>
+      </header>
+
+      <div class="buy-with__grid" data-columns="{{ columns }}">
+        {%- for ref_product in buy_with_products -%}
+          {%- if ref_product != blank and ref_product.available -%}
+            {%- render 'product-card', product: ref_product -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+
+      {%- if show_add_all -%}
+        <div class="buy-with__actions">
+          <button type="button"
+                  class="btn btn--primary buy-with__add-all"
+                  data-buy-with-add-all
+                  aria-label="{{ add_all_text }}">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+              <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>{{ add_all_text }}</span>
+          </button>
+        </div>
+      {%- endif -%}
+
+    </div>
+  </section>
+
+  <style>
+    .buy-with {
+      padding: var(--spacing-2xl) 0;
+    }
+
+    .buy-with__header {
+      text-align: center;
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .buy-with__title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-text);
+      margin: 0 0 0.75rem;
+    }
+
+    .buy-with__title-line {
+      width: 60px;
+      height: 3px;
+      background: var(--color-primary);
+      border-radius: 2px;
+      margin: 0 auto;
+    }
+
+    .buy-with__grid {
+      display: grid;
+      gap: var(--spacing-lg);
+    }
+
+    .buy-with__grid[data-columns="2"] {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .buy-with__grid[data-columns="3"] {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .buy-with__grid[data-columns="4"] {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .buy-with__actions {
+      text-align: center;
+      margin-top: var(--spacing-xl);
+    }
+
+    .buy-with__add-all {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.875rem 2rem;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      transition: all 0.2s ease;
+    }
+
+    .buy-with__add-all.loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    @media (max-width: 1024px) {
+      .buy-with__grid[data-columns="4"],
+      .buy-with__grid[data-columns="3"] {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .buy-with__grid[data-columns="4"],
+      .buy-with__grid[data-columns="3"],
+      .buy-with__grid[data-columns="2"] {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-md);
+      }
+
+      .buy-with__title {
+        font-size: 1.25rem;
+      }
+    }
+  </style>
+
+  {%- if show_add_all -%}
+    <script>
+      (function() {
+        var addAllBtn = document.querySelector('[data-buy-with-add-all]');
+        if (!addAllBtn) return;
+
+        var variantIds = [
+          {%- for ref_product in buy_with_products -%}
+            {%- if ref_product != blank and ref_product.available -%}
+              {{ ref_product.selected_or_first_available_variant.id }}{%- unless forloop.last -%},{%- endunless -%}
+            {%- endif -%}
+          {%- endfor -%}
+        ];
+
+        addAllBtn.addEventListener('click', function() {
+          if (variantIds.length === 0) return;
+
+          addAllBtn.classList.add('loading');
+          addAllBtn.disabled = true;
+
+          var items = variantIds.map(function(id) {
+            return { id: id, quantity: 1 };
+          });
+
+          fetch((window.Shopify && window.Shopify.routes && window.Shopify.routes.root || '/') + 'cart/add.js', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({ items: items })
+          })
+          .then(function(response) {
+            if (!response.ok) throw new Error('Cart add failed');
+            return fetch((window.Shopify && window.Shopify.routes && window.Shopify.routes.root || '/') + 'cart.js');
+          })
+          .then(function(response) { return response.json(); })
+          .then(function(cart) {
+            document.dispatchEvent(new CustomEvent('cart:updated', { detail: { cart: cart } }));
+            if (typeof Cart !== 'undefined' && Cart.openDrawer) {
+              Cart.openDrawer();
+              Cart.refreshDrawer();
+            }
+          })
+          .catch(function(error) {
+            console.error('Buy-with add error:', error);
+          })
+          .finally(function() {
+            addAllBtn.classList.remove('loading');
+            addAllBtn.disabled = false;
+          });
+        });
+      })();
+    </script>
+  {%- endif -%}
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Achetez-le avec",
+  "tag": "section",
+  "class": "section-buy-with",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre",
+      "default": "Achetez-le avec"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "Colonnes sur ordinateur",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "checkbox",
+      "id": "show_add_all",
+      "label": "Afficher le bouton 'Tout ajouter'",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "add_all_text",
+      "label": "Texte du bouton",
+      "default": "Tout ajouter au panier"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Achetez-le avec"
+    }
+  ],
+  "templates": ["product"]
+}
+{% endschema %}

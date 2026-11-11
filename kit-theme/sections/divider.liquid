@@ -1,0 +1,243 @@
+{%- comment -%}
+  Section Divider - Standalone section to add between other sections
+  Add waves, curves, diagonals between any sections
+{%- endcomment -%}
+
+{%- liquid
+  assign divider_shape = section.settings.shape
+  assign divider_color = section.settings.shape_color
+  assign divider_bg = section.settings.background_color
+  assign divider_height = section.settings.height
+  assign flip_h = section.settings.flip_horizontal
+  assign flip_v = section.settings.flip_vertical
+-%}
+
+{%- if divider_shape != 'none' -%}
+<div class="section-divider section-divider--{{ section.id }}"
+     style="
+       --divider-color: {{ divider_color }};
+       --divider-bg: {{ divider_bg }};
+       --divider-height: {{ divider_height }}px;
+       {% if flip_h %}--flip-h: -1;{% else %}--flip-h: 1;{% endif %}
+       {% if flip_v %}--flip-v: -1;{% else %}--flip-v: 1;{% endif %}
+     ">
+
+  {%- case divider_shape -%}
+
+    {%- when 'wave-1' -%}
+      <svg class="section-divider__svg" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="currentColor" d="M0,64L48,69.3C96,75,192,85,288,80C384,75,480,53,576,48C672,43,768,53,864,69.3C960,85,1056,107,1152,101.3C1248,96,1344,64,1392,48L1440,32L1440,120L0,120Z"></path>
+      </svg>
+
+    {%- when 'wave-2' -%}
+      <svg class="section-divider__svg" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="currentColor" d="M0,32L60,42.7C120,53,240,75,360,80C480,85,600,75,720,58.7C840,43,960,21,1080,26.7C1200,32,1320,64,1380,80L1440,96L1440,120L0,120Z"></path>
+      </svg>
+
+    {%- when 'wave-3' -%}
+      <svg class="section-divider__svg" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="currentColor" d="M0,96L80,85.3C160,75,320,53,480,58.7C640,64,800,96,960,101.3C1120,107,1280,85,1360,74.7L1440,64L1440,120L0,120Z"></path>
+      </svg>
+
+    {%- when 'wave-animated' -%}
+      <svg class="section-divider__svg section-divider__svg--animated" viewBox="0 24 150 28" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <path id="wave-path-{{ section.id }}" d="M-160 44c30 0 58-18 88-18s58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z"></path>
+        </defs>
+        <g class="wave-parallax wave-parallax--1">
+          <use href="#wave-path-{{ section.id }}" x="48" y="0" fill="currentColor" style="opacity: 0.7;"></use>
+        </g>
+        <g class="wave-parallax wave-parallax--2">
+          <use href="#wave-path-{{ section.id }}" x="48" y="3" fill="currentColor" style="opacity: 0.5;"></use>
+        </g>
+        <g class="wave-parallax wave-parallax--3">
+          <use href="#wave-path-{{ section.id }}" x="48" y="5" fill="currentColor" style="opacity: 0.3;"></use>
+        </g>
+        <g class="wave-parallax wave-parallax--4">
+          <use href="#wave-path-{{ section.id }}" x="48" y="7" fill="currentColor"></use>
+        </g>
+      </svg>
+
+    {%- when 'curve' -%}
+      <svg class="section-divider__svg" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="currentColor" d="M0,120 C480,0 960,0 1440,120 L1440,120 L0,120 Z"></path>
+      </svg>
+
+    {%- when 'curve-asymmetric' -%}
+      <svg class="section-divider__svg" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="currentColor" d="M0,120 Q360,0 720,60 T1440,120 L1440,120 L0,120 Z"></path>
+      </svg>
+
+    {%- when 'diagonal' -%}
+      <svg class="section-divider__svg" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon fill="currentColor" points="0,0 1440,120 0,120"></polygon>
+      </svg>
+
+    {%- when 'diagonal-reverse' -%}
+      <svg class="section-divider__svg" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon fill="currentColor" points="0,120 1440,0 1440,120"></polygon>
+      </svg>
+
+    {%- when 'triangle' -%}
+      <svg class="section-divider__svg" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon fill="currentColor" points="720,0 1440,120 0,120"></polygon>
+      </svg>
+
+    {%- when 'arrow' -%}
+      <svg class="section-divider__svg" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon fill="currentColor" points="0,0 720,120 1440,0 1440,120 0,120"></polygon>
+      </svg>
+
+    {%- when 'zigzag' -%}
+      <svg class="section-divider__svg" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon fill="currentColor" points="0,60 144,0 288,60 432,0 576,60 720,0 864,60 1008,0 1152,60 1296,0 1440,60 1440,120 0,120"></polygon>
+      </svg>
+
+    {%- when 'clouds' -%}
+      <svg class="section-divider__svg" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="currentColor" d="M0,96 C120,96 120,48 240,48 C360,48 360,96 480,96 C600,96 600,48 720,48 C840,48 840,96 960,96 C1080,96 1080,48 1200,48 C1320,48 1320,96 1440,96 L1440,120 L0,120 Z"></path>
+      </svg>
+
+  {%- endcase -%}
+</div>
+{%- endif -%}
+
+<style>
+.section-divider--{{ section.id }} {
+  position: relative;
+  width: 100%;
+  height: var(--divider-height, 100px);
+  background: var(--divider-bg, transparent);
+  overflow: hidden;
+  line-height: 0;
+  transform: scaleX(var(--flip-h, 1)) scaleY(var(--flip-v, 1));
+}
+
+.section-divider--{{ section.id }} .section-divider__svg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: var(--divider-color, #ffffff);
+}
+
+/* Animated Waves */
+.section-divider--{{ section.id }} .section-divider__svg--animated {
+  min-height: 80px;
+}
+
+.section-divider--{{ section.id }} .wave-parallax {
+  animation: wave-move-{{ section.id }} 25s cubic-bezier(.55,.5,.45,.5) infinite;
+}
+
+.section-divider--{{ section.id }} .wave-parallax--1 {
+  animation-delay: -2s;
+  animation-duration: 7s;
+}
+
+.section-divider--{{ section.id }} .wave-parallax--2 {
+  animation-delay: -3s;
+  animation-duration: 10s;
+}
+
+.section-divider--{{ section.id }} .wave-parallax--3 {
+  animation-delay: -4s;
+  animation-duration: 13s;
+}
+
+.section-divider--{{ section.id }} .wave-parallax--4 {
+  animation-delay: -5s;
+  animation-duration: 20s;
+}
+
+@keyframes wave-move-{{ section.id }} {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(-25%); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .section-divider--{{ section.id }} .wave-parallax {
+    animation: none;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Séparateur",
+  "tag": "div",
+  "class": "section-divider-wrapper",
+  "settings": [
+    {
+      "type": "select",
+      "id": "shape",
+      "label": "Forme",
+      "options": [
+        { "value": "none", "label": "Aucune" },
+        { "value": "wave-1", "label": "Vague 1" },
+        { "value": "wave-2", "label": "Vague 2" },
+        { "value": "wave-3", "label": "Vague 3" },
+        { "value": "wave-animated", "label": "Vagues animées" },
+        { "value": "curve", "label": "Courbe" },
+        { "value": "curve-asymmetric", "label": "Courbe asymétrique" },
+        { "value": "diagonal", "label": "Diagonale" },
+        { "value": "diagonal-reverse", "label": "Diagonale inversée" },
+        { "value": "triangle", "label": "Triangle" },
+        { "value": "arrow", "label": "Flèche" },
+        { "value": "zigzag", "label": "Zigzag" },
+        { "value": "clouds", "label": "Nuages" }
+      ],
+      "default": "wave-1"
+    },
+    {
+      "type": "color",
+      "id": "shape_color",
+      "label": "Couleur de la forme",
+      "info": "La couleur de la forme (généralement la couleur de la section en-dessous)",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Couleur de fond",
+      "info": "La couleur derrière la forme (généralement la couleur de la section au-dessus)",
+      "default": "#f3f4f6"
+    },
+    {
+      "type": "range",
+      "id": "height",
+      "label": "Hauteur",
+      "min": 50,
+      "max": 250,
+      "step": 10,
+      "default": 100,
+      "unit": "px",
+      "info": "Pour les vagues animées, minimum 80px recommandé"
+    },
+    {
+      "type": "checkbox",
+      "id": "flip_horizontal",
+      "label": "Inverser horizontalement",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "flip_vertical",
+      "label": "Inverser verticalement",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "Séparateur",
+      "settings": {
+        "shape": "wave-1",
+        "height": 100
+      }
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,354 @@
+{%- comment -%}
+  Product Decorative Elements
+  Floating decorative images and patterns for product pages
+
+  Parameters:
+  - position: 'left', 'right', 'both' (default: 'both')
+  - style: 'geometric', 'organic', 'minimal' (default: 'geometric')
+  - show_patterns: Show background patterns (default: true)
+{%- endcomment -%}
+
+{%- liquid
+  assign position = position | default: 'both'
+  assign style = style | default: 'geometric'
+  assign show_patterns = show_patterns | default: true
+-%}
+
+<div class="product-decor product-decor--{{ position }} product-decor--{{ style }}" aria-hidden="true">
+
+  {%- if position == 'left' or position == 'both' -%}
+    <div class="product-decor__left">
+      {%- comment -%} Left Side Decorations {%- endcomment -%}
+
+      <div class="product-decor__shape product-decor__shape--circle-1"></div>
+      <div class="product-decor__shape product-decor__shape--ring-1"></div>
+      <div class="product-decor__shape product-decor__shape--dots-1"></div>
+
+      {%- if style == 'geometric' -%}
+        <svg class="product-decor__svg product-decor__svg--triangle" viewBox="0 0 100 100" fill="none">
+          <polygon points="50,10 90,90 10,90" stroke="currentColor" stroke-width="2" opacity="0.15"/>
+        </svg>
+        <svg class="product-decor__svg product-decor__svg--grid" viewBox="0 0 60 60" fill="none">
+          <pattern id="grid-left" patternUnits="userSpaceOnUse" width="15" height="15">
+            <circle cx="1.5" cy="1.5" r="1" fill="currentColor" opacity="0.2"/>
+          </pattern>
+          <rect width="60" height="60" fill="url(#grid-left)"/>
+        </svg>
+      {%- endif -%}
+
+      {%- if style == 'organic' -%}
+        <svg class="product-decor__svg product-decor__svg--blob" viewBox="0 0 200 200">
+          <path fill="currentColor" opacity="0.05"
+            d="M45.7,-78.2C59.5,-70.8,71.3,-58.8,79.1,-44.5C86.9,-30.2,90.8,-13.6,89.3,2.3C87.8,18.2,81,33.3,71.4,46.2C61.8,59.1,49.5,69.8,35.5,76.2C21.6,82.6,5.9,84.7,-9.4,83.1C-24.7,81.5,-39.6,76.2,-52.3,67.5C-65,58.8,-75.5,46.7,-81.5,32.5C-87.5,18.3,-89,2,-85.8,-13C-82.6,-28,-74.7,-41.7,-63.7,-52.6C-52.7,-63.5,-38.6,-71.6,-24.1,-76.8C-9.6,-82,-4.8,-84.3,5.4,-93.2C15.6,-102.1,31.9,-85.6,45.7,-78.2Z"
+            transform="translate(100 100)"/>
+        </svg>
+      {%- endif -%}
+
+      <div class="product-decor__floating product-decor__floating--1">
+        <span class="product-decor__star">✦</span>
+      </div>
+      <div class="product-decor__floating product-decor__floating--2">
+        <span class="product-decor__star">✦</span>
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- if position == 'right' or position == 'both' -%}
+    <div class="product-decor__right">
+      {%- comment -%} Right Side Decorations {%- endcomment -%}
+
+      <div class="product-decor__shape product-decor__shape--circle-2"></div>
+      <div class="product-decor__shape product-decor__shape--ring-2"></div>
+      <div class="product-decor__shape product-decor__shape--square-1"></div>
+
+      {%- if style == 'geometric' -%}
+        <svg class="product-decor__svg product-decor__svg--hexagon" viewBox="0 0 100 100" fill="none">
+          <polygon points="50,5 95,27.5 95,72.5 50,95 5,72.5 5,27.5" stroke="currentColor" stroke-width="2" opacity="0.12"/>
+        </svg>
+        <svg class="product-decor__svg product-decor__svg--lines" viewBox="0 0 60 60" fill="none">
+          <line x1="0" y1="0" x2="60" y2="60" stroke="currentColor" stroke-width="1" opacity="0.1"/>
+          <line x1="0" y1="15" x2="45" y2="60" stroke="currentColor" stroke-width="1" opacity="0.1"/>
+          <line x1="0" y1="30" x2="30" y2="60" stroke="currentColor" stroke-width="1" opacity="0.1"/>
+          <line x1="15" y1="0" x2="60" y2="45" stroke="currentColor" stroke-width="1" opacity="0.1"/>
+          <line x1="30" y1="0" x2="60" y2="30" stroke="currentColor" stroke-width="1" opacity="0.1"/>
+        </svg>
+      {%- endif -%}
+
+      {%- if style == 'organic' -%}
+        <svg class="product-decor__svg product-decor__svg--wave" viewBox="0 0 200 200">
+          <path fill="none" stroke="currentColor" stroke-width="2" opacity="0.1"
+            d="M0,100 Q50,50 100,100 T200,100"/>
+          <path fill="none" stroke="currentColor" stroke-width="2" opacity="0.08"
+            d="M0,120 Q50,70 100,120 T200,120"/>
+          <path fill="none" stroke="currentColor" stroke-width="2" opacity="0.06"
+            d="M0,140 Q50,90 100,140 T200,140"/>
+        </svg>
+      {%- endif -%}
+
+      <div class="product-decor__floating product-decor__floating--3">
+        <span class="product-decor__star">✦</span>
+      </div>
+      <div class="product-decor__floating product-decor__floating--4">
+        <span class="product-decor__star">✦</span>
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- if show_patterns -%}
+    <div class="product-decor__pattern"></div>
+  {%- endif -%}
+</div>
+
+<style>
+  .product-decor {
+    --decor-primary: var(--color-primary, #2563eb);
+    --decor-secondary: #fbbf24;
+
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+
+  .product-decor__left,
+  .product-decor__right {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 150px;
+  }
+
+  .product-decor__left {
+    left: -50px;
+  }
+
+  .product-decor__right {
+    right: -50px;
+  }
+
+  /* Shapes */
+  .product-decor__shape {
+    position: absolute;
+    border-radius: 50%;
+  }
+
+  .product-decor__shape--circle-1 {
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, var(--decor-primary) 0%, transparent 70%);
+    opacity: 0.05;
+    top: 10%;
+    left: -100px;
+    animation: decor-float 8s ease-in-out infinite;
+  }
+
+  .product-decor__shape--circle-2 {
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, var(--decor-secondary) 0%, transparent 70%);
+    opacity: 0.05;
+    top: 40%;
+    right: -80px;
+    animation: decor-float 10s ease-in-out infinite reverse;
+  }
+
+  .product-decor__shape--ring-1 {
+    width: 120px;
+    height: 120px;
+    border: 2px solid var(--decor-primary);
+    opacity: 0.08;
+    top: 50%;
+    left: -40px;
+    animation: decor-spin 20s linear infinite;
+  }
+
+  .product-decor__shape--ring-2 {
+    width: 100px;
+    height: 100px;
+    border: 2px solid var(--decor-secondary);
+    opacity: 0.08;
+    top: 20%;
+    right: -30px;
+    animation: decor-spin 25s linear infinite reverse;
+  }
+
+  .product-decor__shape--dots-1 {
+    width: 80px;
+    height: 80px;
+    background-image: radial-gradient(circle, var(--decor-primary) 2px, transparent 2px);
+    background-size: 12px 12px;
+    opacity: 0.15;
+    top: 70%;
+    left: 20px;
+    border-radius: 0;
+  }
+
+  .product-decor__shape--square-1 {
+    width: 60px;
+    height: 60px;
+    border: 2px solid var(--decor-primary);
+    opacity: 0.06;
+    bottom: 15%;
+    right: 10px;
+    border-radius: 8px;
+    transform: rotate(15deg);
+    animation: decor-rotate 15s ease-in-out infinite;
+  }
+
+  /* SVG Elements */
+  .product-decor__svg {
+    position: absolute;
+    color: var(--decor-primary);
+  }
+
+  .product-decor__svg--triangle {
+    width: 80px;
+    height: 80px;
+    top: 25%;
+    left: 30px;
+    animation: decor-float 12s ease-in-out infinite;
+  }
+
+  .product-decor__svg--grid {
+    width: 60px;
+    height: 60px;
+    bottom: 30%;
+    left: 10px;
+  }
+
+  .product-decor__svg--hexagon {
+    width: 70px;
+    height: 70px;
+    top: 60%;
+    right: 20px;
+    animation: decor-spin 30s linear infinite;
+  }
+
+  .product-decor__svg--lines {
+    width: 50px;
+    height: 50px;
+    bottom: 20%;
+    right: 40px;
+  }
+
+  .product-decor__svg--blob {
+    width: 200px;
+    height: 200px;
+    top: 5%;
+    left: -50px;
+    color: var(--decor-secondary);
+    animation: decor-morph 15s ease-in-out infinite;
+  }
+
+  .product-decor__svg--wave {
+    width: 150px;
+    height: 100px;
+    bottom: 40%;
+    right: -20px;
+    animation: decor-wave 8s ease-in-out infinite;
+  }
+
+  /* Floating Stars */
+  .product-decor__floating {
+    position: absolute;
+    animation: decor-twinkle 3s ease-in-out infinite;
+  }
+
+  .product-decor__star {
+    font-size: 1rem;
+    color: var(--decor-secondary);
+    opacity: 0.4;
+  }
+
+  .product-decor__floating--1 {
+    top: 15%;
+    left: 60px;
+    animation-delay: 0s;
+  }
+
+  .product-decor__floating--2 {
+    top: 65%;
+    left: 40px;
+    animation-delay: 1.5s;
+  }
+
+  .product-decor__floating--3 {
+    top: 30%;
+    right: 50px;
+    animation-delay: 0.8s;
+  }
+
+  .product-decor__floating--4 {
+    top: 75%;
+    right: 30px;
+    animation-delay: 2.2s;
+  }
+
+  /* Background Pattern */
+  .product-decor__pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(37, 99, 235, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(251, 191, 36, 0.03) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  /* Animations */
+  @keyframes decor-float {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-20px) scale(1.05); }
+  }
+
+  @keyframes decor-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  @keyframes decor-rotate {
+    0%, 100% { transform: rotate(15deg); }
+    50% { transform: rotate(25deg); }
+  }
+
+  @keyframes decor-twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.2); }
+  }
+
+  @keyframes decor-morph {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.1) rotate(10deg); }
+  }
+
+  @keyframes decor-wave {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(10px); }
+  }
+
+  /* Minimal Style */
+  .product-decor--minimal .product-decor__shape,
+  .product-decor--minimal .product-decor__svg {
+    opacity: 0.03;
+  }
+
+  .product-decor--minimal .product-decor__floating {
+    display: none;
+  }
+
+  /* Responsive: Hide on mobile/tablet */
+  @media (max-width: 1200px) {
+    .product-decor {
+      display: none;
+    }
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .product-decor__shape,
+    .product-decor__svg,
+    .product-decor__floating {
+      animation: none;
+    }
+  }
+</style>

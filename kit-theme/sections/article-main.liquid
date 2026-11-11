@@ -1,0 +1,1228 @@
+{%- comment -%}
+  Article Main Section - Blog Post Detail
+  Optimized for SEO and User Experience
+  Features: Schema markup, social sharing, reading progress, sidebar
+{%- endcomment -%}
+
+{%- comment -%} Article Schema for SEO {%- endcomment -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": {{ article.title | json }},
+  "image": {
+    "@type": "ImageObject",
+    "url": {{ article.image | image_url: width: 1200 | json }},
+    "width": 1200,
+    "height": 630
+  },
+  "datePublished": {{ article.published_at | date: '%Y-%m-%d' | json }},
+  "dateModified": {{ article.updated_at | date: '%Y-%m-%d' | json }},
+  "author": {
+    "@type": "Person",
+    "name": {{ article.author | json }}
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": {{ shop.name | json }},
+    "logo": {
+      "@type": "ImageObject",
+      "url": {{ shop.brand.logo | image_url: width: 600 | json }}
+    }
+  },
+  "description": {{ article.excerpt_or_content | strip_html | truncate: 160 | json }},
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": {{ article.url | prepend: shop.url | json }}
+  }
+}
+</script>
+
+{%- comment -%} Reading Progress Bar {%- endcomment -%}
+{%- if section.settings.show_reading_progress -%}
+<div class="reading-progress-bar" data-reading-progress></div>
+{%- endif -%}
+
+<article class="article-page section" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="container">
+    <div class="article-layout{% unless section.settings.show_sidebar %} article-layout--no-sidebar{% endunless %}">
+
+      {%- comment -%} Main Article Content {%- endcomment -%}
+      <div class="article-main">
+
+        {%- comment -%} Article Header {%- endcomment -%}
+        <header class="article-header">
+
+          {%- comment -%} Article Title (H1 for SEO) {%- endcomment -%}
+          <h1 class="article-title" itemprop="headline">{{ article.title }}</h1>
+
+          {%- comment -%} Featured Image - LCP optimized {%- endcomment -%}
+          {%- if article.image -%}
+            <figure class="article-featured-image">
+              <img
+                src="{{ article.image | image_url: width: 1200 }}"
+                alt="{{ article.image.alt | default: article.title }}"
+                width="1200"
+                height="675"
+                loading="eager"
+                fetchpriority="high"
+                itemprop="image"
+              >
+            </figure>
+          {%- endif -%}
+
+          {%- comment -%} Meta bar: date, author, reading time + share buttons - all on one line {%- endcomment -%}
+          {%- assign word_count = article.content | strip_html | split: ' ' | size -%}
+          {%- assign reading_time = word_count | divided_by: 200 | at_least: 1 -%}
+          {%- comment -%} French date formatting {%- endcomment -%}
+          {%- assign day = article.published_at | date: '%d' -%}
+          {%- assign month_num = article.published_at | date: '%m' -%}
+          {%- assign year = article.published_at | date: '%Y' -%}
+          {%- case month_num -%}
+            {%- when '01' -%}{%- assign month_fr = 'janvier' -%}
+            {%- when '02' -%}{%- assign month_fr = 'février' -%}
+            {%- when '03' -%}{%- assign month_fr = 'mars' -%}
+            {%- when '04' -%}{%- assign month_fr = 'avril' -%}
+            {%- when '05' -%}{%- assign month_fr = 'mai' -%}
+            {%- when '06' -%}{%- assign month_fr = 'juin' -%}
+            {%- when '07' -%}{%- assign month_fr = 'juillet' -%}
+            {%- when '08' -%}{%- assign month_fr = 'août' -%}
+            {%- when '09' -%}{%- assign month_fr = 'septembre' -%}
+            {%- when '10' -%}{%- assign month_fr = 'octobre' -%}
+            {%- when '11' -%}{%- assign month_fr = 'novembre' -%}
+            {%- when '12' -%}{%- assign month_fr = 'décembre' -%}
+          {%- endcase -%}
+          <div class="article-meta-bar">
+            <div class="article-meta">
+              <time class="article-date" datetime="{{ article.published_at | date: '%Y-%m-%d' }}" itemprop="datePublished">
+                {{ day }} {{ month_fr }} {{ year }}
+              </time>
+              <span class="article-separator">•</span>
+              <span class="article-author" itemprop="author" itemscope itemtype="https://schema.org/Person">
+                <span itemprop="name">{{ article.author }}</span>
+              </span>
+              <span class="article-separator">•</span>
+              <span class="article-reading-time">{{ reading_time }} min</span>
+              {%- if article.comments_count > 0 -%}
+                <span class="article-separator">•</span>
+                <a href="#comments" class="article-comments-link">
+                  {{ article.comments_count }} commentaire{% if article.comments_count > 1 %}s{% endif %}
+                </a>
+              {%- endif -%}
+            </div>
+
+            {%- if section.settings.show_social_share -%}
+            <div class="article-share" data-article-share>
+              <span class="article-share__label">Partager</span>
+              <div class="article-share__buttons">
+                <a href="https://www.facebook.com/sharer/sharer.php?u={{ article.url | prepend: shop.url | url_encode }}"
+                   target="_blank"
+                   rel="noopener"
+                   class="article-share__button"
+                   aria-label="Partager sur Facebook">
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M20 10c0-5.523-4.477-10-10-10S0 4.477 0 10c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V10h2.54V7.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V10h2.773l-.443 2.89h-2.33v6.988C16.343 19.128 20 14.991 20 10z"/>
+                  </svg>
+                </a>
+                <a href="https://twitter.com/intent/tweet?url={{ article.url | prepend: shop.url | url_encode }}&text={{ article.title | url_encode }}"
+                   target="_blank"
+                   rel="noopener"
+                   class="article-share__button"
+                   aria-label="Partager sur X">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                </a>
+                <a href="https://pinterest.com/pin/create/button/?url={{ article.url | prepend: shop.url | url_encode }}&description={{ article.title | url_encode }}"
+                   target="_blank"
+                   rel="noopener"
+                   class="article-share__button"
+                   aria-label="Épingler sur Pinterest">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C5.373 0 0 5.372 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738.098.119.112.224.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12 0-6.628-5.373-12-12-12z"/>
+                  </svg>
+                </a>
+                <button type="button"
+                        class="article-share__button"
+                        data-copy-url="{{ article.url | prepend: shop.url }}"
+                        aria-label="Copier le lien">
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 4H6a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-2M12 2h6m0 0v6m0-6L10 10" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            {%- endif -%}
+          </div>
+
+        </header>
+
+        {%- comment -%} Table of Contents / Sommaire {%- endcomment -%}
+        {%- if section.settings.show_table_of_contents -%}
+          {%- render 'article-table-of-contents', content: article.content -%}
+        {%- endif -%}
+
+        {%- comment -%} Article Content {%- endcomment -%}
+        <div class="article-content rte" data-article-content itemprop="articleBody">
+          {{ article.content }}
+        </div>
+
+        {%- comment -%} Author Bio - Configurable {%- endcomment -%}
+        {%- if section.settings.show_author_bio -%}
+        {%- liquid
+          assign author_name = section.settings.author_name | default: article.author
+          assign author_description = section.settings.author_description | default: 'Auteur chez ' | append: shop.name
+          assign author_image = section.settings.author_image
+        -%}
+        <div class="article-author-bio">
+          <div class="article-author-bio__avatar">
+            {%- if author_image != blank -%}
+              <img
+                src="{{ author_image | image_url: width: 120 }}"
+                alt="{{ author_name }}"
+                width="60"
+                height="60"
+                loading="lazy"
+              >
+            {%- else -%}
+              <div class="article-author-bio__avatar-placeholder">
+                <span>{{ author_name | slice: 0 | upcase }}</span>
+              </div>
+            {%- endif -%}
+          </div>
+          <div class="article-author-bio__content">
+            <div class="article-author-bio__name">{{ author_name }}</div>
+            <div class="article-author-bio__description">{{ author_description }}</div>
+            {%- liquid
+              assign author_instagram = section.settings.author_instagram
+              assign author_facebook = section.settings.author_facebook
+              assign author_twitter = section.settings.author_twitter
+              assign author_tiktok = section.settings.author_tiktok
+              assign author_youtube = section.settings.author_youtube
+              assign author_pinterest = section.settings.author_pinterest
+              assign author_website = section.settings.author_website
+            -%}
+            {%- if author_instagram != blank or author_facebook != blank or author_twitter != blank or author_tiktok != blank or author_youtube != blank or author_pinterest != blank or author_website != blank -%}
+              <div class="article-author-bio__social">
+                {%- if author_instagram != blank -%}
+                  <a href="{{ author_instagram }}" target="_blank" rel="noopener" aria-label="Instagram">
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path d="M10 0C7.284 0 6.944.012 5.877.06 4.813.11 4.086.278 3.45.525a4.893 4.893 0 00-1.771 1.154A4.893 4.893 0 00.525 3.45C.278 4.086.11 4.813.06 5.877.012 6.944 0 7.284 0 10s.012 3.056.06 4.123c.05 1.064.218 1.791.465 2.427a4.893 4.893 0 001.154 1.771 4.893 4.893 0 001.771 1.154c.636.247 1.363.415 2.427.465C6.944 19.988 7.284 20 10 20s3.056-.012 4.123-.06c1.064-.05 1.791-.218 2.427-.465a4.893 4.893 0 001.771-1.154 4.893 4.893 0 001.154-1.771c.247-.636.415-1.363.465-2.427.048-1.067.06-1.407.06-4.123s-.012-3.056-.06-4.123c-.05-1.064-.218-1.791-.465-2.427a4.893 4.893 0 00-1.154-1.771A4.893 4.893 0 0016.55.525C15.914.278 15.187.11 14.123.06 13.056.012 12.716 0 10 0zm0 1.802c2.67 0 2.986.01 4.04.058.976.045 1.505.207 1.858.344.466.182.8.399 1.15.748.35.35.566.684.748 1.15.137.353.3.882.344 1.857.048 1.055.058 1.37.058 4.04 0 2.672-.01 2.987-.058 4.042-.045.975-.207 1.504-.344 1.857a3.097 3.097 0 01-.748 1.15c-.35.35-.684.566-1.15.748-.353.137-.882.3-1.857.344-1.054.048-1.37.058-4.041.058-2.67 0-2.987-.01-4.04-.058-.976-.045-1.505-.207-1.858-.344a3.097 3.097 0 01-1.15-.748 3.097 3.097 0 01-.748-1.15c-.137-.353-.3-.882-.344-1.857-.048-1.055-.058-1.37-.058-4.041 0-2.67.01-2.986.058-4.04.045-.976.207-1.505.344-1.858.182-.466.399-.8.748-1.15.35-.35.684-.566 1.15-.748.353-.137.882-.3 1.857-.344 1.055-.048 1.37-.058 4.041-.058zm0 3.063a5.135 5.135 0 100 10.27 5.135 5.135 0 000-10.27zm0 8.468a3.333 3.333 0 110-6.666 3.333 3.333 0 010 6.666zm6.538-8.671a1.2 1.2 0 11-2.4 0 1.2 1.2 0 012.4 0z"/></svg>
+                  </a>
+                {%- endif -%}
+                {%- if author_facebook != blank -%}
+                  <a href="{{ author_facebook }}" target="_blank" rel="noopener" aria-label="Facebook">
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path d="M20 10C20 4.477 15.523 0 10 0S0 4.477 0 10c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V10h2.54V7.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V10h2.773l-.443 2.89h-2.33v6.988C16.343 19.128 20 14.991 20 10z"/></svg>
+                  </a>
+                {%- endif -%}
+                {%- if author_twitter != blank -%}
+                  <a href="{{ author_twitter }}" target="_blank" rel="noopener" aria-label="X (Twitter)">
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path d="M11.903 8.471L19.347 0h-1.764l-6.465 7.353L5.955 0H0l7.808 11.12L0 20h1.764l6.828-7.765L14.045 20H20L11.903 8.471zm-2.417 2.749l-.791-1.108L2.4 1.3h2.712l5.082 7.112.791 1.108 6.604 9.243h-2.712l-5.39-7.543z"/></svg>
+                  </a>
+                {%- endif -%}
+                {%- if author_tiktok != blank -%}
+                  <a href="{{ author_tiktok }}" target="_blank" rel="noopener" aria-label="TikTok">
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path d="M14.125 0h-3.05v13.622c0 1.623-1.3 2.932-2.912 2.932a2.92 2.92 0 01-2.913-2.932 2.92 2.92 0 012.913-2.932c.3 0 .587.044.862.125V7.7a6.087 6.087 0 00-.862-.063C3.663 7.637 0 11.32 0 15.84 0 20.36 3.663 22 8.163 22c4.5 0 8.162-1.64 8.162-6.16V7.475A9.393 9.393 0 0020 9.1V6.037a5.842 5.842 0 01-5.875-6.037z" transform="translate(0 -1)"/></svg>
+                  </a>
+                {%- endif -%}
+                {%- if author_youtube != blank -%}
+                  <a href="{{ author_youtube }}" target="_blank" rel="noopener" aria-label="YouTube">
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path d="M19.582 3.186A2.506 2.506 0 0017.82 1.41C16.254 1 10 1 10 1S3.746 1 2.18 1.41A2.506 2.506 0 00.418 3.186C0 4.768 0 8.1 0 8.1s0 3.332.418 4.914a2.506 2.506 0 001.762 1.776C3.746 15.2 10 15.2 10 15.2s6.254 0 7.82-.41a2.506 2.506 0 001.762-1.776C20 11.432 20 8.1 20 8.1s0-3.332-.418-4.914zM7.955 11.471V4.729L13.182 8.1 7.955 11.47z" transform="translate(0 2)"/></svg>
+                  </a>
+                {%- endif -%}
+                {%- if author_pinterest != blank -%}
+                  <a href="{{ author_pinterest }}" target="_blank" rel="noopener" aria-label="Pinterest">
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path d="M10 0C4.477 0 0 4.477 0 10c0 4.237 2.636 7.855 6.356 9.312-.088-.791-.166-2.005.035-2.868.182-.78 1.172-4.97 1.172-4.97s-.299-.598-.299-1.482c0-1.388.805-2.425 1.808-2.425.853 0 1.264.64 1.264 1.408 0 .858-.546 2.14-.828 3.33-.236.995.499 1.806 1.48 1.806 1.778 0 3.144-1.874 3.144-4.58 0-2.393-1.72-4.068-4.177-4.068-2.845 0-4.515 2.134-4.515 4.34 0 .859.331 1.781.744 2.282a.3.3 0 01.07.287c-.076.316-.245.995-.278 1.134-.044.183-.145.222-.335.134-1.249-.581-2.03-2.407-2.03-3.874 0-3.154 2.292-6.052 6.608-6.052 3.469 0 6.165 2.473 6.165 5.776 0 3.447-2.173 6.22-5.19 6.22-1.013 0-1.965-.527-2.291-1.148l-.623 2.378c-.225.869-.834 1.956-1.241 2.62A10 10 0 0010 20c5.523 0 10-4.477 10-10S15.523 0 10 0z"/></svg>
+                  </a>
+                {%- endif -%}
+                {%- if author_website != blank -%}
+                  <a href="{{ author_website }}" target="_blank" rel="noopener" aria-label="Site web">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+                  </a>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+        {%- endif -%}
+
+        {%- comment -%} Article Navigation {%- endcomment -%}
+        {%- if section.settings.show_article_navigation -%}
+        <nav class="article-navigation" aria-label="Article Navigation">
+          {%- if blog.previous_article -%}
+            <a href="{{ blog.previous_article.url }}" class="article-navigation__link article-navigation__link--prev">
+              <span class="article-navigation__label">← Article précédent</span>
+              <span class="article-navigation__title">{{ blog.previous_article.title | truncate: 50 }}</span>
+            </a>
+          {%- endif -%}
+
+          {%- if blog.next_article -%}
+            <a href="{{ blog.next_article.url }}" class="article-navigation__link article-navigation__link--next">
+              <span class="article-navigation__label">Article suivant →</span>
+              <span class="article-navigation__title">{{ blog.next_article.title | truncate: 50 }}</span>
+            </a>
+          {%- endif -%}
+        </nav>
+        {%- endif -%}
+
+        {%- comment -%} Comments Section {%- endcomment -%}
+        {%- if section.settings.show_comments and blog.comments_enabled? -%}
+        <div class="article-comments" id="comments">
+          <h2 class="article-comments__title">
+            Commentaires
+            {%- if article.comments_count > 0 -%}
+              ({{ article.comments_count }})
+            {%- endif -%}
+          </h2>
+
+          {%- if article.comments_count > 0 -%}
+            {%- paginate article.comments by 50 -%}
+              <div class="comments-list">
+                {%- for comment in article.comments -%}
+                  <div class="comment" id="comment-{{ comment.id }}">
+                    <div class="comment__header">
+                      <strong class="comment__author">{{ comment.author }}</strong>
+                      <time class="comment__date" datetime="{{ comment.created_at | date: '%Y-%m-%d' }}">
+                        {{ comment.created_at | date: '%d %B %Y à %H:%M' }}
+                      </time>
+                    </div>
+                    <div class="comment__content">
+                      {{ comment.content }}
+                    </div>
+                  </div>
+                {%- endfor -%}
+              </div>
+
+              {%- if paginate.pages > 1 -%}
+                {%- render 'pagination', paginate: paginate -%}
+              {%- endif -%}
+            {%- endpaginate -%}
+          {%- endif -%}
+
+          {%- comment -%} Comment Form {%- endcomment -%}
+          <div class="comment-form">
+            <h3 class="comment-form__title">Laisser un commentaire</h3>
+            {%- form 'new_comment', article -%}
+              {%- if form.posted_successfully? -%}
+                <div class="form-success">
+                  {%- if blog.moderated? -%}
+                    Votre commentaire a été soumis avec succès. Il sera publié après modération.
+                  {%- else -%}
+                    Votre commentaire a été publié avec succès.
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+
+              {%- if form.errors -%}
+                <div class="form-error">
+                  Erreur lors de l'envoi du commentaire. Veuillez vérifier les champs.
+                </div>
+              {%- endif -%}
+
+              <div class="form-group">
+                <label for="comment-author">Nom *</label>
+                <input
+                  type="text"
+                  id="comment-author"
+                  name="comment[author]"
+                  value="{{ form.author }}"
+                  required
+                  placeholder="Votre nom"
+                >
+              </div>
+
+              <div class="form-group">
+                <label for="comment-email">Email *</label>
+                <input
+                  type="email"
+                  id="comment-email"
+                  name="comment[email]"
+                  value="{{ form.email }}"
+                  required
+                  placeholder="votre@email.com"
+                >
+              </div>
+
+              <div class="form-group">
+                <label for="comment-body">Commentaire *</label>
+                <textarea
+                  id="comment-body"
+                  name="comment[body]"
+                  required
+                  rows="5"
+                  placeholder="Votre commentaire..."
+                >{{ form.body }}</textarea>
+              </div>
+
+              <button type="submit" class="btn btn--primary">
+                Publier le commentaire
+              </button>
+            {%- endform -%}
+          </div>
+        </div>
+        {%- endif -%}
+
+      </div>
+
+      {%- comment -%} Sidebar {%- endcomment -%}
+      {%- if section.settings.show_sidebar -%}
+      <aside class="article-sidebar">
+
+        {%- comment -%} Related Articles Widget {%- endcomment -%}
+        {%- assign related_articles = blog.articles | where_exp: "a", "a.id != article.id" | limit: 5 -%}
+        {%- if related_articles.size > 0 -%}
+          <div class="sidebar-widget">
+            <h3 class="sidebar-widget__title">Articles récents</h3>
+            <ul class="sidebar-recent-posts">
+              {%- for related in related_articles -%}
+                {%- assign rel_day = related.published_at | date: '%d' -%}
+                {%- assign rel_month_num = related.published_at | date: '%m' -%}
+                {%- assign rel_year = related.published_at | date: '%Y' -%}
+                {%- case rel_month_num -%}
+                  {%- when '01' -%}{%- assign rel_month_fr = 'janvier' -%}
+                  {%- when '02' -%}{%- assign rel_month_fr = 'février' -%}
+                  {%- when '03' -%}{%- assign rel_month_fr = 'mars' -%}
+                  {%- when '04' -%}{%- assign rel_month_fr = 'avril' -%}
+                  {%- when '05' -%}{%- assign rel_month_fr = 'mai' -%}
+                  {%- when '06' -%}{%- assign rel_month_fr = 'juin' -%}
+                  {%- when '07' -%}{%- assign rel_month_fr = 'juillet' -%}
+                  {%- when '08' -%}{%- assign rel_month_fr = 'août' -%}
+                  {%- when '09' -%}{%- assign rel_month_fr = 'septembre' -%}
+                  {%- when '10' -%}{%- assign rel_month_fr = 'octobre' -%}
+                  {%- when '11' -%}{%- assign rel_month_fr = 'novembre' -%}
+                  {%- when '12' -%}{%- assign rel_month_fr = 'décembre' -%}
+                {%- endcase -%}
+                <li>
+                  <a href="{{ related.url }}" class="sidebar-recent-post">
+                    {%- if related.image -%}
+                      <img
+                        src="{{ related.image | image_url: width: 160, height: 90, crop: 'center' }}"
+                        alt="{{ related.title }}"
+                        width="160"
+                        height="90"
+                        loading="lazy"
+                      >
+                    {%- endif -%}
+                    <div class="sidebar-recent-post__content">
+                      <h4>{{ related.title | truncate: 50 }}</h4>
+                      <time datetime="{{ related.published_at | date: '%Y-%m-%d' }}">
+                        {{ rel_day }} {{ rel_month_fr }} {{ rel_year }}
+                      </time>
+                    </div>
+                  </a>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} Free Pattern Widget {%- endcomment -%}
+        <div class="sidebar-widget sidebar-widget--gift">
+          <div class="sidebar-gift__icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 110-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 100-5C13 2 12 7 12 7z" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3 class="sidebar-widget__title">Patron gratuit</h3>
+          <p class="sidebar-gift__text">Recevez un patron amigurumi offert en vous inscrivant !</p>
+          {%- form 'customer', class: 'sidebar-newsletter-form' -%}
+            <input type="hidden" name="contact[tags]" value="newsletter,patron-gratuit">
+            <input
+              type="email"
+              name="contact[email]"
+              placeholder="votre@email.com"
+              required
+            >
+            <button type="submit" class="btn btn--primary btn--full btn--small">
+              Recevoir mon patron
+            </button>
+          {%- endform -%}
+        </div>
+
+      </aside>
+      {%- endif -%}
+
+    </div>
+  </div>
+
+  {%- comment -%} Schema.org Metadata {%- endcomment -%}
+  <meta itemprop="dateModified" content="{{ article.updated_at | date: '%Y-%m-%d' }}">
+  <meta itemprop="mainEntityOfPage" content="{{ shop.url }}{{ article.url }}">
+  <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+    <meta itemprop="name" content="{{ shop.name }}">
+    {%- if shop.brand.logo -%}
+      <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+        <meta itemprop="url" content="{{ shop.brand.logo | image_url: width: 600 }}">
+      </div>
+    {%- endif -%}
+  </div>
+</article>
+
+<style>
+/* Reading Progress Bar */
+.reading-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+  z-index: 999997;
+  transition: width 0.1s ease;
+}
+
+/* Article Layout */
+.article-page {
+  padding: var(--spacing-xl) 0;
+}
+
+.article-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-2xl);
+}
+
+@media (min-width: 1024px) {
+  .article-layout {
+    grid-template-columns: 2fr 1fr;
+  }
+
+  .article-layout--no-sidebar {
+    grid-template-columns: 1fr;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+}
+
+/* Article Header */
+.article-header {
+  margin-bottom: var(--spacing-lg);
+}
+
+.article-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.2;
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text);
+}
+
+.article-featured-image {
+  margin: 0 0 var(--spacing-md);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.article-featured-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Meta bar - date, author, reading time + share on same line */
+.article-meta-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--spacing-lg);
+}
+
+.article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: #4b5563;
+}
+
+.article-separator {
+  color: var(--color-border);
+}
+
+.article-comments-link {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.article-comments-link:hover {
+  text-decoration: underline;
+}
+
+/* Social Share - Minimal elegant design */
+.article-share {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.article-share__label {
+  font-size: 0.8125rem;
+  color: var(--color-text-light);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.article-share__buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.article-share__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background-color: transparent;
+  border: none;
+  color: var(--color-text-light);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.article-share__button:hover {
+  color: var(--color-primary);
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.article-share__button svg {
+  transition: transform 0.2s ease;
+}
+
+.article-share__button:hover svg {
+  transform: scale(1.1);
+}
+
+/* Article Content */
+.article-content {
+  font-size: 1.125rem;
+  line-height: 1.8;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-2xl);
+}
+
+.article-content h2 {
+  font-size: 2rem;
+  margin-top: var(--spacing-2xl);
+  margin-bottom: var(--spacing-md);
+}
+
+.article-content h3 {
+  font-size: 1.5rem;
+  margin-top: var(--spacing-xl);
+  margin-bottom: var(--spacing-sm);
+}
+
+.article-content p {
+  margin-bottom: var(--spacing-md);
+}
+
+.article-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  margin: var(--spacing-lg) 0;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  width: 100%;
+}
+
+.article-content ul,
+.article-content ol {
+  margin-bottom: var(--spacing-md);
+  padding-left: var(--spacing-lg);
+}
+
+.article-content li {
+  margin-bottom: 0.5rem;
+}
+
+.article-content blockquote {
+  margin: var(--spacing-lg) 0;
+  padding-left: var(--spacing-lg);
+  border-left: 4px solid var(--color-primary);
+  font-style: italic;
+  color: var(--color-text-light);
+}
+
+.article-content a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  transition: color var(--transition-speed);
+}
+
+.article-content a:hover {
+  color: var(--color-primary-dark, #2563eb);
+  text-decoration-thickness: 2px;
+}
+
+.article-author-bio {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background-color: var(--color-background-light);
+  border-radius: var(--radius-lg);
+  margin-top: var(--spacing-2xl);
+  margin-bottom: var(--spacing-xl);
+  border: 1px solid var(--color-border);
+}
+
+.article-author-bio__avatar {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--color-primary);
+  background: var(--color-background);
+}
+
+.article-author-bio__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.article-author-bio__avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary, #7DD3FC));
+  color: white;
+  font-weight: 700;
+  font-size: 1.75rem;
+}
+
+.article-author-bio__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.article-author-bio__name {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: var(--color-text);
+}
+
+.article-author-bio__description {
+  color: #374151;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.article-author-bio__social {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.625rem;
+}
+
+.article-author-bio__social a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-background);
+  color: var(--color-text-light);
+  border: 1px solid var(--color-border);
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.article-author-bio__social a:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  text-decoration: none;
+}
+
+/* Article Navigation */
+.article-navigation {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-2xl);
+  padding-top: var(--spacing-xl);
+  border-top: 2px solid var(--color-border);
+}
+
+@media (min-width: 768px) {
+  .article-navigation {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.article-navigation__link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: var(--spacing-md);
+  background-color: var(--color-background-light);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: all var(--transition-speed);
+}
+
+.article-navigation__link:hover {
+  background-color: var(--color-primary);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.article-navigation__link--next {
+  text-align: right;
+  margin-left: auto;
+}
+
+.article-navigation__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.article-navigation__title {
+  font-size: 1rem;
+}
+
+/* Comments */
+.article-comments {
+  margin-top: var(--spacing-2xl);
+  padding-top: var(--spacing-xl);
+  border-top: 2px solid var(--color-border);
+}
+
+.article-comments__title {
+  font-size: 2rem;
+  margin-bottom: var(--spacing-lg);
+}
+
+.comments-list {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.comment {
+  padding: var(--spacing-md);
+  background-color: var(--color-background-light);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.comment__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.comment__author {
+  font-size: 1rem;
+  color: var(--color-text);
+}
+
+.comment__date {
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+}
+
+.comment__content {
+  line-height: 1.6;
+}
+
+/* Comment Form */
+.comment-form {
+  margin-top: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background-color: var(--color-background-light);
+  border-radius: var(--radius-lg);
+}
+
+.comment-form__title {
+  font-size: 1.5rem;
+  margin-bottom: var(--spacing-md);
+}
+
+/* Sidebar - Sticky on desktop */
+.article-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+@media (min-width: 1024px) {
+  .article-sidebar {
+    position: sticky;
+    top: calc(var(--header-height, 80px) + var(--spacing-lg));
+    max-height: calc(100vh - var(--header-height, 80px) - var(--spacing-2xl));
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+
+  .article-sidebar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .article-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .article-sidebar::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 2px;
+  }
+}
+
+.sidebar-widget {
+  padding: var(--spacing-md);
+  background-color: var(--color-background-light);
+  border-radius: var(--radius-md);
+}
+
+/* Gift/Free Pattern Widget - Using theme colors */
+.sidebar-widget--gift {
+  background: linear-gradient(135deg, rgba(var(--color-primary-rgb, 80, 183, 241), 0.08) 0%, rgba(var(--color-primary-rgb, 80, 183, 241), 0.15) 100%);
+  border: 2px solid var(--color-primary);
+  text-align: center;
+  padding: var(--spacing-lg);
+}
+
+.sidebar-gift__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  margin-bottom: var(--spacing-sm);
+  color: white;
+}
+
+.sidebar-widget--gift .sidebar-widget__title {
+  color: var(--color-text);
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-gift__text {
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+  margin: 0 0 var(--spacing-sm);
+  line-height: 1.5;
+}
+
+.sidebar-widget--gift .sidebar-newsletter-form input {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+}
+
+.sidebar-widget--gift .btn--primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.sidebar-widget--gift .btn--primary:hover {
+  background: var(--color-primary-dark, var(--color-primary));
+  border-color: var(--color-primary-dark, var(--color-primary));
+  filter: brightness(0.9);
+}
+
+.sidebar-widget__title {
+  font-size: 1.125rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+.sidebar-recent-posts {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.sidebar-recent-post {
+  display: flex;
+  gap: var(--spacing-sm);
+  text-decoration: none;
+  color: var(--color-text);
+  transition: opacity var(--transition-speed);
+}
+
+.sidebar-recent-post:hover {
+  opacity: 0.8;
+}
+
+.sidebar-recent-post img {
+  width: 100px;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.sidebar-recent-post__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.sidebar-recent-post__content h4 {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sidebar-recent-post__content time {
+  font-size: 0.75rem;
+  color: #4b5563;
+}
+
+.sidebar-newsletter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: var(--spacing-sm);
+}
+
+.sidebar-newsletter-form input {
+  background-color: white;
+  color: var(--color-text);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .article-title {
+    font-size: 1.75rem;
+  }
+
+  .article-meta-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .article-meta {
+    font-size: 0.75rem;
+  }
+
+  .article-content {
+    font-size: 1rem;
+  }
+
+  .article-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .article-content h3 {
+    font-size: 1.25rem;
+  }
+
+  .sidebar-recent-post img {
+    width: 80px;
+    height: 45px;
+  }
+}
+</style>
+
+<script>
+// Reading Progress Bar
+(function() {
+  const progressBar = document.querySelector('[data-reading-progress]');
+  const articleContent = document.querySelector('[data-article-content]');
+
+  if (!progressBar || !articleContent) return;
+
+  function updateProgress() {
+    const windowHeight = window.innerHeight;
+    const articleTop = articleContent.offsetTop;
+    const articleHeight = articleContent.offsetHeight;
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+    const articleStart = articleTop - windowHeight / 3;
+    const articleEnd = articleTop + articleHeight - windowHeight / 3;
+    const progress = Math.min(Math.max((scrollTop - articleStart) / (articleEnd - articleStart) * 100, 0), 100);
+
+    progressBar.style.width = progress + '%';
+  }
+
+  window.addEventListener('scroll', updateProgress);
+  updateProgress();
+})();
+
+// Copy URL to Clipboard
+(function() {
+  const copyButton = document.querySelector('[data-copy-url]');
+
+  if (!copyButton) return;
+
+  copyButton.addEventListener('click', function() {
+    const url = this.getAttribute('data-copy-url');
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function() {
+        const originalHTML = copyButton.innerHTML;
+        copyButton.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor"><path d="M5 10l3 3 7-7" stroke-width="2" stroke-linecap="round"/></svg>';
+
+        setTimeout(function() {
+          copyButton.innerHTML = originalHTML;
+        }, 2000);
+      });
+    } else {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = url;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      alert('Lien copié !');
+    }
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Article principal",
+  "class": "section-article-main",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Options d'affichage"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_reading_progress",
+      "label": "Afficher la barre de progression de lecture",
+      "default": true,
+      "info": "Barre colorée en haut de la page qui se remplit pendant la lecture"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_table_of_contents",
+      "label": "Afficher le sommaire",
+      "default": true,
+      "info": "Génère automatiquement un sommaire à partir des titres H2 et H3 de l'article"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_social_share",
+      "label": "Afficher les boutons de partage social",
+      "default": true,
+      "info": "Boutons Facebook, Twitter, LinkedIn et copie de lien"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author_bio",
+      "label": "Afficher la biographie de l'auteur",
+      "default": true,
+      "info": "Section avec avatar et nom de l'auteur"
+    },
+    {
+      "type": "header",
+      "content": "Personnalisation de l'auteur"
+    },
+    {
+      "type": "image_picker",
+      "id": "author_image",
+      "label": "Photo de l'auteur",
+      "info": "Photo carrée recommandée (min 120x120px)"
+    },
+    {
+      "type": "text",
+      "id": "author_name",
+      "label": "Nom de l'auteur",
+      "info": "Laissez vide pour utiliser le nom de l'auteur de l'article"
+    },
+    {
+      "type": "textarea",
+      "id": "author_description",
+      "label": "Description de l'auteur",
+      "info": "Laissez vide pour afficher \"Auteur chez [nom de la boutique]\""
+    },
+    {
+      "type": "header",
+      "content": "Réseaux sociaux de l'auteur"
+    },
+    {
+      "type": "url",
+      "id": "author_instagram",
+      "label": "Instagram"
+    },
+    {
+      "type": "url",
+      "id": "author_facebook",
+      "label": "Facebook"
+    },
+    {
+      "type": "url",
+      "id": "author_twitter",
+      "label": "X (Twitter)"
+    },
+    {
+      "type": "url",
+      "id": "author_tiktok",
+      "label": "TikTok"
+    },
+    {
+      "type": "url",
+      "id": "author_youtube",
+      "label": "YouTube"
+    },
+    {
+      "type": "url",
+      "id": "author_pinterest",
+      "label": "Pinterest"
+    },
+    {
+      "type": "url",
+      "id": "author_website",
+      "label": "Site web"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_article_navigation",
+      "label": "Afficher la navigation article précédent/suivant",
+      "default": true,
+      "info": "Liens vers les articles précédents et suivants"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_comments",
+      "label": "Afficher les commentaires",
+      "default": true,
+      "info": "Section commentaires avec formulaire d'ajout"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sidebar",
+      "label": "Afficher la barre latérale",
+      "default": true,
+      "info": "Sidebar avec recherche, catégories, articles récents et newsletter"
+    }
+  ]
+}
+{% endschema %}

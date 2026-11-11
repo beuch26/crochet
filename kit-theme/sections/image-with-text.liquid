@@ -1,0 +1,317 @@
+{%- comment -%}
+  Image with Text Section
+  Display content alongside an image
+{%- endcomment -%}
+
+{%- render 'section-spacing', id: section.id, margin_top: section.settings.section_margin_top, margin_bottom: section.settings.section_margin_bottom -%}
+
+<div class="image-with-text section">
+  <div class="container">
+    <div class="image-with-text__wrapper image-with-text__wrapper--{{ section.settings.layout }}">
+
+      <div class="image-with-text__media">
+        {%- if section.settings.image != blank -%}
+          {%- assign img_height = 800 | times: section.settings.image.height | divided_by: section.settings.image.width -%}
+          <img
+            src="{{ section.settings.image | image_url: width: 800 }}"
+            srcset="{{ section.settings.image | image_url: width: 400 }} 400w,
+                    {{ section.settings.image | image_url: width: 600 }} 600w,
+                    {{ section.settings.image | image_url: width: 800 }} 800w"
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            alt="{{ section.settings.image.alt | default: section.settings.title }}"
+            width="800"
+            height="{{ img_height }}"
+            loading="lazy"
+            style="height: auto;"
+          >
+        {%- else -%}
+          <div class="image-with-text__placeholder">
+            {{ 'lifestyle-1' | placeholder_svg_tag }}
+          </div>
+        {%- endif -%}
+      </div>
+
+      <div class="image-with-text__content">
+        {%- if section.settings.subtitle != blank -%}
+          <p class="image-with-text__subtitle">{{ section.settings.subtitle }}</p>
+        {%- endif -%}
+
+        {%- if section.settings.title != blank -%}
+          {%- liquid
+            assign heading_tag = section.settings.heading_tag | default: 'h2'
+          -%}
+          {%- if section.settings.enable_heading_style -%}
+            {%- render 'heading-styles',
+              text: section.settings.title,
+              tag: heading_tag,
+              style: section.settings.heading_style,
+              color: section.settings.heading_style_color,
+              align: section.settings.text_align | default: 'left',
+              size: 'xl',
+              typing_texts: section.settings.typing_texts
+            -%}
+          {%- else -%}
+            <{{ heading_tag }} class="image-with-text__title">{{ section.settings.title }}</{{ heading_tag }}>
+          {%- endif -%}
+        {%- endif -%}
+
+        {%- if section.settings.text != blank -%}
+          <div class="image-with-text__text rte">
+            {{ section.settings.text }}
+          </div>
+        {%- endif -%}
+
+        {%- if section.settings.button_label != blank and section.settings.button_link != blank -%}
+          <a href="{{ section.settings.button_link }}" class="btn btn--{{ section.settings.button_style }}">
+            {{ section.settings.button_label }}
+          </a>
+        {%- endif -%}
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+.image-with-text {
+  padding: var(--spacing-3xl) 0;
+}
+
+.image-with-text__wrapper {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-2xl);
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  .image-with-text__wrapper {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .image-with-text__wrapper--image-right {
+    direction: rtl;
+  }
+
+  .image-with-text__wrapper--image-right > * {
+    direction: ltr;
+  }
+}
+
+.image-with-text__media {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background-color: var(--color-background-light);
+}
+
+.image-with-text__media img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.image-with-text__placeholder {
+  width: 100%;
+  aspect-ratio: 4/3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-with-text__placeholder svg {
+  width: 100%;
+  height: 100%;
+  opacity: 0.3;
+}
+
+.image-with-text__subtitle {
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.image-with-text__title {
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  margin-bottom: var(--spacing-md);
+}
+
+.image-with-text__text {
+  font-size: 1.125rem;
+  line-height: 1.8;
+  color: var(--color-text-light);
+  margin-bottom: var(--spacing-lg);
+}
+
+.image-with-text__text p {
+  margin-bottom: 1rem;
+}
+
+.image-with-text__text ul,
+.image-with-text__text ol {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.image-with-text__text li {
+  margin-bottom: 0.5rem;
+}
+</style>
+
+{% schema %}
+{
+  "name": "Image avec texte",
+  "class": "section-image-with-text",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Mise en page",
+      "options": [
+        {
+          "value": "image-left",
+          "label": "Image a gauche"
+        },
+        {
+          "value": "image-right",
+          "label": "Image a droite"
+        }
+      ],
+      "default": "image-left"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Sous-titre"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre",
+      "default": "Image avec texte"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "SEO : Niveau de titre",
+      "options": [
+        {"value": "h1", "label": "H1"},
+        {"value": "h2", "label": "H2 (Recommande)"},
+        {"value": "h3", "label": "H3"},
+        {"value": "h4", "label": "H4"}
+      ],
+      "default": "h2",
+      "info": "H2 recommande pour les sections"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Texte",
+      "default": "<p>Associez un texte a une image pour raconter une histoire, expliquer un detail sur votre produit ou decrire une nouvelle promotion.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Texte du bouton"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Lien du bouton"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "Style du bouton",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primaire"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondaire"
+        }
+      ],
+      "default": "primary"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "header",
+      "content": "Espacement de la section"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_top",
+      "label": "Marge en haut (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_bottom",
+      "label": "Marge en bas (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Image avec texte"
+    }
+  ]
+}
+{% endschema %}

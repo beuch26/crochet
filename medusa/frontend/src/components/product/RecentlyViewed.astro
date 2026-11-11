@@ -1,0 +1,89 @@
+---
+// Rendered empty — populated client-side from localStorage
+---
+
+<section id="recently-viewed" class="hidden py-16 lg:py-20 reveal">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="mb-8">Récemment consultés</h2>
+    <div id="rv-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6"></div>
+  </div>
+</section>
+
+<script>
+  const RV_KEY = 'mck_recently_viewed_eur' // prix en euros : l'ancienne cle stockait des centimes
+  const MAX_ITEMS = 8
+
+  interface RVProduct {
+    id: string
+    title: string
+    handle: string
+    price: number
+    thumbnail: string
+    viewedAt: number
+  }
+
+  function getRV(): RVProduct[] {
+    try {
+      return JSON.parse(localStorage.getItem(RV_KEY) || '[]')
+    } catch { return [] }
+  }
+
+  function saveRV(product: RVProduct) {
+    const items = getRV().filter(p => p.id !== product.id)
+    items.unshift(product)
+    localStorage.setItem(RV_KEY, JSON.stringify(items.slice(0, MAX_ITEMS)))
+  }
+
+  // Track current product if on product page
+  const productEl = document.getElementById('rv-tracker') as HTMLElement
+  if (productEl) {
+    const id = productEl.dataset.productId || ''
+    const title = productEl.dataset.productTitle || ''
+    const handle = productEl.dataset.productHandle || ''
+    const price = Number(productEl.dataset.productPrice || '0')
+    const thumbnail = productEl.dataset.productThumbnail || ''
+    if (id && handle) {
+      saveRV({ id, title, handle, price, thumbnail, viewedAt: Date.now() })
+    }
+  }
+
+  // Render recently viewed
+  function renderRV() {
+    const section = document.getElementById('recently-viewed')
+    const grid = document.getElementById('rv-grid')
+    if (!section || !grid) return
+
+    const items = getRV()
+    // Don't show current product
+    const currentHandle = window.location.pathname.split('/products/')[1]
+    const filtered = items.filter(p => p.handle !== currentHandle).slice(0, 4)
+
+    if (filtered.length < 1) return
+
+    const formatPrice = (amount: number) =>
+      amount === 0 ? 'Gratuit' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount)
+
+    grid.innerHTML = filtered.map(p => `
+      <article class="group relative bg-white rounded-2xl overflow-hidden border border-border-light card-hover">
+        <a href="/products/${p.handle}/" class="block">
+          <div class="aspect-square overflow-hidden bg-bg-light">
+            ${p.thumbnail
+              ? `<img src="${p.thumbnail}" alt="${p.title}" loading="lazy" width="400" height="400" class="h-full w-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" />`
+              : '<div class="h-full w-full flex items-center justify-center text-text-muted"><svg class="h-14 w-14 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>'
+            }
+          </div>
+          <div class="p-4">
+            <h3 class="text-sm font-medium text-text group-hover:text-primary transition-colors line-clamp-2 min-h-[2.5rem]">${p.title}</h3>
+            <div class="mt-2">
+              <span class="text-lg font-bold text-text">${formatPrice(p.price)}</span>
+            </div>
+          </div>
+        </a>
+      </article>
+    `).join('')
+
+    section.classList.remove('hidden')
+  }
+
+  renderRV()
+</script>

@@ -1,0 +1,81 @@
+---
+/**
+ * Before/After Comparison Slider
+ * Drag handle to reveal before/after images
+ */
+interface Props {
+  beforeImage: string
+  afterImage: string
+  beforeLabel?: string
+  afterLabel?: string
+  title?: string
+  subtitle?: string
+}
+
+const {
+  beforeImage,
+  afterImage,
+  beforeLabel = 'Avant',
+  afterLabel = 'Après',
+  title = '',
+  subtitle = '',
+} = Astro.props
+---
+
+<section class="py-16 lg:py-20 reveal">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    {(title || subtitle) && (
+      <div class="text-center mb-10 max-w-2xl mx-auto">
+        {title && <h2>{title}</h2>}
+        {subtitle && <p class="mt-3 text-text-light text-lg">{subtitle}</p>}
+      </div>
+    )}
+
+    <div id="comparison-container" class="relative rounded-2xl overflow-hidden border border-border-light shadow-lg select-none cursor-col-resize" style="aspect-ratio: 16/10">
+      <!-- After image (bottom layer) -->
+      <img src={afterImage} alt={afterLabel} class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+
+      <!-- Before image (top layer, clipped) -->
+      <div id="comparison-before" class="absolute inset-0 overflow-hidden" style="width: 50%">
+        <img src={beforeImage} alt={beforeLabel} class="absolute inset-0 w-full h-full object-cover" style="min-width: 100%; width: auto;" loading="lazy" />
+      </div>
+
+      <!-- Slider handle -->
+      <div id="comparison-handle" class="absolute top-0 bottom-0 z-10" style="left: 50%; transform: translateX(-50%)">
+        <div class="h-full w-1 bg-white shadow-lg"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white shadow-xl flex items-center justify-center">
+          <svg class="w-6 h-6 text-text" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Labels -->
+      <span class="absolute top-4 left-4 z-20 px-3 py-1 bg-black/60 text-white text-xs font-semibold rounded-full backdrop-blur-sm">{beforeLabel}</span>
+      <span class="absolute top-4 right-4 z-20 px-3 py-1 bg-black/60 text-white text-xs font-semibold rounded-full backdrop-blur-sm">{afterLabel}</span>
+    </div>
+  </div>
+</section>
+
+<script>
+  const container = document.getElementById('comparison-container')
+  const before = document.getElementById('comparison-before')
+  const handle = document.getElementById('comparison-handle')
+  if (container && before && handle) {
+    let isDragging = false
+
+    function setPosition(x: number) {
+      const rect = container!.getBoundingClientRect()
+      const pct = Math.max(0, Math.min(100, ((x - rect.left) / rect.width) * 100))
+      before!.style.width = pct + '%'
+      handle!.style.left = pct + '%'
+    }
+
+    container.addEventListener('mousedown', (e) => { isDragging = true; setPosition(e.clientX) })
+    container.addEventListener('touchstart', (e) => { isDragging = true; setPosition(e.touches[0].clientX) }, { passive: true })
+    window.addEventListener('mousemove', (e) => { if (isDragging) setPosition(e.clientX) })
+    window.addEventListener('touchmove', (e) => { if (isDragging) setPosition(e.touches[0].clientX) }, { passive: true })
+    window.addEventListener('mouseup', () => isDragging = false)
+    window.addEventListener('touchend', () => isDragging = false)
+  }
+</script>

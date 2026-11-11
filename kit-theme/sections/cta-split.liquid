@@ -1,0 +1,490 @@
+{%- comment -%}
+  CTA Split Section
+  Left: Full image (50%), Right: Vertical scrolling text with colored background (50%)
+  Full width, seamless infinite scroll
+{%- endcomment -%}
+
+{%- render 'section-spacing', id: section.id, margin_top: section.settings.section_margin_top, margin_bottom: section.settings.section_margin_bottom -%}
+
+{%- assign num_blocks = section.blocks.size -%}
+{%- assign animation_duration = num_blocks | divided_by: section.settings.speed | times: 3 -%}
+
+<style>
+  .cta-shrine-{{ section.id }} {
+    --ticker-speed: {{ animation_duration }}s;
+    --ticker-bg: {{ section.settings.ticker_bg_color }};
+    --ticker-text: {{ section.settings.ticker_text_color }};
+    --ticker-text-size: {{ section.settings.text_size }}rem;
+  }
+</style>
+
+<section class="cta-shrine cta-shrine-{{ section.id }}">
+  {%- comment -%} Left Side - Full Image {%- endcomment -%}
+  <div class="cta-shrine__image-side">
+    {%- if section.settings.image != blank -%}
+      <img
+        src="{{ section.settings.image | image_url: width: 1200 }}"
+        srcset="{{ section.settings.image | image_url: width: 600 }} 600w,
+                {{ section.settings.image | image_url: width: 900 }} 900w,
+                {{ section.settings.image | image_url: width: 1200 }} 1200w"
+        sizes="50vw"
+        alt="{{ section.settings.image.alt | default: section.settings.title }}"
+        loading="lazy"
+        class="cta-shrine__image"
+      >
+    {%- else -%}
+      <div class="cta-shrine__image-placeholder"></div>
+    {%- endif -%}
+
+    {%- comment -%} Overlay content on image {%- endcomment -%}
+    {%- if section.settings.show_overlay_content -%}
+      <div class="cta-shrine__overlay">
+        <div class="cta-shrine__overlay-content">
+          {%- if section.settings.title != blank -%}
+            {%- if section.settings.enable_heading_style -%}
+              {%- render 'heading-styles',
+                text: section.settings.title,
+                tag: 'h2',
+                style: section.settings.heading_style,
+                color: section.settings.heading_style_color,
+                align: 'center',
+                size: 'xl',
+                typing_texts: section.settings.typing_texts
+              -%}
+            {%- else -%}
+              <h2 class="cta-shrine__title">{{ section.settings.title }}</h2>
+            {%- endif -%}
+          {%- endif -%}
+          {%- if section.settings.subtitle != blank -%}
+            <p class="cta-shrine__subtitle">{{ section.settings.subtitle }}</p>
+          {%- endif -%}
+          {%- if section.settings.button_label != blank -%}
+            <a href="{{ section.settings.button_link | default: '#' }}" class="btn btn--primary cta-shrine__btn">
+              {{ section.settings.button_label }}
+            </a>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+
+  {%- comment -%} Right Side - Vertical Ticker {%- endcomment -%}
+  <div class="cta-shrine__ticker-side">
+    <div class="cta-shrine__ticker-mask">
+      <div class="cta-shrine__ticker-track">
+        {%- comment -%} First set of items {%- endcomment -%}
+        <div class="cta-shrine__ticker-group">
+          {%- for block in section.blocks -%}
+            <div class="cta-shrine__ticker-item" {{ block.shopify_attributes }}>
+              {{ block.settings.text }}
+            </div>
+          {%- endfor -%}
+        </div>
+        {%- comment -%} Duplicate for seamless loop {%- endcomment -%}
+        <div class="cta-shrine__ticker-group" aria-hidden="true">
+          {%- for block in section.blocks -%}
+            <div class="cta-shrine__ticker-item">
+              {{ block.settings.text }}
+            </div>
+          {%- endfor -%}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+/* ========================================
+   CTA SHRINE - Full Width 50/50
+   ======================================== */
+
+.cta-shrine {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  height: 280px;
+  overflow: hidden;
+}
+
+/* ========================================
+   LEFT - Image Side (50%)
+   ======================================== */
+
+.cta-shrine__image-side {
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-shrine__image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cta-shrine__image-placeholder {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--color-primary, #0369a1) 0%, #1e3a5f 100%);
+}
+
+/* Overlay */
+.cta-shrine__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.cta-shrine__overlay-content {
+  text-align: center;
+  color: white;
+}
+
+.cta-shrine__title {
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: white;
+}
+
+.cta-shrine__subtitle {
+  font-family: var(--font-body), sans-serif;
+  font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+  margin: 0 0 1.25rem;
+  opacity: 0.95;
+  font-weight: 400;
+}
+
+.cta-shrine__btn.btn {
+  font-family: var(--font-body), sans-serif;
+  background: white;
+  color: var(--color-primary, #0369a1);
+  border-color: white;
+}
+
+.cta-shrine__btn.btn:hover,
+.cta-shrine__btn.btn:focus {
+  background: var(--color-primary, #0369a1);
+  color: white;
+  border-color: var(--color-primary, #0369a1);
+}
+
+/* ========================================
+   RIGHT - Ticker Side (50%)
+   ======================================== */
+
+.cta-shrine__ticker-side {
+  background: var(--ticker-bg, #1e3a5f);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  height: 280px;
+}
+
+/* Fade gradients top & bottom */
+.cta-shrine__ticker-side::before,
+.cta-shrine__ticker-side::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 70px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.cta-shrine__ticker-side::before {
+  top: 0;
+  background: linear-gradient(to bottom, var(--ticker-bg, #1e3a5f) 0%, var(--ticker-bg, #1e3a5f) 15%, transparent 100%);
+}
+
+.cta-shrine__ticker-side::after {
+  bottom: 0;
+  background: linear-gradient(to top, var(--ticker-bg, #1e3a5f) 0%, var(--ticker-bg, #1e3a5f) 15%, transparent 100%);
+}
+
+/* Ticker mask - clips content */
+.cta-shrine__ticker-mask {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Ticker track - animates */
+.cta-shrine__ticker-track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  animation: shrineTickerScroll var(--ticker-speed, 12s) linear infinite;
+}
+
+@keyframes shrineTickerScroll {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+/* Ticker group */
+.cta-shrine__ticker-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* Ticker items */
+.cta-shrine__ticker-item {
+  font-family: var(--font-heading), sans-serif;
+  color: var(--ticker-text, #ffffff);
+  font-size: var(--ticker-text-size, 2rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: center;
+  padding: 0.6rem 2rem;
+  white-space: nowrap;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Hover pause */
+.cta-shrine__ticker-side:hover .cta-shrine__ticker-track {
+  animation-play-state: paused;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 900px) {
+  .cta-shrine {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .cta-shrine__image-side {
+    height: 220px;
+  }
+
+  .cta-shrine__ticker-side {
+    height: 150px;
+  }
+
+  .cta-shrine__ticker-side::before,
+  .cta-shrine__ticker-side::after {
+    height: 40px;
+  }
+
+  .cta-shrine__ticker-item {
+    font-size: 1.25rem;
+    padding: 0.5rem 1.5rem;
+  }
+
+  .cta-shrine__title {
+    font-size: 1.5rem;
+  }
+
+  .cta-shrine__subtitle {
+    font-size: 0.95rem;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .cta-shrine__ticker-track {
+    animation: none;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "CTA Image + Ticker",
+  "tag": "section",
+  "class": "section-cta-shrine",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Image (gauche)"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_overlay_content",
+      "label": "Afficher texte sur l'image",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre",
+      "default": "Pret a commencer ?"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Sous-titre",
+      "default": "Creez votre premier projet"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Texte du bouton",
+      "default": "Decouvrir"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Lien du bouton"
+    },
+    {
+      "type": "header",
+      "content": "Ticker vertical (droite)"
+    },
+    {
+      "type": "color",
+      "id": "ticker_bg_color",
+      "label": "Couleur de fond",
+      "default": "#1e3a5f"
+    },
+    {
+      "type": "color",
+      "id": "ticker_text_color",
+      "label": "Couleur du texte",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "label": "Taille du texte",
+      "min": 1,
+      "max": 3,
+      "step": 0.5,
+      "default": 2,
+      "unit": "rem"
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "label": "Vitesse",
+      "min": 1,
+      "max": 5,
+      "step": 0.5,
+      "default": 2
+    },
+    {
+      "type": "header",
+      "content": "Espacement de la section"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_top",
+      "label": "Marge en haut (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_bottom",
+      "label": "Marge en bas (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "text",
+      "name": "Texte",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Texte",
+          "default": "Avantage produit"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "CTA Image + Ticker",
+      "blocks": [
+        { "type": "text", "settings": { "text": "Kit complet inclus" } },
+        { "type": "text", "settings": { "text": "Tutos video pas a pas" } },
+        { "type": "text", "settings": { "text": "Resultat garanti" } },
+        { "type": "text", "settings": { "text": "Ideal debutant" } },
+        { "type": "text", "settings": { "text": "Support disponible" } },
+        { "type": "text", "settings": { "text": "Qualite premium" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

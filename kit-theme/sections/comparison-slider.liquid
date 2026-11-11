@@ -1,0 +1,632 @@
+{%- comment -%}
+  Before/After Comparison Slider
+  Drag to compare two images side by side
+
+  Usage: Add via Theme Editor
+{%- endcomment -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign heading = section.settings.heading
+  assign subheading = section.settings.subheading
+  assign before_image = section.settings.before_image
+  assign after_image = section.settings.after_image
+  assign before_label = section.settings.before_label | default: 'Avant'
+  assign after_label = section.settings.after_label | default: 'Après'
+  assign initial_position = section.settings.initial_position | default: 50
+  assign slider_color = section.settings.slider_color | default: '#ffffff'
+-%}
+
+{%- render 'section-spacing', id: section.id, margin_top: section.settings.section_margin_top, margin_bottom: section.settings.section_margin_bottom -%}
+
+{%- comment -%} Top Divider {%- endcomment -%}
+{%- if section.settings.show_top_divider -%}
+  {%- render 'section-divider',
+    shape: section.settings.top_divider_shape,
+    color: section.settings.top_divider_color,
+    height: section.settings.top_divider_height,
+    flip_horizontal: section.settings.top_divider_flip_h,
+    flip_vertical: section.settings.top_divider_flip_v,
+    position: 'top'
+  -%}
+{%- endif -%}
+
+<section class="comparison-slider section section--{{ section_id }}" id="comparison-{{ section_id }}" style="{% if section.settings.background_color != blank and section.settings.background_color != 'rgba(0,0,0,0)' %}background-color: {{ section.settings.background_color }};{% endif %}">
+  <div class="container">
+    {%- if heading != blank or subheading != blank -%}
+      <div class="section-header">
+        {%- if heading != blank -%}
+          {%- if section.settings.enable_heading_style -%}
+            {%- render 'heading-styles',
+              text: heading,
+              tag: 'h2',
+              style: section.settings.heading_style,
+              color: section.settings.heading_style_color,
+              align: 'center',
+              size: 'xl',
+              typing_texts: section.settings.typing_texts
+            -%}
+          {%- else -%}
+            <h2 class="section-header__title">{{ heading }}</h2>
+          {%- endif -%}
+        {%- endif -%}
+        {%- if subheading != blank -%}
+          <p class="section-header__subtitle">{{ subheading }}</p>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <div class="comparison-slider__wrapper" data-comparison-slider>
+      <div class="comparison-slider__container">
+        {%- comment -%} After Image (Background) {%- endcomment -%}
+        <div class="comparison-slider__image comparison-slider__image--after">
+          {%- if after_image != blank -%}
+            <img
+              src="{{ after_image | image_url: width: 1200 }}"
+              srcset="{{ after_image | image_url: width: 600 }} 600w,
+                      {{ after_image | image_url: width: 900 }} 900w,
+                      {{ after_image | image_url: width: 1200 }} 1200w"
+              sizes="(max-width: 767px) 100vw, 80vw"
+              alt="{{ after_label }}"
+              width="{{ after_image.width }}"
+              height="{{ after_image.height }}"
+              loading="lazy"
+            >
+          {%- else -%}
+            {{ 'lifestyle-2' | placeholder_svg_tag: 'comparison-slider__placeholder' }}
+          {%- endif -%}
+          <span class="comparison-slider__label comparison-slider__label--after">{{ after_label }}</span>
+        </div>
+
+        {%- comment -%} Before Image (Foreground with clip) {%- endcomment -%}
+        <div class="comparison-slider__image comparison-slider__image--before" data-before-image style="clip-path: inset(0 {{ 100 | minus: initial_position }}% 0 0);">
+          {%- if before_image != blank -%}
+            <img
+              src="{{ before_image | image_url: width: 1200 }}"
+              srcset="{{ before_image | image_url: width: 600 }} 600w,
+                      {{ before_image | image_url: width: 900 }} 900w,
+                      {{ before_image | image_url: width: 1200 }} 1200w"
+              sizes="(max-width: 767px) 100vw, 80vw"
+              alt="{{ before_label }}"
+              width="{{ before_image.width }}"
+              height="{{ before_image.height }}"
+              loading="lazy"
+            >
+          {%- else -%}
+            {{ 'lifestyle-1' | placeholder_svg_tag: 'comparison-slider__placeholder' }}
+          {%- endif -%}
+          <span class="comparison-slider__label comparison-slider__label--before">{{ before_label }}</span>
+        </div>
+
+        {%- comment -%} Slider Handle {%- endcomment -%}
+        <div class="comparison-slider__handle" data-slider-handle style="left: {{ initial_position }}%;">
+          <div class="comparison-slider__handle-line" style="background-color: {{ slider_color }};"></div>
+          <button
+            type="button"
+            class="comparison-slider__handle-button"
+            style="background-color: {{ slider_color }};"
+            aria-label="{{ 'sections.comparison.drag_to_compare' | t | default: 'Faites glisser pour comparer les images' }}"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M8 12L4 8M4 8L8 4M4 8H10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M16 12L20 8M20 8L16 4M20 8H14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="translate(0, 8)"/>
+            </svg>
+          </button>
+          <div class="comparison-slider__handle-line" style="background-color: {{ slider_color }};"></div>
+        </div>
+      </div>
+
+      {%- if section.settings.show_instructions -%}
+        <p class="comparison-slider__instructions">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M2 8L6 4M6 4L10 8M6 4V12"/>
+            <path d="M14 8L10 12M10 12L6 8M10 12V4" transform="rotate(90, 8, 8)"/>
+          </svg>
+          {{ 'sections.comparison.instructions' | t | default: 'Faites glisser le curseur pour comparer' }}
+        </p>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{%- comment -%} Bottom Divider {%- endcomment -%}
+{%- if section.settings.show_bottom_divider -%}
+  {%- render 'section-divider',
+    shape: section.settings.bottom_divider_shape,
+    color: section.settings.bottom_divider_color,
+    height: section.settings.bottom_divider_height,
+    flip_horizontal: section.settings.bottom_divider_flip_h,
+    flip_vertical: section.settings.bottom_divider_flip_v,
+    position: 'bottom'
+  -%}
+{%- endif -%}
+
+<style>
+  .comparison-slider {
+    padding: var(--spacing-2xl) 0;
+  }
+
+  .comparison-slider__wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .comparison-slider__container {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    cursor: ew-resize;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .comparison-slider__image {
+    position: relative;
+  }
+
+  .comparison-slider__image img,
+  .comparison-slider__placeholder {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .comparison-slider__image--before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+  }
+
+  .comparison-slider__image--before img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .comparison-slider__label {
+    position: absolute;
+    bottom: var(--spacing-md);
+    padding: 0.5rem 1rem;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .comparison-slider__label--before {
+    left: var(--spacing-md);
+  }
+
+  .comparison-slider__label--after {
+    right: var(--spacing-md);
+  }
+
+  .comparison-slider__handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+
+  .comparison-slider__handle-line {
+    flex: 1;
+    width: 3px;
+    background-color: white;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .comparison-slider__handle-button {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-full);
+    background-color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    pointer-events: auto;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    flex-shrink: 0;
+  }
+
+  .comparison-slider__handle-button:active {
+    cursor: grabbing;
+    transform: scale(1.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .comparison-slider__handle-button svg {
+    color: #333;
+  }
+
+  .comparison-slider__instructions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: var(--spacing-md);
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+  }
+
+  @media (max-width: 767px) {
+    .comparison-slider__handle-button {
+      width: 40px;
+      height: 40px;
+    }
+
+    .comparison-slider__label {
+      padding: 0.375rem 0.75rem;
+      font-size: 0.75rem;
+    }
+  }
+</style>
+
+<script>
+  (function() {
+    'use strict';
+
+    function initComparisonSlider(container) {
+      const beforeImage = container.querySelector('[data-before-image]');
+      const handle = container.querySelector('[data-slider-handle]');
+
+      if (!beforeImage || !handle) return;
+
+      let isDragging = false;
+      let containerRect = null;
+
+      function updatePosition(clientX) {
+        if (!containerRect) {
+          containerRect = container.querySelector('.comparison-slider__container').getBoundingClientRect();
+        }
+
+        let position = ((clientX - containerRect.left) / containerRect.width) * 100;
+        position = Math.max(0, Math.min(100, position));
+
+        beforeImage.style.clipPath = `inset(0 ${100 - position}% 0 0)`;
+        handle.style.left = `${position}%`;
+      }
+
+      function onStart(e) {
+        isDragging = true;
+        containerRect = container.querySelector('.comparison-slider__container').getBoundingClientRect();
+        document.body.style.cursor = 'grabbing';
+
+        const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+        updatePosition(clientX);
+      }
+
+      function onMove(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+
+        const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+        requestAnimationFrame(() => updatePosition(clientX));
+      }
+
+      function onEnd() {
+        isDragging = false;
+        containerRect = null;
+        document.body.style.cursor = '';
+      }
+
+      const sliderContainer = container.querySelector('.comparison-slider__container');
+
+      sliderContainer.addEventListener('mousedown', onStart);
+      sliderContainer.addEventListener('touchstart', onStart, { passive: true });
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('touchmove', onMove, { passive: false });
+
+      document.addEventListener('mouseup', onEnd);
+      document.addEventListener('touchend', onEnd);
+
+      window.addEventListener('resize', () => {
+        containerRect = null;
+      });
+
+      handle.querySelector('button').addEventListener('keydown', (e) => {
+        const step = 2;
+        let currentPosition = parseFloat(handle.style.left) || 50;
+
+        if (e.key === 'ArrowLeft') {
+          currentPosition = Math.max(0, currentPosition - step);
+        } else if (e.key === 'ArrowRight') {
+          currentPosition = Math.min(100, currentPosition + step);
+        } else {
+          return;
+        }
+
+        e.preventDefault();
+        beforeImage.style.clipPath = `inset(0 ${100 - currentPosition}% 0 0)`;
+        handle.style.left = `${currentPosition}%`;
+      });
+    }
+
+    document.querySelectorAll('[data-comparison-slider]').forEach(initComparisonSlider);
+
+    if (Shopify.designMode) {
+      document.addEventListener('shopify:section:load', (e) => {
+        const slider = e.target.querySelector('[data-comparison-slider]');
+        if (slider) initComparisonSlider(slider);
+      });
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Comparateur Avant/Après",
+  "tag": "section",
+  "class": "section-comparison",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre",
+      "default": "Voyez la différence"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Sous-titre"
+    },
+    {
+      "type": "image_picker",
+      "id": "before_image",
+      "label": "Image Avant"
+    },
+    {
+      "type": "image_picker",
+      "id": "after_image",
+      "label": "Image Après"
+    },
+    {
+      "type": "text",
+      "id": "before_label",
+      "label": "Libellé Avant",
+      "default": "Avant"
+    },
+    {
+      "type": "text",
+      "id": "after_label",
+      "label": "Libellé Après",
+      "default": "Après"
+    },
+    {
+      "type": "range",
+      "id": "initial_position",
+      "label": "Position initiale du curseur",
+      "min": 10,
+      "max": 90,
+      "step": 5,
+      "default": 50,
+      "unit": "%"
+    },
+    {
+      "type": "color",
+      "id": "slider_color",
+      "label": "Couleur du curseur",
+      "default": "#ffffff"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_instructions",
+      "label": "Afficher les instructions",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Couleur de fond"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Couleur de fond de la section"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "header",
+      "content": "Séparateur en haut"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_top_divider",
+      "label": "Afficher le séparateur en haut",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "top_divider_shape",
+      "label": "Forme",
+      "options": [
+        { "value": "wave-1", "label": "Vague 1 (multicouche)" },
+        { "value": "wave-2", "label": "Vague 2 (simple)" },
+        { "value": "wave-3", "label": "Vague 3 (inversée)" },
+        { "value": "wave-animated", "label": "Vague animée" },
+        { "value": "curve", "label": "Courbe" },
+        { "value": "curve-asymmetric", "label": "Courbe asymétrique" },
+        { "value": "diagonal", "label": "Diagonale" },
+        { "value": "diagonal-reverse", "label": "Diagonale inversée" },
+        { "value": "triangle", "label": "Triangle" },
+        { "value": "arrow", "label": "Flèche" },
+        { "value": "zigzag", "label": "Zigzag" },
+        { "value": "clouds", "label": "Nuages" }
+      ],
+      "default": "wave-1"
+    },
+    {
+      "type": "color",
+      "id": "top_divider_color",
+      "label": "Couleur du séparateur",
+      "default": "#f3f4f6"
+    },
+    {
+      "type": "range",
+      "id": "top_divider_height",
+      "label": "Hauteur",
+      "min": 50,
+      "max": 200,
+      "step": 10,
+      "default": 80,
+      "unit": "px"
+    },
+    {
+      "type": "checkbox",
+      "id": "top_divider_flip_h",
+      "label": "Retourner horizontalement",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "top_divider_flip_v",
+      "label": "Retourner verticalement",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Séparateur en bas"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_bottom_divider",
+      "label": "Afficher le séparateur en bas",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "bottom_divider_shape",
+      "label": "Forme",
+      "options": [
+        { "value": "wave-1", "label": "Vague 1 (multicouche)" },
+        { "value": "wave-2", "label": "Vague 2 (simple)" },
+        { "value": "wave-3", "label": "Vague 3 (inversée)" },
+        { "value": "wave-animated", "label": "Vague animée" },
+        { "value": "curve", "label": "Courbe" },
+        { "value": "curve-asymmetric", "label": "Courbe asymétrique" },
+        { "value": "diagonal", "label": "Diagonale" },
+        { "value": "diagonal-reverse", "label": "Diagonale inversée" },
+        { "value": "triangle", "label": "Triangle" },
+        { "value": "arrow", "label": "Flèche" },
+        { "value": "zigzag", "label": "Zigzag" },
+        { "value": "clouds", "label": "Nuages" }
+      ],
+      "default": "wave-1"
+    },
+    {
+      "type": "color",
+      "id": "bottom_divider_color",
+      "label": "Couleur du séparateur",
+      "default": "#f3f4f6"
+    },
+    {
+      "type": "range",
+      "id": "bottom_divider_height",
+      "label": "Hauteur",
+      "min": 50,
+      "max": 200,
+      "step": 10,
+      "default": 80,
+      "unit": "px"
+    },
+    {
+      "type": "checkbox",
+      "id": "bottom_divider_flip_h",
+      "label": "Retourner horizontalement",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "bottom_divider_flip_v",
+      "label": "Retourner verticalement",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Espacement de la section"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_top",
+      "label": "Marge en haut (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_bottom",
+      "label": "Marge en bas (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Comparateur Avant/Après"
+    }
+  ]
+}
+{% endschema %}

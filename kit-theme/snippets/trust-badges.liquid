@@ -1,0 +1,157 @@
+{%- comment -%}
+  Trust Badges Component
+  Displays trust badges to increase customer confidence
+
+  Parameters:
+  - layout: 'horizontal' or 'vertical' (default: horizontal)
+  - show_icons: Show SVG icons (default: true)
+  - badges: Comma-separated list of badges to show (default: all)
+            Options: free_shipping, secure_checkout, money_back, support, ssl, satisfaction
+  - free_shipping_threshold: Minimum order amount for free shipping (default: 50)
+
+  Usage:
+  {%- render 'trust-badges', layout: 'horizontal', free_shipping_threshold: 50 -%}
+{%- endcomment -%}
+
+{%- liquid
+  assign layout_class = 'horizontal'
+  if layout == 'vertical'
+    assign layout_class = 'vertical'
+  endif
+
+  assign show_icons_bool = true
+  if show_icons == false
+    assign show_icons_bool = false
+  endif
+
+  assign all_badges = 'free_shipping,secure_checkout,money_back,support'
+  if badges and badges != blank
+    assign badge_list = badges | split: ','
+  else
+    assign badge_list = all_badges | split: ','
+  endif
+
+  assign shipping_threshold = free_shipping_threshold | default: 50
+-%}
+
+<div class="trust-badges trust-badges--{{ layout_class }}"{% if text_color %} style="--trust-badge-text-color: {{ text_color }};"{% endif %}>
+  {%- for badge_name in badge_list -%}
+    {%- liquid
+      assign badge_trimmed = badge_name | strip
+
+      case badge_trimmed
+        when 'free_shipping'
+          assign icon = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="4" y="8" width="16" height="13" rx="1" stroke="currentColor" stroke-width="2"/><path d="M4 8l8-4 8 4" stroke="currentColor" stroke-width="2"/><path d="M12 4v17" stroke="currentColor" stroke-width="2"/></svg>'
+          if shipping_threshold > 0
+            assign title = 'Livraison gratuite dès ' | append: shipping_threshold | append: '€'
+          else
+            assign title = 'Livraison gratuite'
+          endif
+          assign description = ''
+        when 'secure_checkout'
+          assign icon = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"/><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="2"/></svg>'
+          assign title = 'trust_badges.secure_checkout' | t | default: 'Secure Checkout'
+          assign description = 'trust_badges.secure_checkout_desc' | t | default: '256-bit SSL encryption'
+        when 'money_back'
+          assign icon = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2"/><path d="M16 2l2 2-2 2" stroke="currentColor" stroke-width="2"/></svg>'
+          assign title = 'trust_badges.money_back' | t | default: 'Money-Back Guarantee'
+          assign description = 'trust_badges.money_back_desc' | t | default: '30-day return policy'
+        when 'support'
+          assign icon = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="2"/></svg>'
+          assign title = 'trust_badges.support' | t | default: '24/7 Support'
+          assign description = 'trust_badges.support_desc' | t | default: 'Here to help anytime'
+        when 'ssl'
+          assign icon = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2"/></svg>'
+          assign title = 'trust_badges.ssl' | t | default: 'SSL Secured'
+          assign description = 'trust_badges.ssl_desc' | t | default: 'Your data is protected'
+        when 'satisfaction'
+          assign icon = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="15" cy="9" r="1" fill="currentColor"/></svg>'
+          assign title = 'trust_badges.satisfaction' | t | default: '100% Satisfaction'
+          assign description = 'trust_badges.satisfaction_desc' | t | default: 'Quality guaranteed'
+      endcase
+    -%}
+
+    <div class="trust-badge">
+      {%- if show_icons_bool -%}
+        <div class="trust-badge__icon">
+          {{ icon }}
+        </div>
+      {%- endif -%}
+      <div class="trust-badge__content">
+        <div class="trust-badge__title">{{ title }}</div>
+        <div class="trust-badge__description">{{ description }}</div>
+      </div>
+    </div>
+  {%- endfor -%}
+</div>
+
+<style>
+.trust-badges {
+  display: flex;
+  gap: 1.25rem;
+  padding: 0.5rem 0;
+}
+
+.trust-badges--horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.trust-badges--vertical {
+  flex-direction: column;
+}
+
+.trust-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 140px;
+}
+
+.trust-badges--vertical .trust-badge {
+  min-width: auto;
+}
+
+.trust-badge__icon {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.trust-badge__icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.trust-badge__content {
+  flex: 1;
+}
+
+.trust-badge__title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--trust-badge-text-color, var(--color-text));
+  line-height: 1.2;
+}
+
+.trust-badge__description {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .trust-badges {
+    gap: 1rem;
+  }
+
+  .trust-badge {
+    min-width: auto;
+    flex: 0 1 calc(50% - 0.5rem);
+  }
+}
+</style>

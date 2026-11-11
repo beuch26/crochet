@@ -1,0 +1,386 @@
+{%- comment -%}
+  Trustpilot Reviews Section
+  Displays Trustpilot reviews in a carousel or grid
+
+  Usage: Add to any page via Theme Editor
+{%- endcomment -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign heading = section.settings.heading
+  assign subheading = section.settings.subheading
+  assign layout = section.settings.layout
+  assign show_widget = section.settings.show_widget
+-%}
+
+<section class="trustpilot-reviews section section--{{ section_id }}" id="trustpilot-{{ section_id }}">
+  <div class="container">
+    {%- if heading != blank or subheading != blank -%}
+      <div class="section-header">
+        {%- if heading != blank -%}
+          {%- if section.settings.enable_heading_style -%}
+            {%- render 'heading-styles',
+              text: heading,
+              tag: 'h2',
+              style: section.settings.heading_style,
+              color: section.settings.heading_style_color,
+              align: 'center',
+              size: 'xl',
+              typing_texts: section.settings.typing_texts
+            -%}
+          {%- else -%}
+            <h2 class="section-header__title">{{ heading }}</h2>
+          {%- endif -%}
+        {%- endif -%}
+        {%- if subheading != blank -%}
+          <p class="section-header__subtitle">{{ subheading }}</p>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if show_widget -%}
+      <div class="trustpilot-reviews__widget">
+        {%- render 'trustpilot-widget', style: 'mini' -%}
+      </div>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <div class="trustpilot-reviews__list trustpilot-reviews__list--{{ layout }}">
+        {%- for block in section.blocks -%}
+          <div class="trustpilot-review-card" {{ block.shopify_attributes }}>
+            <div class="trustpilot-review-card__header">
+              <div class="trustpilot-review-card__avatar">
+                {%- if block.settings.avatar != blank -%}
+                  <img
+                    src="{{ block.settings.avatar | image_url: width: 80 }}"
+                    alt="{{ block.settings.author }}"
+                    width="40"
+                    height="40"
+                    loading="lazy"
+                  >
+                {%- else -%}
+                  <span class="trustpilot-review-card__initials">
+                    {{ block.settings.author | slice: 0 | upcase }}
+                  </span>
+                {%- endif -%}
+              </div>
+              <div class="trustpilot-review-card__author-info">
+                <span class="trustpilot-review-card__author">{{ block.settings.author }}</span>
+                {%- if block.settings.verified -%}
+                  <span class="trustpilot-review-card__verified">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                      <path d="M6 0l1.45 1.95 2.42-.35-.65 2.35 1.78 1.7-2.15 1.1.2 2.45L6 8.15 3.15 9.2l.2-2.45-2.15-1.1 1.78-1.7-.65-2.35 2.42.35L6 0z"/>
+                    </svg>
+                    {{ 'sections.trustpilot.verified' | t | default: 'Vérifié' }}
+                  </span>
+                {%- endif -%}
+              </div>
+            </div>
+
+            <div class="trustpilot-review-card__rating">
+              {%- assign rating = block.settings.rating | default: 5 -%}
+              {%- for i in (1..5) -%}
+                {%- if i <= rating -%}
+                  <svg class="trustpilot-star--small trustpilot-star--full" width="16" height="16" viewBox="0 0 16 16">
+                    <polygon points="8,1 10,6 15,6 11,9.5 12.5,14.5 8,11.5 3.5,14.5 5,9.5 1,6 6,6" fill="#00b67a"/>
+                  </svg>
+                {%- else -%}
+                  <svg class="trustpilot-star--small" width="16" height="16" viewBox="0 0 16 16">
+                    <polygon points="8,1 10,6 15,6 11,9.5 12.5,14.5 8,11.5 3.5,14.5 5,9.5 1,6 6,6" fill="#dcdce6"/>
+                  </svg>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+
+            {%- if block.settings.title != blank -%}
+              <h3 class="trustpilot-review-card__title">{{ block.settings.title }}</h3>
+            {%- endif -%}
+
+            {%- if block.settings.content != blank -%}
+              <p class="trustpilot-review-card__content">{{ block.settings.content }}</p>
+            {%- endif -%}
+
+            {%- if block.settings.date != blank -%}
+              <time class="trustpilot-review-card__date" datetime="{{ block.settings.date }}">
+                {{ block.settings.date | date: '%B %d, %Y' }}
+              </time>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<style>
+  .trustpilot-reviews {
+    padding: var(--spacing-2xl) 0;
+  }
+
+  .trustpilot-reviews__widget {
+    max-width: 400px;
+    margin: 0 auto var(--spacing-lg);
+  }
+
+  .trustpilot-reviews__list {
+    display: grid;
+    gap: var(--spacing-md);
+  }
+
+  .trustpilot-reviews__list--grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  .trustpilot-reviews__list--slider {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: var(--spacing-sm);
+  }
+
+  .trustpilot-reviews__list--slider::-webkit-scrollbar {
+    display: none;
+  }
+
+  .trustpilot-reviews__list--slider .trustpilot-review-card {
+    flex: 0 0 300px;
+  }
+
+  .trustpilot-review-card {
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    transition: all 0.2s ease;
+  }
+
+  .trustpilot-review-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .trustpilot-review-card__header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .trustpilot-review-card__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    background-color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .trustpilot-review-card__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .trustpilot-review-card__initials {
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .trustpilot-review-card__author-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .trustpilot-review-card__author {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: var(--color-text);
+  }
+
+  .trustpilot-review-card__verified {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: #00b67a;
+    font-weight: 500;
+  }
+
+  .trustpilot-review-card__rating {
+    display: flex;
+    gap: 2px;
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .trustpilot-review-card__title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--color-text);
+  }
+
+  .trustpilot-review-card__content {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .trustpilot-review-card__date {
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+  }
+
+  @media (max-width: 767px) {
+    .trustpilot-reviews__list--slider .trustpilot-review-card {
+      flex: 0 0 85%;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Avis Trustpilot",
+  "tag": "section",
+  "class": "section-trustpilot",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre",
+      "default": "Ce que disent nos clients"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Sous-titre",
+      "default": "Lisez les avis de nos clients vérifiés"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Disposition",
+      "options": [
+        { "value": "grid", "label": "Grille" },
+        { "value": "slider", "label": "Carrousel" }
+      ],
+      "default": "grid"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_widget",
+      "label": "Afficher le widget Trustpilot",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "review",
+      "name": "Avis",
+      "settings": [
+        {
+          "type": "text",
+          "id": "author",
+          "label": "Nom de l'auteur",
+          "default": "Jean D."
+        },
+        {
+          "type": "image_picker",
+          "id": "avatar",
+          "label": "Photo de l'auteur"
+        },
+        {
+          "type": "range",
+          "id": "rating",
+          "label": "Note",
+          "min": 1,
+          "max": 5,
+          "step": 1,
+          "default": 5
+        },
+        {
+          "type": "checkbox",
+          "id": "verified",
+          "label": "Achat vérifié",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Titre de l'avis",
+          "default": "Excellent produit !"
+        },
+        {
+          "type": "textarea",
+          "id": "content",
+          "label": "Contenu de l'avis",
+          "default": "Ce produit a dépassé mes attentes. Livraison rapide et excellente qualité."
+        },
+        {
+          "type": "text",
+          "id": "date",
+          "label": "Date de l'avis",
+          "default": "2024-01-15",
+          "info": "Format: AAAA-MM-JJ"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Avis Trustpilot",
+      "blocks": [
+        { "type": "review" },
+        { "type": "review", "settings": { "author": "Marie M.", "title": "Je recommande !", "content": "Service client incroyable et qualité du produit exceptionnelle." } },
+        { "type": "review", "settings": { "author": "Pierre R.", "title": "Parfait !", "content": "Exactement ce que je cherchais. Je commanderai à nouveau." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

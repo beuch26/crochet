@@ -1,0 +1,5 @@
+# Les scripts de deploiement tournent sur le VPS Linux mais sont edites sous
+# Windows. Un checkout en CRLF les rend inexecutables : bash s'arrete sur
+# "\r: command not found", et la panne survient en plein deploiement.
+# On force LF quelle que soit la configuration core.autocrlf du poste.
+*.sh text eol=lf

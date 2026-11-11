@@ -1,0 +1,849 @@
+{%- comment -%}
+  Hero Banner Section
+  Main banner for homepage with H1, CTA, and background image/video
+  CRITICAL: Contains the H1 for homepage SEO
+{%- endcomment -%}
+
+{%- render 'section-spacing', id: section.id, margin_top: section.settings.section_margin_top, margin_bottom: section.settings.section_margin_bottom -%}
+
+<div class="hero-banner {% if section.settings.height %}hero-banner--{{ section.settings.height }}{% endif %} {% if section.settings.text_alignment %}hero-banner--text-{{ section.settings.text_alignment }}{% endif %}{% if section.settings.enable_parallax %} hero-banner--parallax{% endif %}" style="margin-top: {{ section.settings.top_offset }}px;" {% if section.settings.enable_parallax %}data-parallax{% endif %}>
+  {%- comment -%} Responsive background images for performance {%- endcomment -%}
+  {%- if section.settings.image -%}
+    <style>
+      .hero-banner { background-image: url({{ section.settings.image | image_url: width: 600 }}); }
+      @media (min-width: 768px) { .hero-banner { background-image: url({{ section.settings.image | image_url: width: 1000 }}); } }
+      @media (min-width: 1024px) { .hero-banner { background-image: url({{ section.settings.image | image_url: width: 1400 }}); } }
+      @media (min-width: 1400px) { .hero-banner { background-image: url({{ section.settings.image | image_url: width: 1600 }}); } }
+    </style>
+  {%- endif -%}
+
+  {%- comment -%} Video Background - Only loaded on desktop (768px+) for performance {%- endcomment -%}
+  {%- if section.settings.video_url != blank -%}
+    <div class="hero-banner__video hero-banner__video--desktop-only">
+      <video
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="none"
+        class="hero-banner__video-element"
+        data-src="{{ section.settings.video_url }}"
+        {% if section.settings.image %}poster="{{ section.settings.image | image_url: width: 1600 }}"{% endif %}
+      >
+      </video>
+    </div>
+    <script>
+      (function() {
+        if (window.innerWidth >= 768) {
+          var video = document.querySelector('.hero-banner__video-element[data-src]');
+          if (video && video.dataset.src) {
+            var source = document.createElement('source');
+            source.src = video.dataset.src;
+            source.type = 'video/mp4';
+            video.appendChild(source);
+            video.load();
+          }
+        }
+      })();
+    </script>
+  {%- endif -%}
+
+  {%- comment -%} Overlay {%- endcomment -%}
+  {%- if section.settings.overlay_opacity > 0 -%}
+    <div class="hero-banner__overlay" style="opacity: {{ section.settings.overlay_opacity | divided_by: 100.0 }};"></div>
+  {%- endif -%}
+
+  <div class="container">
+    <div class="hero-banner__content" style="{% if section.settings.text_alignment %}text-align: {{ section.settings.text_alignment }};{% endif %}">
+
+      {%- comment -%} Subtitle (above H1) {%- endcomment -%}
+      {%- if section.settings.subtitle != blank -%}
+        <p class="hero-banner__subtitle" style="{% if section.settings.subtitle_color != blank %}color: {{ section.settings.subtitle_color }};{% endif %}">{{ section.settings.subtitle }}</p>
+      {%- endif -%}
+
+      {%- comment -%} Dynamic Heading Tag - SEO Configurable {%- endcomment -%}
+      {%- if section.settings.title != blank -%}
+        {%- liquid
+          assign heading_tag = section.settings.heading_tag | default: 'h1'
+        -%}
+        {%- if section.settings.enable_heading_style -%}
+          {%- render 'heading-styles',
+            text: section.settings.title,
+            tag: heading_tag,
+            style: section.settings.heading_style,
+            color: section.settings.heading_style_color,
+            align: section.settings.text_alignment | default: 'center',
+            size: 'xl',
+            typing_texts: section.settings.typing_texts
+          -%}
+        {%- else -%}
+          <{{ heading_tag }} class="hero-banner__title" style="{% if section.settings.title_color != blank %}color: {{ section.settings.title_color }};{% endif %}">
+            {{ section.settings.title }}
+          </{{ heading_tag }}>
+        {%- endif -%}
+      {%- endif -%}
+
+      {%- comment -%} Description {%- endcomment -%}
+      {%- if section.settings.text != blank -%}
+        <div class="hero-banner__text rte" style="{% if section.settings.text_color != blank %}color: {{ section.settings.text_color }};{% endif %}">
+          {{ section.settings.text }}
+        </div>
+      {%- endif -%}
+
+      {%- comment -%} Google Reviews Badge {%- endcomment -%}
+      {%- if section.settings.reviews_count != blank -%}
+        {%- assign reviews_stars_color = section.settings.reviews_stars_color | default: '#fbbf24' -%}
+        {%- assign reviews_text_color = section.settings.reviews_text_color | default: '#ffffff' -%}
+        {%- assign rating = section.settings.reviews_rating | default: 5 | times: 1.0 -%}
+        <div class="hero-banner__reviews" style="color: {{ reviews_text_color }};">
+          <div class="hero-banner__reviews-stars">
+            {%- for i in (1..5) -%}
+              {%- assign fill_pct = rating | minus: i | plus: 1 -%}
+              {%- if fill_pct >= 1 -%}
+                {%- comment -%} Full star {%- endcomment -%}
+                <svg class="hero-banner__star" width="20" height="20" viewBox="0 0 20 20" fill="{{ reviews_stars_color }}" xmlns="http://www.w3.org/2000/svg"><path d="M10 1.25l2.47 5.01 5.53.8-4 3.9.94 5.5L10 13.87l-4.94 2.59.94-5.5-4-3.9 5.53-.8L10 1.25z"/></svg>
+              {%- elsif fill_pct > 0 -%}
+                {%- comment -%} Partial star {%- endcomment -%}
+                {%- assign pct = fill_pct | times: 100 | round -%}
+                <svg class="hero-banner__star" width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <defs><linearGradient id="star-grad-{{ section.id }}-{{ i }}"><stop offset="{{ pct }}%" stop-color="{{ reviews_stars_color }}"/><stop offset="{{ pct }}%" stop-color="rgba(255,255,255,0.3)"/></linearGradient></defs>
+                  <path d="M10 1.25l2.47 5.01 5.53.8-4 3.9.94 5.5L10 13.87l-4.94 2.59.94-5.5-4-3.9 5.53-.8L10 1.25z" fill="url(#star-grad-{{ section.id }}-{{ i }})"/>
+                </svg>
+              {%- else -%}
+                {%- comment -%} Empty star {%- endcomment -%}
+                <svg class="hero-banner__star" width="20" height="20" viewBox="0 0 20 20" fill="rgba(255,255,255,0.3)" xmlns="http://www.w3.org/2000/svg"><path d="M10 1.25l2.47 5.01 5.53.8-4 3.9.94 5.5L10 13.87l-4.94 2.59.94-5.5-4-3.9 5.53-.8L10 1.25z"/></svg>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+          <span class="hero-banner__reviews-text">{{ section.settings.reviews_rating | default: '5.0' }}/5 - {{ section.settings.reviews_count }} {{ section.settings.reviews_label | default: 'avis Google' }}</span>
+          {%- if section.settings.reviews_icon != blank and section.settings.reviews_icon != 'none' -%}
+            <span class="hero-banner__reviews-icon">
+              {%- case section.settings.reviews_icon -%}
+                {%- when 'google' -%}
+                  <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.03 24.03 0 0 0 0 21.56l7.98-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                {%- when 'trustpilot' -%}
+                  <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#00B67A" d="M48 18.3H29.6L24 0l-5.6 18.3H0l15.2 11-5.8 18.3L24 36.5l14.6 11.1-5.8-18.3L48 18.3z"/></svg>
+                {%- when 'etsy' -%}
+                  <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#F56400" d="M24 0C10.75 0 0 10.75 0 24s10.75 24 24 24 24-10.75 24-24S37.25 0 24 0z"/><path fill="#fff" d="M14 13.5c0-1 .2-1.5 1.6-1.5h8.8c2.4 0 3.2.8 3.8 3.6l.6 2.4h1.6l-.4-8.5H14.2c-1.8 0-3.2.2-3.2 2.2V33c0 2 1.4 2.2 3.2 2.2h16.2l.8-8.5h-1.6l-1 2.8c-.6 2.4-1.4 3.2-4 3.2h-7.2c-1.8 0-2.4-.4-2.4-1.8v-8.4h6.8c2 0 2.6.6 3 3l.4 1.6h1.6V17h-1.6l-.4 1.6c-.4 2.4-1 3-3 3H15V13.5z"/></svg>
+                {%- when 'facebook' -%}
+                  <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#1877F2" d="M48 24C48 10.75 37.25 0 24 0S0 10.75 0 24c0 11.98 8.77 21.9 20.25 23.7V30.94h-6.1V24h6.1v-5.29c0-6.01 3.58-9.34 9.07-9.34 2.63 0 5.38.47 5.38.47v5.9h-3.03c-2.98 0-3.92 1.85-3.92 3.75V24h6.66l-1.06 6.94h-5.6V47.7C39.23 45.9 48 35.98 48 24z"/></svg>
+              {%- endcase -%}
+            </span>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- comment -%} CTA Buttons {%- endcomment -%}
+      {%- if section.settings.button_label_1 != blank or section.settings.button_label_2 != blank -%}
+        {%- assign button_alignment = section.settings.button_alignment | default: section.settings.text_alignment | default: 'center' -%}
+        <div class="hero-banner__buttons hero-banner__buttons--{{ button_alignment }}">
+          {%- if section.settings.button_label_1 != blank -%}
+            <a href="{{ section.settings.button_link_1 | default: '#' }}" class="btn btn--primary btn--large" style="{% if section.settings.button_1_bg_color != blank %}background-color: {{ section.settings.button_1_bg_color }}; border-color: {{ section.settings.button_1_bg_color }};{% endif %}{% if section.settings.button_1_text_color != blank %}color: {{ section.settings.button_1_text_color }};{% endif %}">
+              {{ section.settings.button_label_1 }}
+            </a>
+          {%- endif -%}
+
+          {%- if section.settings.button_label_2 != blank -%}
+            <a href="{{ section.settings.button_link_2 | default: '#' }}" class="btn btn--secondary btn--large" style="{% if section.settings.button_2_bg_color != blank %}background-color: {{ section.settings.button_2_bg_color }}; border-color: {{ section.settings.button_2_bg_color }};{% endif %}{% if section.settings.button_2_text_color != blank %}color: {{ section.settings.button_2_text_color }};{% endif %}">
+              {{ section.settings.button_label_2 }}
+            </a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+    </div>
+  </div>
+
+</div>
+
+<style>
+.section-hero-banner {
+  padding: 0 !important;
+}
+
+.hero-banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+.hero-banner--small {
+  min-height: 400px;
+}
+
+.hero-banner--medium {
+  min-height: 500px;
+}
+
+.hero-banner--large {
+  min-height: 600px;
+}
+
+.hero-banner--full {
+  min-height: 100vh;
+}
+
+@media (max-width: 767px) {
+  .hero-banner {
+    align-items: flex-start; /* Override center to respect padding-top */
+  }
+
+  .hero-banner--small {
+    min-height: 350px;
+  }
+
+  .hero-banner--medium {
+    min-height: 450px;
+  }
+
+  .hero-banner--large,
+  .hero-banner--full {
+    min-height: 550px;
+  }
+
+  .hero-banner > .container {
+    padding-top: 100px !important; /* Mobile: account for fixed header v2.10.3 */
+    padding-bottom: var(--spacing-xl) !important;
+  }
+}
+
+/* MOBILE OVERRIDE - Must come after global rule */
+@media screen and (max-width: 767px) {
+  .hero-banner > .container.container {
+    padding-top: 100px !important;
+  }
+}
+
+.hero-banner__video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.hero-banner__video-element {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Hide video on mobile for performance - show background image instead */
+@media (max-width: 767px) {
+  .hero-banner__video--desktop-only {
+    display: none !important;
+  }
+}
+
+.hero-banner__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  z-index: 1;
+}
+
+/* Desktop: padding asymétrique pour centrer dans la zone visible (sous le header fixe ~70px) */
+.hero-banner > .container {
+  position: relative;
+  z-index: 2;
+  padding: 70px var(--spacing-md) 0;
+}
+
+.hero-banner__content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.hero-banner__subtitle {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+  animation: fadeInUp 0.4s ease-out both;
+}
+
+.hero-banner__title {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: var(--spacing-md);
+  animation: fadeInUp 0.4s ease-out both;
+}
+
+.hero-banner__text {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  margin-bottom: var(--spacing-lg);
+  animation: fadeInUp 0.4s ease-out 0.05s both;
+}
+
+.hero-banner__reviews {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: var(--spacing-md);
+  animation: fadeInUp 0.4s ease-out 0.08s both;
+}
+
+.hero-banner--text-center .hero-banner__reviews {
+  justify-content: center;
+}
+
+.hero-banner--text-right .hero-banner__reviews {
+  justify-content: flex-end;
+}
+
+.hero-banner__reviews-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.hero-banner__star {
+  flex-shrink: 0;
+}
+
+.hero-banner__reviews-text {
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.hero-banner__reviews-icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.hero-banner__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  animation: fadeInUp 0.4s ease-out 0.1s both;
+}
+
+/* Button Alignment Options */
+.hero-banner__buttons--left {
+  justify-content: flex-start;
+}
+
+.hero-banner__buttons--center {
+  justify-content: center;
+}
+
+.hero-banner__buttons--right {
+  justify-content: flex-end;
+}
+
+/* Text/Content Alignment */
+.hero-banner--text-left .hero-banner__content {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.hero-banner--text-right .hero-banner__content {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+/* Legacy support - fallback to text alignment if button alignment not set */
+.hero-banner--text-center .hero-banner__buttons:not([class*="hero-banner__buttons--"]) {
+  justify-content: center;
+}
+
+.hero-banner--text-left .hero-banner__buttons:not([class*="hero-banner__buttons--"]) {
+  justify-content: flex-start;
+}
+
+.hero-banner--text-right .hero-banner__buttons:not([class*="hero-banner__buttons--"]) {
+  justify-content: flex-end;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .hero-banner__subtitle,
+  .hero-banner__title,
+  .hero-banner__text,
+  .hero-banner__buttons {
+    animation: none;
+    opacity: 1;
+  }
+
+  .hero-banner--parallax {
+    background-attachment: scroll;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero-banner__buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .hero-banner__buttons .btn {
+    width: 100%;
+  }
+}
+
+/* Parallax Effect */
+.hero-banner--parallax {
+  background-attachment: fixed;
+  background-position: center;
+  background-size: cover;
+}
+
+@media (max-width: 767px) {
+  /* Disable parallax on mobile for performance */
+  .hero-banner--parallax {
+    background-attachment: scroll;
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  /* iOS doesn't support fixed background well */
+  .hero-banner--parallax {
+    background-attachment: scroll;
+  }
+}
+
+/* FINAL MOBILE OVERRIDE v2.10.3 - MUST BE LAST */
+@media (max-width: 767px) {
+  .hero-banner > .container {
+    padding-top: 100px !important;
+  }
+}
+</style>
+
+<script>
+(function() {
+  'use strict';
+
+  const parallaxElements = document.querySelectorAll('[data-parallax]');
+  if (!parallaxElements.length) return;
+
+  // Skip on mobile/touch devices
+  if ('ontouchstart' in window || window.innerWidth < 768) return;
+
+  let ticking = false;
+
+  function updateParallax() {
+    parallaxElements.forEach(el => {
+      const rect = el.getBoundingClientRect();
+      const scrolled = window.pageYOffset;
+      const rate = 0.3; // Parallax speed (0.1 - 0.5)
+
+      if (rect.bottom >= 0 && rect.top <= window.innerHeight) {
+        const yPos = -(scrolled * rate);
+        el.style.backgroundPosition = `center ${yPos}px`;
+      }
+    });
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(updateParallax);
+      ticking = true;
+    }
+  }, { passive: true });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Banniere hero",
+  "class": "section-hero-banner",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Mise en page"
+    },
+    {
+      "type": "select",
+      "id": "height",
+      "label": "Hauteur de la banniere",
+      "options": [
+        {
+          "value": "small",
+          "label": "Petite (400px)"
+        },
+        {
+          "value": "medium",
+          "label": "Moyenne (500px)"
+        },
+        {
+          "value": "large",
+          "label": "Grande (600px)"
+        },
+        {
+          "value": "full",
+          "label": "Plein ecran"
+        }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Alignement du texte",
+      "options": [
+        {
+          "value": "left",
+          "label": "Gauche"
+        },
+        {
+          "value": "center",
+          "label": "Centre"
+        },
+        {
+          "value": "right",
+          "label": "Droite"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "range",
+      "id": "top_offset",
+      "label": "Decalage haut (px)",
+      "min": -50,
+      "max": 100,
+      "step": 5,
+      "default": -15,
+      "info": "0 = colle au header (pas d'espace). Negatif chevauche le header. Positif ajoute de l'espace."
+    },
+    {
+      "type": "header",
+      "content": "Arriere-plan"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image de fond",
+      "info": "Recommande : 1600x800px"
+    },
+    {
+      "type": "text",
+      "id": "video_url",
+      "label": "URL de la video de fond (MP4)",
+      "info": "Optionnel : Remplace l'image de fond. Hebergez la video dans les fichiers Shopify."
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Opacite du voile",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "default": 30,
+      "unit": "%",
+      "info": "Voile sombre sur l'arriere-plan pour une meilleure lisibilite du texte"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_parallax",
+      "label": "Activer l'effet parallaxe",
+      "default": false,
+      "info": "Effet de defilement parallaxe subtil sur l'image de fond"
+    },
+    {
+      "type": "header",
+      "content": "Contenu"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Sous-titre (au-dessus du titre)",
+      "default": "Bienvenue dans notre boutique"
+    },
+    {
+      "type": "color",
+      "id": "subtitle_color",
+      "label": "Couleur du sous-titre",
+      "default": "#ffffff"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre",
+      "default": "Des produits de qualite pour votre quotidien"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "SEO : Niveau de titre",
+      "options": [
+        {
+          "value": "h1",
+          "label": "H1 (Titre principal - 1 seul par page)"
+        },
+        {
+          "value": "h2",
+          "label": "H2 (Titre de section)"
+        },
+        {
+          "value": "h3",
+          "label": "H3 (Sous-section)"
+        },
+        {
+          "value": "h4",
+          "label": "H4"
+        },
+        {
+          "value": "h5",
+          "label": "H5"
+        },
+        {
+          "value": "h6",
+          "label": "H6"
+        }
+      ],
+      "default": "h1",
+      "info": "SEO : Utilisez H1 une seule fois par page. Utilisez H2 pour les sections."
+    },
+    {
+      "type": "color",
+      "id": "title_color",
+      "label": "Couleur du titre",
+      "default": "#ffffff"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Description",
+      "default": "<p>Decouvrez notre selection de produits de qualite concus pour votre quotidien.</p>"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Couleur du texte",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Boutons"
+    },
+    {
+      "type": "select",
+      "id": "button_alignment",
+      "label": "Alignement des boutons",
+      "options": [
+        {
+          "value": "left",
+          "label": "Gauche"
+        },
+        {
+          "value": "center",
+          "label": "Centre"
+        },
+        {
+          "value": "right",
+          "label": "Droite"
+        }
+      ],
+      "default": "center",
+      "info": "Choisir l'alignement des boutons independamment de l'alignement du texte"
+    },
+    {
+      "type": "header",
+      "content": "Bouton principal"
+    },
+    {
+      "type": "text",
+      "id": "button_label_1",
+      "label": "Texte du bouton",
+      "default": "Acheter maintenant"
+    },
+    {
+      "type": "url",
+      "id": "button_link_1",
+      "label": "Lien du bouton"
+    },
+    {
+      "type": "color",
+      "id": "button_1_bg_color",
+      "label": "Couleur de fond du bouton",
+      "default": "#1e3a5f"
+    },
+    {
+      "type": "color",
+      "id": "button_1_text_color",
+      "label": "Couleur du texte du bouton",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Bouton secondaire (optionnel)"
+    },
+    {
+      "type": "text",
+      "id": "button_label_2",
+      "label": "Texte du bouton",
+      "default": "En savoir plus"
+    },
+    {
+      "type": "url",
+      "id": "button_link_2",
+      "label": "Lien du bouton"
+    },
+    {
+      "type": "color",
+      "id": "button_2_bg_color",
+      "label": "Couleur de fond du bouton",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_2_text_color",
+      "label": "Couleur du texte du bouton",
+      "default": "#1e3a5f"
+    },
+    {
+      "type": "header",
+      "content": "Avis Google"
+    },
+    {
+      "type": "text",
+      "id": "reviews_count",
+      "label": "Nombre d'avis",
+      "info": "Laissez vide pour masquer. Ex: 127"
+    },
+    {
+      "type": "text",
+      "id": "reviews_rating",
+      "label": "Note moyenne",
+      "default": "5.0",
+      "info": "Ex: 4.8"
+    },
+    {
+      "type": "text",
+      "id": "reviews_label",
+      "label": "Libelle",
+      "default": "avis Google",
+      "info": "Texte affiche apres le nombre d'avis"
+    },
+    {
+      "type": "select",
+      "id": "reviews_icon",
+      "label": "Icone de la plateforme",
+      "options": [
+        { "value": "none", "label": "Aucune" },
+        { "value": "google", "label": "Google" },
+        { "value": "trustpilot", "label": "Trustpilot" },
+        { "value": "etsy", "label": "Etsy" },
+        { "value": "facebook", "label": "Facebook" }
+      ],
+      "default": "none",
+      "info": "Affiche le logo de la plateforme apres le texte"
+    },
+    {
+      "type": "color",
+      "id": "reviews_stars_color",
+      "label": "Couleur des etoiles",
+      "default": "#fbbf24"
+    },
+    {
+      "type": "color",
+      "id": "reviews_text_color",
+      "label": "Couleur du texte des avis",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "header",
+      "content": "Espacement de la section"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_top",
+      "label": "Marge en haut (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_bottom",
+      "label": "Marge en bas (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Banniere hero",
+      "settings": {
+        "title": "Bienvenue dans notre boutique",
+        "text": "<p>Decouvrez nos produits exceptionnels</p>",
+        "button_label_1": "Acheter maintenant"
+      }
+    }
+  ]
+}
+{% endschema %}

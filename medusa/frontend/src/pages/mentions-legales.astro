@@ -1,0 +1,28 @@
+---
+import Layout from '../layouts/Layout.astro'
+import SchemaBreadcrumb from '../components/seo/SchemaBreadcrumb.astro'
+import { getPage } from '../lib/medusa'
+import { normalizeInternalHrefsInHTML } from '../lib/url'
+
+let page: any = null
+try { const data = await getPage('mentions-legales'); page = data.page } catch {}
+
+const title = page?.seo_title || page?.title || 'Mentions légales'
+const description = page?.seo_description || 'Mentions légales du site magic-crochet-kit.com'
+const content = normalizeInternalHrefsInHTML(page?.content || '<p>Contenu en cours de rédaction.</p>')
+---
+
+<Layout title={title} description={description}>
+  <SchemaBreadcrumb slot="head" items={[{ name: 'Magic Crochet Kit', url: '/' }, { name: 'Mentions légales', url: '/mentions-legales/' }]} />
+  <section class="py-12 lg:py-16">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="mb-8 text-sm text-text-muted flex items-center gap-2 animate-fade-up">
+        <a href="/" class="hover:text-primary transition-colors">Magic Crochet Kit</a>
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-text">{page?.title || 'Mentions légales'}</span>
+      </nav>
+      <h1 class="mb-8 animate-fade-up">{page?.title || 'Mentions légales'}</h1>
+      <div class="prose max-w-none animate-fade-up delay-1" set:html={content} />
+    </div>
+  </section>
+</Layout>

@@ -1,0 +1,30 @@
+---
+/**
+ * Loading Overlay - smooth page transition
+ * Shows a brief loading animation on page load, then fades out
+ */
+---
+
+<div id="page-loader" class="fixed inset-0 z-[999] bg-white flex items-center justify-center transition-opacity duration-300">
+  <div class="flex flex-col items-center gap-4">
+    <div class="w-10 h-10 border-3 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+    <span class="text-sm text-text-muted font-['DM_Sans']">Magic Crochet Kit</span>
+  </div>
+</div>
+
+<script>
+  const loader = document.getElementById('page-loader')
+  if (loader) {
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        loader.classList.add('opacity-0')
+        setTimeout(() => loader.remove(), 300)
+      }, 200)
+    })
+    // Failsafe: remove after 3s even if load event doesn't fire
+    setTimeout(() => {
+      loader.classList.add('opacity-0')
+      setTimeout(() => loader.remove(), 300)
+    }, 3000)
+  }
+</script>

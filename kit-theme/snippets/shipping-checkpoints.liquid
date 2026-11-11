@@ -1,0 +1,339 @@
+{%- comment -%}
+  Shipping Checkpoints
+  Visual progress tracker for cart/order shipping milestones
+
+  Parameters:
+  - current_total: Cart total in cents (required)
+  - checkpoints: Array of checkpoint objects [{threshold: 5000, label: "Free Shipping", icon: "🚚"}]
+  - style: 'bar', 'steps' (default: 'bar')
+
+  Usage:
+  {%- render 'shipping-checkpoints', current_total: cart.total_price, style: 'bar' -%}
+{%- endcomment -%}
+
+{%- liquid
+  assign current_total = current_total | default: 0
+  assign style = style | default: 'bar'
+
+  comment
+    Default checkpoints if none provided
+    Configure via theme settings or metafields
+  endcomment
+  assign checkpoint_1_threshold = settings.shipping_checkpoint_1 | default: 5000
+  assign checkpoint_1_label = settings.shipping_checkpoint_1_label | default: 'Livraison gratuite'
+  assign checkpoint_1_icon = settings.shipping_checkpoint_1_icon | default: '🚚'
+
+  assign checkpoint_2_threshold = settings.shipping_checkpoint_2 | default: 10000
+  assign checkpoint_2_label = settings.shipping_checkpoint_2_label | default: 'Express gratuit'
+  assign checkpoint_2_icon = settings.shipping_checkpoint_2_icon | default: '⚡'
+
+  assign checkpoint_3_threshold = settings.shipping_checkpoint_3 | default: 15000
+  assign checkpoint_3_label = settings.shipping_checkpoint_3_label | default: 'Cadeau gratuit'
+  assign checkpoint_3_icon = settings.shipping_checkpoint_3_icon | default: '🎁'
+
+  assign max_threshold = checkpoint_3_threshold
+  if checkpoint_2_threshold > max_threshold
+    assign max_threshold = checkpoint_2_threshold
+  endif
+  if checkpoint_1_threshold > max_threshold
+    assign max_threshold = checkpoint_1_threshold
+  endif
+
+  assign progress_percent = current_total | times: 100 | divided_by: max_threshold | at_most: 100
+
+  assign cp1_reached = false
+  assign cp2_reached = false
+  assign cp3_reached = false
+
+  if current_total >= checkpoint_1_threshold
+    assign cp1_reached = true
+  endif
+  if current_total >= checkpoint_2_threshold
+    assign cp2_reached = true
+  endif
+  if current_total >= checkpoint_3_threshold
+    assign cp3_reached = true
+  endif
+-%}
+
+<div class="shipping-checkpoints shipping-checkpoints--{{ style }}" data-shipping-checkpoints>
+  {%- if style == 'bar' -%}
+    <div class="shipping-checkpoints__bar-wrapper">
+      <div class="shipping-checkpoints__bar">
+        <div class="shipping-checkpoints__bar-fill" style="width: {{ progress_percent }}%;"></div>
+
+        {%- comment -%} Checkpoint markers on bar {%- endcomment -%}
+        {%- assign cp1_position = checkpoint_1_threshold | times: 100 | divided_by: max_threshold -%}
+        {%- assign cp2_position = checkpoint_2_threshold | times: 100 | divided_by: max_threshold -%}
+        {%- assign cp3_position = checkpoint_3_threshold | times: 100 | divided_by: max_threshold -%}
+
+        <div class="shipping-checkpoints__marker{% if cp1_reached %} is-reached{% endif %}" style="left: {{ cp1_position }}%;">
+          <span class="shipping-checkpoints__marker-icon">{{ checkpoint_1_icon }}</span>
+        </div>
+
+        {%- if checkpoint_2_threshold > 0 and checkpoint_2_threshold != checkpoint_1_threshold -%}
+          <div class="shipping-checkpoints__marker{% if cp2_reached %} is-reached{% endif %}" style="left: {{ cp2_position }}%;">
+            <span class="shipping-checkpoints__marker-icon">{{ checkpoint_2_icon }}</span>
+          </div>
+        {%- endif -%}
+
+        {%- if checkpoint_3_threshold > 0 and checkpoint_3_threshold != checkpoint_2_threshold -%}
+          <div class="shipping-checkpoints__marker{% if cp3_reached %} is-reached{% endif %}" style="left: {{ cp3_position }}%;">
+            <span class="shipping-checkpoints__marker-icon">{{ checkpoint_3_icon }}</span>
+          </div>
+        {%- endif -%}
+      </div>
+
+      <div class="shipping-checkpoints__labels">
+        <span class="shipping-checkpoints__label{% if cp1_reached %} is-reached{% endif %}">
+          {{ checkpoint_1_label }}
+          <small>{{ checkpoint_1_threshold | money }}</small>
+        </span>
+
+        {%- if checkpoint_2_threshold > 0 and checkpoint_2_threshold != checkpoint_1_threshold -%}
+          <span class="shipping-checkpoints__label{% if cp2_reached %} is-reached{% endif %}">
+            {{ checkpoint_2_label }}
+            <small>{{ checkpoint_2_threshold | money }}</small>
+          </span>
+        {%- endif -%}
+
+        {%- if checkpoint_3_threshold > 0 and checkpoint_3_threshold != checkpoint_2_threshold -%}
+          <span class="shipping-checkpoints__label{% if cp3_reached %} is-reached{% endif %}">
+            {{ checkpoint_3_label }}
+            <small>{{ checkpoint_3_threshold | money }}</small>
+          </span>
+        {%- endif -%}
+      </div>
+    </div>
+
+  {%- elsif style == 'steps' -%}
+    <div class="shipping-checkpoints__steps">
+      <div class="shipping-checkpoints__step{% if cp1_reached %} is-reached{% endif %}">
+        <div class="shipping-checkpoints__step-icon">
+          {%- if cp1_reached -%}
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M3 8L6.5 11.5L13 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          {%- else -%}
+            {{ checkpoint_1_icon }}
+          {%- endif -%}
+        </div>
+        <div class="shipping-checkpoints__step-content">
+          <span class="shipping-checkpoints__step-label">{{ checkpoint_1_label }}</span>
+          <span class="shipping-checkpoints__step-threshold">
+            {%- if cp1_reached -%}
+              {{ 'cart.shipping.unlocked' | t | default: 'Débloqué !' }}
+            {%- else -%}
+              {%- assign remaining = checkpoint_1_threshold | minus: current_total -%}
+              {{ 'cart.shipping.add_more' | t: amount: remaining | money | default: 'Ajoutez ' | append: remaining | money | append: ' de plus' }}
+            {%- endif -%}
+          </span>
+        </div>
+      </div>
+
+      {%- if checkpoint_2_threshold > 0 and checkpoint_2_threshold != checkpoint_1_threshold -%}
+        <div class="shipping-checkpoints__step{% if cp2_reached %} is-reached{% endif %}">
+          <div class="shipping-checkpoints__step-icon">
+            {%- if cp2_reached -%}
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8L6.5 11.5L13 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            {%- else -%}
+              {{ checkpoint_2_icon }}
+            {%- endif -%}
+          </div>
+          <div class="shipping-checkpoints__step-content">
+            <span class="shipping-checkpoints__step-label">{{ checkpoint_2_label }}</span>
+            <span class="shipping-checkpoints__step-threshold">
+              {%- if cp2_reached -%}
+                {{ 'cart.shipping.unlocked' | t | default: 'Débloqué !' }}
+              {%- else -%}
+                {%- assign remaining = checkpoint_2_threshold | minus: current_total -%}
+                {{ remaining | money }} {{ 'cart.shipping.to_go' | t | default: 'restants' }}
+              {%- endif -%}
+            </span>
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- if checkpoint_3_threshold > 0 and checkpoint_3_threshold != checkpoint_2_threshold -%}
+        <div class="shipping-checkpoints__step{% if cp3_reached %} is-reached{% endif %}">
+          <div class="shipping-checkpoints__step-icon">
+            {%- if cp3_reached -%}
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8L6.5 11.5L13 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            {%- else -%}
+              {{ checkpoint_3_icon }}
+            {%- endif -%}
+          </div>
+          <div class="shipping-checkpoints__step-content">
+            <span class="shipping-checkpoints__step-label">{{ checkpoint_3_label }}</span>
+            <span class="shipping-checkpoints__step-threshold">
+              {%- if cp3_reached -%}
+                {{ 'cart.shipping.unlocked' | t | default: 'Débloqué !' }}
+              {%- else -%}
+                {%- assign remaining = checkpoint_3_threshold | minus: current_total -%}
+                {{ remaining | money }} {{ 'cart.shipping.to_go' | t | default: 'restants' }}
+              {%- endif -%}
+            </span>
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</div>
+
+<style>
+  .shipping-checkpoints {
+    margin: var(--spacing-md) 0;
+  }
+
+  /* Bar Style */
+  .shipping-checkpoints__bar-wrapper {
+    position: relative;
+  }
+
+  .shipping-checkpoints__bar {
+    position: relative;
+    height: 8px;
+    background-color: var(--color-background-light);
+    border-radius: var(--radius-full);
+    overflow: visible;
+  }
+
+  .shipping-checkpoints__bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-success));
+    border-radius: var(--radius-full);
+    transition: width 0.3s ease;
+  }
+
+  .shipping-checkpoints__marker {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 28px;
+    height: 28px;
+    background-color: var(--color-background);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 1;
+  }
+
+  .shipping-checkpoints__marker.is-reached {
+    border-color: var(--color-success);
+    background-color: var(--color-success);
+  }
+
+  .shipping-checkpoints__marker.is-reached .shipping-checkpoints__marker-icon {
+    filter: grayscale(0) brightness(1.2);
+  }
+
+  .shipping-checkpoints__marker-icon {
+    font-size: 0.875rem;
+    filter: grayscale(1);
+    transition: filter 0.3s ease;
+  }
+
+  .shipping-checkpoints__labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--spacing-sm);
+  }
+
+  .shipping-checkpoints__label {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+    flex: 1;
+  }
+
+  .shipping-checkpoints__label.is-reached {
+    color: var(--color-success);
+    font-weight: 600;
+  }
+
+  .shipping-checkpoints__label small {
+    font-size: 0.6875rem;
+    opacity: 0.7;
+  }
+
+  /* Steps Style */
+  .shipping-checkpoints__steps {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .shipping-checkpoints__step {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    background-color: var(--color-background-light);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+  }
+
+  .shipping-checkpoints__step.is-reached {
+    background-color: rgba(var(--color-success-rgb, 40, 167, 69), 0.1);
+    border-color: var(--color-success);
+  }
+
+  .shipping-checkpoints__step-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-background);
+    border-radius: var(--radius-full);
+    font-size: 1rem;
+  }
+
+  .shipping-checkpoints__step.is-reached .shipping-checkpoints__step-icon {
+    background-color: var(--color-success);
+    color: white;
+  }
+
+  .shipping-checkpoints__step-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .shipping-checkpoints__step-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+
+  .shipping-checkpoints__step-threshold {
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+  }
+
+  .shipping-checkpoints__step.is-reached .shipping-checkpoints__step-threshold {
+    color: var(--color-success);
+  }
+
+  @media (max-width: 767px) {
+    .shipping-checkpoints__labels {
+      flex-direction: column;
+      gap: var(--spacing-xs);
+    }
+
+    .shipping-checkpoints__label {
+      flex-direction: row;
+      justify-content: space-between;
+      text-align: left;
+    }
+  }
+</style>

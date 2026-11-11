@@ -1,0 +1,619 @@
+{%- comment -%}
+  Product Q&A Section
+  Displays customer questions and answers in an accordion format
+  Supports search, filtering, and "Ask a Question" functionality
+
+  Questions are stored in product metafields:
+  - product.metafields.qna.questions (JSON array)
+
+  Each question object:
+  {
+    "question": "Question text?",
+    "answer": "Answer text.",
+    "author": "Customer name",
+    "date": "YYYY-MM-DD",
+    "helpful": 0
+  }
+{%- endcomment -%}
+
+{%- assign product = section.settings.product | default: product -%}
+{%- assign qna_data = product.metafields.qna.questions.value -%}
+
+<div class="product-qna section" id="product-qna">
+  <div class="container container--narrow">
+
+    <header class="product-qna__header">
+      {%- if section.settings.enable_heading_style -%}
+        {%- render 'heading-styles',
+          text: section.settings.title,
+          tag: 'h2',
+          style: section.settings.heading_style,
+          color: section.settings.heading_style_color,
+          align: 'center',
+          size: 'xl',
+          typing_texts: section.settings.typing_texts
+        -%}
+      {%- else -%}
+        <h2 class="product-qna__title">{{ section.settings.title }}</h2>
+      {%- endif -%}
+      <p class="product-qna__subtitle">{{ section.settings.subtitle }}</p>
+    </header>
+
+    {%- comment -%} Search Box {%- endcomment -%}
+    {%- if section.settings.show_search -%}
+      <div class="product-qna__search">
+        <div class="product-qna__search-wrapper">
+          <svg class="product-qna__search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <circle cx="8.5" cy="8.5" r="6" stroke="currentColor" stroke-width="2"/>
+            <path d="M13 13L17 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <input
+            type="text"
+            class="product-qna__search-input"
+            placeholder="{{ section.settings.search_placeholder }}"
+            data-qna-search
+            aria-label="{{ 'products.qna.search' | t | default: 'Search questions' }}"
+          >
+        </div>
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} Q&A List {%- endcomment -%}
+    <div class="product-qna__list" data-qna-list>
+      {%- if qna_data and qna_data.size > 0 -%}
+        {%- for qa in qna_data -%}
+          <div class="product-qna__item" data-qna-item data-searchable="{{ qa.question | append: ' ' | append: qa.answer | downcase }}">
+            <button class="product-qna__question" data-qna-toggle aria-expanded="false">
+              <span class="product-qna__question-icon">Q</span>
+              <span class="product-qna__question-text">{{ qa.question }}</span>
+              <svg class="product-qna__question-arrow" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+
+            <div class="product-qna__answer" data-qna-answer>
+              <div class="product-qna__answer-content">
+                <span class="product-qna__answer-icon">A</span>
+                <div class="product-qna__answer-text">
+                  {{ qa.answer }}
+
+                  {%- if qa.author or qa.date -%}
+                    <div class="product-qna__meta">
+                      {%- if qa.author -%}
+                        <span class="product-qna__author">{{ qa.author }}</span>
+                      {%- endif -%}
+                      {%- if qa.date -%}
+                        <span class="product-qna__date">{{ qa.date | date: '%B %d, %Y' }}</span>
+                      {%- endif -%}
+                    </div>
+                  {%- endif -%}
+                </div>
+              </div>
+
+              {%- if section.settings.show_helpful -%}
+                <div class="product-qna__helpful">
+                  <span class="product-qna__helpful-text">{{ 'products.qna.helpful' | t | default: 'Was this helpful?' }}</span>
+                  <button class="product-qna__helpful-btn" data-helpful-yes aria-label="Yes">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M4 8H2v6h2V8zM14 9.5c0-.276-.112-.526-.293-.707A.996.996 0 0013 8.5h-2.5l.5-2.5V5.5c0-.276-.112-.526-.293-.707A.996.996 0 0010 4.5L7.5 8v6h5.25c.414 0 .75-.336.75-.75l1-3.5c.01-.052.01-.148 0-.25z" fill="currentColor"/>
+                    </svg>
+                    <span>{{ 'products.qna.yes' | t | default: 'Yes' }}</span>
+                  </button>
+                  <button class="product-qna__helpful-btn" data-helpful-no aria-label="No">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" transform="rotate(180)">
+                      <path d="M4 8H2v6h2V8zM14 9.5c0-.276-.112-.526-.293-.707A.996.996 0 0013 8.5h-2.5l.5-2.5V5.5c0-.276-.112-.526-.293-.707A.996.996 0 0010 4.5L7.5 8v6h5.25c.414 0 .75-.336.75-.75l1-3.5c.01-.052.01-.148 0-.25z" fill="currentColor"/>
+                    </svg>
+                    <span>{{ 'products.qna.no' | t | default: 'No' }}</span>
+                  </button>
+                </div>
+              {%- endif -%}
+            </div>
+          </div>
+        {%- endfor -%}
+
+        {%- comment -%} No Results Message {%- endcomment -%}
+        <div class="product-qna__no-results" data-no-results style="display: none;">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <circle cx="20" cy="20" r="14" stroke="currentColor" stroke-width="3"/>
+            <path d="M30 30L40 40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          <p>{{ section.settings.no_results_text }}</p>
+        </div>
+
+      {%- else -%}
+        <div class="product-qna__empty">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="3"/>
+            <path d="M32 20v16M32 42v2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          <p>{{ section.settings.empty_text }}</p>
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} Ask Question Button {%- endcomment -%}
+    {%- if section.settings.show_ask_button -%}
+      <div class="product-qna__ask">
+        <p class="product-qna__ask-text">{{ section.settings.ask_text }}</p>
+        <a href="{{ section.settings.ask_link }}" class="btn btn--secondary">
+          {{ section.settings.ask_button_text }}
+        </a>
+      </div>
+    {%- endif -%}
+
+  </div>
+</div>
+
+<style>
+.product-qna {
+  padding: var(--spacing-2xl) 0;
+  background-color: var(--color-background);
+}
+
+.product-qna__header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.product-qna__title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  margin: 0 0 var(--spacing-sm);
+}
+
+.product-qna__subtitle {
+  color: var(--color-text-light);
+  font-size: 1.125rem;
+  margin: 0;
+}
+
+/* Search */
+.product-qna__search {
+  margin-bottom: var(--spacing-xl);
+}
+
+.product-qna__search-wrapper {
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.product-qna__search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-light);
+  pointer-events: none;
+}
+
+.product-qna__search-input {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: 1rem;
+  transition: border-color var(--transition-speed);
+}
+
+.product-qna__search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* Q&A List */
+.product-qna__list {
+  max-width: 800px;
+  margin: 0 auto var(--spacing-xl);
+}
+
+.product-qna__item {
+  border-bottom: 1px solid var(--color-border);
+  transition: opacity 0.3s ease;
+}
+
+.product-qna__item[data-hidden="true"] {
+  display: none;
+}
+
+.product-qna__question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: color var(--transition-speed);
+}
+
+.product-qna__question:hover {
+  color: var(--color-primary);
+}
+
+.product-qna__question-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.product-qna__question-text {
+  flex: 1;
+  font-weight: 600;
+  font-size: 1.0625rem;
+  line-height: 1.4;
+}
+
+.product-qna__question-arrow {
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+  color: var(--color-text-light);
+}
+
+.product-qna__question[aria-expanded="true"] .product-qna__question-arrow {
+  transform: rotate(180deg);
+}
+
+.product-qna__answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.product-qna__question[aria-expanded="true"] + .product-qna__answer {
+  max-height: 1000px;
+  padding-bottom: var(--spacing-md);
+}
+
+.product-qna__answer-content {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.product-qna__answer-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: var(--color-secondary, var(--color-background-light));
+  color: var(--color-text);
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.product-qna__answer-text {
+  flex: 1;
+  color: var(--color-text-light);
+  line-height: 1.6;
+}
+
+.product-qna__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+}
+
+.product-qna__author {
+  font-weight: 600;
+}
+
+.product-qna__date::before {
+  content: '•';
+  margin-right: 0.5rem;
+}
+
+/* Helpful Buttons */
+.product-qna__helpful {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding-left: calc(32px + var(--spacing-sm));
+  flex-wrap: wrap;
+}
+
+.product-qna__helpful-text {
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+  font-weight: 600;
+}
+
+.product-qna__helpful-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  background-color: var(--color-background-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-speed);
+}
+
+.product-qna__helpful-btn:hover {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.product-qna__helpful-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Empty & No Results States */
+.product-qna__empty,
+.product-qna__no-results {
+  text-align: center;
+  padding: var(--spacing-2xl) var(--spacing-md);
+  color: var(--color-text-light);
+}
+
+.product-qna__empty svg,
+.product-qna__no-results svg {
+  margin: 0 auto var(--spacing-md);
+  color: var(--color-border);
+}
+
+.product-qna__empty p,
+.product-qna__no-results p {
+  font-size: 1.125rem;
+  margin: 0;
+}
+
+/* Ask Question */
+.product-qna__ask {
+  text-align: center;
+  padding: var(--spacing-xl);
+  background-color: var(--color-background-light);
+  border-radius: var(--radius-lg);
+}
+
+.product-qna__ask-text {
+  font-size: 1.125rem;
+  margin: 0 0 var(--spacing-md);
+  color: var(--color-text);
+}
+
+@media (max-width: 767px) {
+  .product-qna {
+    padding: var(--spacing-xl) 0;
+  }
+
+  .product-qna__question-text {
+    font-size: 1rem;
+  }
+
+  .product-qna__helpful {
+    padding-left: 0;
+  }
+}
+</style>
+
+<script>
+(function() {
+  const qnaSection = document.querySelector('[data-qna-list]');
+  if (!qnaSection) return;
+
+  const searchInput = document.querySelector('[data-qna-search]');
+  const qnaItems = document.querySelectorAll('[data-qna-item]');
+  const noResults = document.querySelector('[data-no-results]');
+  const toggleButtons = document.querySelectorAll('[data-qna-toggle]');
+
+  // Accordion Toggle
+  toggleButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const isExpanded = button.getAttribute('aria-expanded') === 'true';
+      button.setAttribute('aria-expanded', !isExpanded);
+    });
+  });
+
+  // Search Functionality
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase().trim();
+      let visibleCount = 0;
+
+      qnaItems.forEach(item => {
+        const searchable = item.dataset.searchable || '';
+        const matches = searchable.includes(query);
+
+        if (matches) {
+          item.dataset.hidden = 'false';
+          item.style.display = '';
+          visibleCount++;
+        } else {
+          item.dataset.hidden = 'true';
+          item.style.display = 'none';
+        }
+      });
+
+      // Show/hide no results message
+      if (noResults) {
+        noResults.style.display = visibleCount === 0 && query !== '' ? 'block' : 'none';
+      }
+    });
+  }
+
+  // Helpful Buttons
+  const helpfulButtons = document.querySelectorAll('[data-helpful-yes], [data-helpful-no]');
+  helpfulButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      const isYes = button.hasAttribute('data-helpful-yes');
+
+      // Visual feedback
+      button.style.backgroundColor = 'var(--color-success)';
+      button.style.borderColor = 'var(--color-success)';
+      button.style.color = 'white';
+
+      setTimeout(() => {
+        button.disabled = true;
+        button.style.opacity = '0.6';
+      }, 500);
+
+      // You can add analytics tracking here
+      console.log('Helpful feedback:', isYes ? 'Yes' : 'No');
+    });
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Q&R Produit",
+  "class": "section-product-qna",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Contenu"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre",
+      "default": "Questions & Réponses"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Sous-titre",
+      "default": "Vous avez des questions ? Nous avons les réponses."
+    },
+    {
+      "type": "header",
+      "content": "Recherche"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "Afficher la recherche",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "Placeholder de recherche",
+      "default": "Rechercher une question..."
+    },
+    {
+      "type": "header",
+      "content": "Options d'affichage"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_helpful",
+      "label": "Afficher les boutons utile",
+      "info": "Permet aux utilisateurs de marquer les réponses comme utiles",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "États vides"
+    },
+    {
+      "type": "text",
+      "id": "empty_text",
+      "label": "Texte aucune question",
+      "default": "Aucune question pour le moment. Soyez le premier à poser une question !"
+    },
+    {
+      "type": "text",
+      "id": "no_results_text",
+      "label": "Texte aucun résultat",
+      "default": "Aucune question correspondante. Essayez un autre terme de recherche."
+    },
+    {
+      "type": "header",
+      "content": "Poser une question"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_ask_button",
+      "label": "Afficher le bouton poser une question",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "ask_text",
+      "label": "Texte poser une question",
+      "default": "Vous n'avez pas trouvé votre réponse ?"
+    },
+    {
+      "type": "text",
+      "id": "ask_button_text",
+      "label": "Texte du bouton",
+      "default": "Poser une question"
+    },
+    {
+      "type": "url",
+      "id": "ask_link",
+      "label": "Lien du bouton",
+      "info": "Lien vers le formulaire de contact ou la page de soumission de question"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Q&R Produit"
+    }
+  ]
+}
+{% endschema %}

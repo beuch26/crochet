@@ -1,0 +1,156 @@
+---
+interface VideoItem {
+  name: string
+  age?: string
+  role?: string
+  thumbnail: string
+  video_url: string
+}
+interface Props {
+  title?: string
+  subtitle?: string
+  cta_text?: string
+  cta_url?: string
+  columns?: '3' | '4' | '5'
+  items?: VideoItem[]
+}
+
+const {
+  title = 'Elles en parlent mieux que nous',
+  subtitle,
+  cta_text = '',
+  cta_url = '',
+  columns = '4',
+  items = [],
+} = Astro.props
+
+const gridClass = {
+  '3': 'lg:grid-cols-3',
+  '4': 'lg:grid-cols-4',
+  '5': 'lg:grid-cols-5',
+}[columns]
+
+function parseVideoUrl(url: string): { type: 'youtube' | 'vimeo' | 'direct'; id: string; embed: string } | null {
+  if (!url) return null
+  const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/)
+  if (yt) return { type: 'youtube', id: yt[1], embed: `https://www.youtube.com/embed/${yt[1]}?autoplay=1&rel=0` }
+  const vm = url.match(/vimeo\.com\/(?:video\/)?(\d+)/)
+  if (vm) return { type: 'vimeo', id: vm[1], embed: `https://player.vimeo.com/video/${vm[1]}?autoplay=1` }
+  return { type: 'direct', id: url, embed: url }
+}
+
+const videos = items.map((item) => ({
+  ...item,
+  parsed: parseVideoUrl(item.video_url),
+}))
+---
+
+{videos.length > 0 && (
+  <section class="py-16 lg:py-20 reveal">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-10 lg:mb-14 max-w-2xl mx-auto">
+        {title && <h2 class="uppercase tracking-tight">{title}</h2>}
+        {subtitle && <p class="mt-3 text-text-light text-base lg:text-lg">{subtitle}</p>}
+        {cta_text && cta_url && (
+          <a href={cta_url} class="inline-flex items-center gap-2 mt-6 px-5 py-2.5 border border-text rounded-full text-xs font-semibold uppercase tracking-widest text-text hover:bg-text hover:text-white transition-all">
+            {cta_text}
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </a>
+        )}
+      </div>
+
+      <div class={`grid grid-cols-2 md:grid-cols-3 ${gridClass} gap-3 sm:gap-4 lg:gap-5`}>
+        {videos.map((v, i) => (
+          <button
+            type="button"
+            class="video-testi-card group relative aspect-[4/5] rounded-2xl overflow-hidden bg-bg-light shadow-sm hover:shadow-xl transition-all duration-300 text-left"
+            data-video-embed={v.parsed?.embed || ''}
+            data-video-title={`${v.name} - ${v.role || ''}`}
+            aria-label={`Lire la vidéo témoignage de ${v.name}`}
+          >
+            {v.thumbnail && (
+              <img
+                src={v.thumbnail}
+                alt={`Témoignage de ${v.name}`}
+                loading={i < 4 ? 'eager' : 'lazy'}
+                width="400"
+                height="500"
+                class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+            )}
+
+            {/* Overlay gradient */}
+            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+
+            {/* Play button */}
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-white/95 flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-white transition-all">
+                <svg class="w-5 h-5 lg:w-6 lg:h-6 text-text ml-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </div>
+            </div>
+
+            {/* Caption bottom */}
+            <div class="absolute bottom-0 inset-x-0 p-3 lg:p-4 text-white">
+              <p class="text-xs lg:text-sm font-bold uppercase tracking-wider">
+                {v.name}{v.age ? ` · ${v.age}` : ''}
+              </p>
+              {v.role && (
+                <p class="text-[11px] lg:text-xs text-white/80 mt-0.5 font-medium">{v.role}</p>
+              )}
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+
+    {/* Lightbox modal */}
+    <div id="video-testi-lightbox" class="fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm hidden items-center justify-center p-4" role="dialog" aria-modal="true">
+      <button type="button" id="video-testi-close" class="absolute top-4 right-4 w-11 h-11 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors" aria-label="Fermer">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+      <div class="relative w-full max-w-3xl aspect-[9/16] sm:aspect-video max-h-[85vh]">
+        <div id="video-testi-iframe-wrap" class="w-full h-full rounded-2xl overflow-hidden bg-black"></div>
+      </div>
+    </div>
+  </section>
+)}
+
+<script>
+  const lightbox = document.getElementById('video-testi-lightbox')
+  const iframeWrap = document.getElementById('video-testi-iframe-wrap')
+  const closeBtn = document.getElementById('video-testi-close')
+
+  function openVideo(embed: string, title: string) {
+    if (!lightbox || !iframeWrap) return
+    iframeWrap.innerHTML = `<iframe src="${embed}" title="${title}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen class="w-full h-full border-0"></iframe>`
+    lightbox.classList.remove('hidden')
+    lightbox.classList.add('flex')
+    document.body.style.overflow = 'hidden'
+  }
+
+  function closeVideo() {
+    if (!lightbox || !iframeWrap) return
+    iframeWrap.innerHTML = ''
+    lightbox.classList.add('hidden')
+    lightbox.classList.remove('flex')
+    document.body.style.overflow = ''
+  }
+
+  document.querySelectorAll<HTMLElement>('.video-testi-card').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const embed = btn.dataset.videoEmbed || ''
+      const title = btn.dataset.videoTitle || ''
+      if (embed) openVideo(embed, title)
+    })
+  })
+
+  closeBtn?.addEventListener('click', closeVideo)
+  lightbox?.addEventListener('click', (e) => {
+    if (e.target === lightbox) closeVideo()
+  })
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && lightbox && !lightbox.classList.contains('hidden')) closeVideo()
+  })
+</script>

@@ -1,0 +1,502 @@
+{%- comment -%}
+  Pricing Table Section
+  Display pricing plans or service tiers
+
+  Usage: Add via Theme Editor
+{%- endcomment -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign heading = section.settings.heading
+  assign subheading = section.settings.subheading
+  assign columns = section.blocks.size | at_most: 4
+-%}
+
+<section class="pricing-table section section--{{ section_id }}" id="pricing-{{ section_id }}">
+  <div class="container">
+    {%- if heading != blank or subheading != blank -%}
+      <div class="section-header section-header--center">
+        {%- if heading != blank -%}
+          {%- if section.settings.enable_heading_style -%}
+            {%- render 'heading-styles',
+              text: heading,
+              tag: 'h2',
+              style: section.settings.heading_style,
+              color: section.settings.heading_style_color,
+              align: 'center',
+              size: 'xl',
+              typing_texts: section.settings.typing_texts
+            -%}
+          {%- else -%}
+            <h2 class="section-header__title">{{ heading }}</h2>
+          {%- endif -%}
+        {%- endif -%}
+        {%- if subheading != blank -%}
+          <p class="section-header__subtitle">{{ subheading }}</p>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <div class="pricing-table__grid pricing-table__grid--{{ columns }}">
+        {%- for block in section.blocks -%}
+          <div
+            class="pricing-card{% if block.settings.featured %} pricing-card--featured{% endif %}"
+            {{ block.shopify_attributes }}
+          >
+            {%- if block.settings.badge != blank -%}
+              <span class="pricing-card__badge">{{ block.settings.badge }}</span>
+            {%- endif -%}
+
+            <div class="pricing-card__header">
+              {%- if block.settings.icon != blank -%}
+                <span class="pricing-card__icon">{{ block.settings.icon }}</span>
+              {%- endif -%}
+              <h3 class="pricing-card__name">{{ block.settings.name | default: 'Plan' }}</h3>
+              {%- if block.settings.tagline != blank -%}
+                <p class="pricing-card__tagline">{{ block.settings.tagline }}</p>
+              {%- endif -%}
+            </div>
+
+            <div class="pricing-card__price">
+              {%- if block.settings.price_prefix != blank -%}
+                <span class="pricing-card__price-prefix">{{ block.settings.price_prefix }}</span>
+              {%- endif -%}
+              <span class="pricing-card__price-amount">{{ block.settings.price | default: '$0' }}</span>
+              {%- if block.settings.price_suffix != blank -%}
+                <span class="pricing-card__price-suffix">{{ block.settings.price_suffix }}</span>
+              {%- endif -%}
+            </div>
+
+            {%- if block.settings.features != blank -%}
+              <ul class="pricing-card__features">
+                {%- assign features = block.settings.features | split: '|' -%}
+                {%- for feature in features -%}
+                  {%- assign feature_text = feature | strip -%}
+                  {%- if feature_text != blank -%}
+                    <li class="pricing-card__feature{% if feature_text contains '~~' %} pricing-card__feature--disabled{% endif %}">
+                      {%- if feature_text contains '~~' -%}
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                          <path d="M4 4L12 12M4 12L12 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        {{ feature_text | remove: '~~' }}
+                      {%- else -%}
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                          <path d="M3 8L6.5 11.5L13 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {{ feature_text }}
+                      {%- endif -%}
+                    </li>
+                  {%- endif -%}
+                {%- endfor -%}
+              </ul>
+            {%- endif -%}
+
+            <div class="pricing-card__footer">
+              {%- if block.settings.button_text != blank -%}
+                <a
+                  href="{{ block.settings.button_url | default: '#' }}"
+                  class="pricing-card__button btn{% if block.settings.featured %} btn--primary{% else %} btn--outline{% endif %} btn--full"
+                >
+                  {{ block.settings.button_text }}
+                </a>
+              {%- endif -%}
+
+              {%- if block.settings.footnote != blank -%}
+                <p class="pricing-card__footnote">{{ block.settings.footnote }}</p>
+              {%- endif -%}
+            </div>
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<style>
+  .pricing-table {
+    padding: var(--spacing-2xl) 0;
+  }
+
+  .pricing-table__grid {
+    display: grid;
+    gap: var(--spacing-md);
+    align-items: stretch;
+  }
+
+  .pricing-table__grid--1 {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .pricing-table__grid--2 {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .pricing-table__grid--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .pricing-table__grid--4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .pricing-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-background);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .pricing-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .pricing-card--featured {
+    border-color: var(--color-primary);
+    background-color: rgba(var(--color-primary-rgb, 37, 99, 235), 0.02);
+  }
+
+  .pricing-card--featured::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background-color: var(--color-primary);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  .pricing-card__badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.25rem 1rem;
+    background-color: var(--color-primary);
+    color: white;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+  }
+
+  .pricing-card__header {
+    text-align: center;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .pricing-card__icon {
+    display: block;
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .pricing-card__name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .pricing-card__tagline {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    margin: 0.25rem 0 0;
+  }
+
+  .pricing-card__price {
+    text-align: center;
+    padding: var(--spacing-md) 0;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .pricing-card__price-prefix {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    vertical-align: top;
+  }
+
+  .pricing-card__price-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-text);
+    line-height: 1;
+  }
+
+  .pricing-card__price-suffix {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+  }
+
+  .pricing-card__features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--spacing-md);
+    flex: 1;
+  }
+
+  .pricing-card__feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    font-size: 0.9375rem;
+    color: var(--color-text);
+  }
+
+  .pricing-card__feature svg {
+    flex-shrink: 0;
+    color: var(--color-success);
+    margin-top: 2px;
+  }
+
+  .pricing-card__feature--disabled {
+    color: var(--color-text-light);
+    text-decoration: line-through;
+  }
+
+  .pricing-card__feature--disabled svg {
+    color: var(--color-text-light);
+  }
+
+  .pricing-card__footer {
+    margin-top: auto;
+  }
+
+  .pricing-card__button {
+    margin-bottom: 0;
+  }
+
+  .pricing-card__footnote {
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+    text-align: center;
+    margin: var(--spacing-xs) 0 0;
+  }
+
+  @media (max-width: 999px) {
+    .pricing-table__grid--3,
+    .pricing-table__grid--4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 767px) {
+    .pricing-table__grid--2,
+    .pricing-table__grid--3,
+    .pricing-table__grid--4 {
+      grid-template-columns: 1fr;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Tableau de Tarifs",
+  "tag": "section",
+  "class": "section-pricing-table",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre",
+      "default": "Choisissez votre formule"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Sous-titre",
+      "default": "Des tarifs simples et transparents qui évoluent avec vous"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "plan",
+      "name": "Formule",
+      "settings": [
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Nom de la formule",
+          "default": "Basique"
+        },
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "Icône (emoji)"
+        },
+        {
+          "type": "text",
+          "id": "tagline",
+          "label": "Accroche",
+          "default": "Pour les particuliers"
+        },
+        {
+          "type": "text",
+          "id": "badge",
+          "label": "Texte du badge",
+          "info": "ex: 'Le plus populaire'"
+        },
+        {
+          "type": "checkbox",
+          "id": "featured",
+          "label": "Formule mise en avant",
+          "default": false,
+          "info": "Met en évidence cette formule"
+        },
+        {
+          "type": "header",
+          "content": "Prix"
+        },
+        {
+          "type": "text",
+          "id": "price_prefix",
+          "label": "Préfixe du prix",
+          "default": "€"
+        },
+        {
+          "type": "text",
+          "id": "price",
+          "label": "Montant",
+          "default": "29"
+        },
+        {
+          "type": "text",
+          "id": "price_suffix",
+          "label": "Suffixe du prix",
+          "default": "/mois"
+        },
+        {
+          "type": "header",
+          "content": "Avantages"
+        },
+        {
+          "type": "textarea",
+          "id": "features",
+          "label": "Liste des avantages",
+          "default": "10 produits | Bande passante illimitée | Support 24/7 | ~~Domaine personnalisé~~",
+          "info": "Séparez les avantages avec | et préfixez avec ~~ pour indiquer non disponible"
+        },
+        {
+          "type": "header",
+          "content": "Bouton"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "Texte du bouton",
+          "default": "Commencer"
+        },
+        {
+          "type": "url",
+          "id": "button_url",
+          "label": "Lien du bouton"
+        },
+        {
+          "type": "text",
+          "id": "footnote",
+          "label": "Note de bas",
+          "info": "Petit texte sous le bouton"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Tableau de Tarifs",
+      "blocks": [
+        {
+          "type": "plan",
+          "settings": {
+            "name": "Débutant",
+            "icon": "🚀",
+            "tagline": "Pour les particuliers",
+            "price": "9",
+            "features": "5 produits | 1 Go de stockage | Support par e-mail | ~~Support prioritaire~~ | ~~Domaine personnalisé~~",
+            "button_text": "Essai gratuit"
+          }
+        },
+        {
+          "type": "plan",
+          "settings": {
+            "name": "Professionnel",
+            "icon": "⭐",
+            "tagline": "Pour les entreprises en croissance",
+            "badge": "Le plus populaire",
+            "featured": true,
+            "price": "29",
+            "features": "50 produits | 10 Go de stockage | Support prioritaire | Domaine personnalisé | ~~Analyses avancées~~",
+            "button_text": "Essai gratuit"
+          }
+        },
+        {
+          "type": "plan",
+          "settings": {
+            "name": "Entreprise",
+            "icon": "🏢",
+            "tagline": "Pour les grandes équipes",
+            "price": "99",
+            "features": "Produits illimités | Stockage illimité | Support prioritaire | Domaine personnalisé | Analyses avancées",
+            "button_text": "Contacter les ventes"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

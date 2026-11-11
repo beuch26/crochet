@@ -1,0 +1,522 @@
+{%- comment -%}
+  Product Specifications Section
+  Displays product details like composition, size guide, care instructions
+
+  ✨ PERSONNALISATION PAR PRODUIT:
+
+  Pour personnaliser les spécifications de chaque produit, utilisez les metafields Shopify:
+
+  1. Dans Shopify Admin → Produits → Sélectionnez un produit
+  2. Scrollez vers le bas → Metafields
+  3. Ajoutez les metafields suivants (namespace: specifications):
+
+     - product.metafields.specifications.composition (type: single_line_text ou multi_line_text)
+       Exemple: "100% Coton biologique"
+
+     - product.metafields.specifications.size_guide (type: multi_line_text_field ou rich_text)
+       Exemple: "S: Tour de poitrine 88-92cm, M: 92-96cm, L: 96-100cm"
+
+     - product.metafields.specifications.care (type: multi_line_text_field ou rich_text)
+       Exemple: "Lavage machine 30°C, Pas de sèche-linge"
+
+     - product.metafields.specifications.dimensions (type: single_line_text)
+       Exemple: "L: 70cm x l: 50cm x h: 2cm"
+
+  💡 Si les metafields ne sont PAS renseignés, les valeurs par défaut de la section seront utilisées.
+  💡 Pour masquer une spécification complètement, décochez l'option dans les paramètres de la section.
+{%- endcomment -%}
+
+{%- liquid
+  assign has_composition = false
+  if section.settings.show_composition and section.settings.composition != blank
+    assign has_composition = true
+  elsif section.settings.show_composition and product.metafields.specifications.composition != blank
+    assign has_composition = true
+  endif
+
+  assign has_size_guide = false
+  if section.settings.show_size_guide and section.settings.size_guide != blank
+    assign has_size_guide = true
+  elsif section.settings.show_size_guide and product.metafields.specifications.size_guide != blank
+    assign has_size_guide = true
+  endif
+
+  assign has_care = false
+  if section.settings.show_care and section.settings.care_instructions != blank
+    assign has_care = true
+  elsif section.settings.show_care and product.metafields.specifications.care != blank
+    assign has_care = true
+  endif
+
+  assign has_weight = false
+  if section.settings.show_weight and product.variants.first.weight > 0
+    assign has_weight = true
+  endif
+
+  assign has_dimensions = false
+  if section.settings.show_dimensions and section.settings.dimensions != blank
+    assign has_dimensions = true
+  elsif section.settings.show_dimensions and product.metafields.specifications.dimensions != blank
+    assign has_dimensions = true
+  endif
+
+  assign spec_count = 0
+  if has_composition
+    assign spec_count = spec_count | plus: 1
+  endif
+  if has_size_guide
+    assign spec_count = spec_count | plus: 1
+  endif
+  if has_care
+    assign spec_count = spec_count | plus: 1
+  endif
+  if has_weight
+    assign spec_count = spec_count | plus: 1
+  endif
+  if has_dimensions
+    assign spec_count = spec_count | plus: 1
+  endif
+-%}
+
+{%- if spec_count > 0 -%}
+<div class="product-specifications section">
+  <div class="container">
+    <header class="section-header">
+      {%- if section.settings.enable_heading_style -%}
+        {%- render 'heading-styles',
+          text: section.settings.heading,
+          tag: 'h2',
+          style: section.settings.heading_style,
+          color: section.settings.heading_style_color,
+          align: 'center',
+          size: 'xl',
+          typing_texts: section.settings.typing_texts
+        -%}
+      {%- else -%}
+        <h2 class="section-title">
+          {{ section.settings.heading | default: 'Spécifications' }}
+        </h2>
+      {%- endif -%}
+      <div class="section-title-underline"></div>
+    </header>
+
+    <div class="specifications-grid">
+      {%- if has_composition -%}
+        <div class="specification-item">
+          <div class="specification-item__icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 4L4 10v12c0 7.73 5.21 12.49 12 14 6.79-1.51 12-6.27 12-14V10L16 4zm0 18h-6v-2h6v2zm4-4H12v-2h8v2z" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="specification-item__content">
+            <h3 class="specification-item__title">
+              {{ section.settings.composition_label | default: 'Composition' }}
+            </h3>
+            <div class="specification-item__value rte">
+              {%- if product.metafields.specifications.composition != blank -%}
+                {{ product.metafields.specifications.composition }}
+              {%- else -%}
+                {{ section.settings.composition }}
+              {%- endif -%}
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- if has_size_guide -%}
+        <div class="specification-item">
+          <div class="specification-item__icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 4h20v24H6V4zm2 2v20h16V6H8zm2 2h12v2H10V8zm0 4h12v2H10v-2zm0 4h8v2h-8v-2z" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="specification-item__content">
+            <h3 class="specification-item__title">
+              {{ section.settings.size_guide_label | default: 'Guide des Tailles' }}
+            </h3>
+            <div class="specification-item__value rte">
+              {%- if product.metafields.specifications.size_guide != blank -%}
+                {{ product.metafields.specifications.size_guide }}
+              {%- else -%}
+                {{ section.settings.size_guide }}
+              {%- endif -%}
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- if has_care -%}
+        <div class="specification-item">
+          <div class="specification-item__icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 2C8.82 2 3 7.82 3 15s5.82 13 13 13 13-5.82 13-13S23.18 2 16 2zm0 24c-6.08 0-11-4.92-11-11S9.92 4 16 4s11 4.92 11 11-4.92 11-11 11zm-1-17h2v8h-2V9zm0 10h2v2h-2v-2z" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="specification-item__content">
+            <h3 class="specification-item__title">
+              {{ section.settings.care_label | default: 'Entretien' }}
+            </h3>
+            <div class="specification-item__value rte">
+              {%- if product.metafields.specifications.care != blank -%}
+                {{ product.metafields.specifications.care }}
+              {%- else -%}
+                {{ section.settings.care_instructions }}
+              {%- endif -%}
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- if has_weight -%}
+        <div class="specification-item">
+          <div class="specification-item__icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 2l-8 6v16l8 6 8-6V8l-8-6zm0 2.5L22.5 9v14L16 27.5 9.5 23V9L16 4.5z" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="specification-item__content">
+            <h3 class="specification-item__title">
+              {{ section.settings.weight_label | default: 'Poids' }}
+            </h3>
+            <div class="specification-item__value">
+              {%- assign weight = product.variants.first.weight -%}
+              {%- case product.variants.first.weight_unit -%}
+                {%- when 'kg' -%}
+                  {{ weight }} kg
+                {%- when 'g' -%}
+                  {{ weight }} g
+                {%- when 'lb' -%}
+                  {{ weight }} lb
+                {%- when 'oz' -%}
+                  {{ weight }} oz
+                {%- else -%}
+                  {{ weight }} {{ product.variants.first.weight_unit }}
+              {%- endcase -%}
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- if has_dimensions -%}
+        <div class="specification-item">
+          <div class="specification-item__icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 4h24v24H4V4zm2 2v20h20V6H6zm2 2h16v2H8V8zm0 4h12v2H8v-2zm0 4h8v2H8v-2z" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="specification-item__content">
+            <h3 class="specification-item__title">
+              {{ section.settings.dimensions_label | default: 'Dimensions' }}
+            </h3>
+            <div class="specification-item__value rte">
+              {%- if product.metafields.specifications.dimensions != blank -%}
+                {{ product.metafields.specifications.dimensions }}
+              {%- else -%}
+                {{ section.settings.dimensions }}
+              {%- endif -%}
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+{%- endif -%}
+
+<style>
+.product-specifications {
+  padding: var(--spacing-xl) 0;
+  background-color: var(--color-background-light);
+}
+
+.section-header {
+  text-align: center;
+}
+
+.section-title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-md);
+}
+
+.section-title-underline {
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+  border-radius: 2px;
+  margin: 0 auto;
+}
+
+.specifications-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.specification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-xl);
+  padding: var(--spacing-xl) var(--spacing-2xl);
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all var(--transition-speed);
+}
+
+.specification-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: var(--color-primary);
+}
+
+.specification-item__icon {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: white;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-left: 0.5rem;
+}
+
+.specification-item__icon svg {
+  width: 30px;
+  height: 30px;
+}
+
+.specification-item__content {
+  flex: 1;
+  min-width: 0;
+  padding-top: 0.25rem;
+}
+
+.specification-item__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-sm);
+  letter-spacing: -0.01em;
+}
+
+.specification-item__value {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--color-text-light);
+}
+
+.specification-item__value.rte ul,
+.specification-item__value.rte ol {
+  margin: var(--spacing-xs) 0 0 var(--spacing-md);
+}
+
+.specification-item__value.rte li {
+  margin-bottom: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .specifications-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .specification-item {
+    padding: var(--spacing-lg) var(--spacing-xl);
+    gap: var(--spacing-lg);
+  }
+
+  .specification-item__icon {
+    width: 48px;
+    height: 48px;
+    margin-left: 0.25rem;
+  }
+
+  .specification-item__icon svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .specification-item__title {
+    font-size: 1rem;
+  }
+
+  .specification-item__value {
+    font-size: 0.875rem;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Spécifications produit",
+  "class": "section-product-specifications",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre",
+      "default": "Spécifications"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "header",
+      "content": "Composition"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_composition",
+      "label": "Afficher la composition",
+      "default": true,
+      "info": "Utilise product.metafields.specifications.composition si disponible"
+    },
+    {
+      "type": "text",
+      "id": "composition_label",
+      "label": "Libellé composition",
+      "default": "Composition"
+    },
+    {
+      "type": "html",
+      "id": "composition",
+      "label": "Composition (par défaut)",
+      "default": "<p>80% Coton, 20% Polyester</p>",
+      "info": "Utilisé si le metafield n'est pas défini"
+    },
+    {
+      "type": "header",
+      "content": "Guide des tailles"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_size_guide",
+      "label": "Afficher le guide des tailles",
+      "default": true,
+      "info": "Utilise product.metafields.specifications.size_guide si disponible"
+    },
+    {
+      "type": "text",
+      "id": "size_guide_label",
+      "label": "Libellé guide des tailles",
+      "default": "Guide des Tailles"
+    },
+    {
+      "type": "html",
+      "id": "size_guide",
+      "label": "Guide des tailles (par défaut)",
+      "default": "<p>Consultez notre <a href=\"/pages/size-guide\">guide des tailles</a> pour trouver la taille parfaite.</p>",
+      "info": "Utilisé si le metafield n'est pas défini"
+    },
+    {
+      "type": "header",
+      "content": "Instructions d'entretien"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_care",
+      "label": "Afficher les instructions d'entretien",
+      "default": true,
+      "info": "Utilise product.metafields.specifications.care si disponible"
+    },
+    {
+      "type": "text",
+      "id": "care_label",
+      "label": "Libellé instructions d'entretien",
+      "default": "Entretien"
+    },
+    {
+      "type": "html",
+      "id": "care_instructions",
+      "label": "Instructions d'entretien (par défaut)",
+      "default": "<ul>\n<li>Lavage en machine à 30°C</li>\n<li>Ne pas javelliser</li>\n<li>Séchage en tambour interdit</li>\n<li>Repassage à basse température</li>\n</ul>",
+      "info": "Utilisé si le metafield n'est pas défini"
+    },
+    {
+      "type": "header",
+      "content": "Poids"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_weight",
+      "label": "Afficher le poids du produit",
+      "default": false,
+      "info": "Affiche le poids depuis la variante du produit"
+    },
+    {
+      "type": "text",
+      "id": "weight_label",
+      "label": "Libellé poids",
+      "default": "Poids"
+    },
+    {
+      "type": "header",
+      "content": "Dimensions"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dimensions",
+      "label": "Afficher les dimensions",
+      "default": false,
+      "info": "Utilise product.metafields.specifications.dimensions si disponible"
+    },
+    {
+      "type": "text",
+      "id": "dimensions_label",
+      "label": "Libellé dimensions",
+      "default": "Dimensions"
+    },
+    {
+      "type": "html",
+      "id": "dimensions",
+      "label": "Dimensions (par défaut)",
+      "default": "<p>L: 70cm x l: 50cm</p>",
+      "info": "Utilisé si le metafield n'est pas défini"
+    }
+  ]
+}
+{% endschema %}

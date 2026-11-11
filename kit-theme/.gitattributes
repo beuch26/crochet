@@ -1,0 +1,10 @@
+# ===========================================
+# PROTECTION DU CONTENU LORS DES MERGES
+# ===========================================
+# Ces fichiers contiennent le contenu personnalisé de chaque site.
+# Lors d'un merge depuis main, le contenu local (de la branche site) est conservé.
+# Stratégie "ours" = garder notre version, ignorer celle de l'autre branche.
+
+config/settings_data.json merge=ours
+templates/*.json merge=ours
+templates/**/*.json merge=ours

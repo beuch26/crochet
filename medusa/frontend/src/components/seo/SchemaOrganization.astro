@@ -1,0 +1,27 @@
+---
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Magic Crochet Kit",
+  "legalName": "TN GROUP SASU",
+  "url": "https://magic-crochet-kit.com",
+  "logo": "https://magic-crochet-kit.com/images/logo.png",
+  "description": "Apprenez le crochet facilement avec nos kits tout-en-un pour débutants. Matériel complet + guide pas à pas.",
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "telephone": "+33951761711",
+    "contactType": "customer service",
+    "email": "contact@magic-crochet-kit.com",
+    "availableLanguage": "French"
+  },
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "6 Rue d'Armaille",
+    "addressLocality": "Paris",
+    "postalCode": "75017",
+    "addressCountry": "FR"
+  },
+  "sameAs": []
+}
+---
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />

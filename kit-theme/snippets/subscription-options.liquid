@@ -1,0 +1,364 @@
+{%- comment -%}
+  Subscription Options
+  Display subscription/recurring purchase options for products
+
+  Parameters:
+  - product: Product object (required)
+  - variant: Current variant (optional)
+
+  Note: Requires Shopify Selling Plans API or app integration
+
+  Usage: Include in product form
+  {%- render 'subscription-options', product: product, variant: current_variant -%}
+{%- endcomment -%}
+
+{%- liquid
+  assign has_selling_plans = false
+  if product.selling_plan_groups.size > 0
+    assign has_selling_plans = true
+  endif
+-%}
+
+{%- if has_selling_plans -%}
+  <div class="subscription-options" data-subscription-options>
+    <div class="subscription-options__header">
+      <h3 class="subscription-options__title">
+        {{ 'products.product.purchase_options' | t | default: 'Options achat' }}
+      </h3>
+    </div>
+
+    <div class="subscription-options__choices">
+      {%- comment -%} One-time purchase option {%- endcomment -%}
+      <label class="subscription-options__choice subscription-options__choice--onetime">
+        <input
+          type="radio"
+          name="purchase_option"
+          value="onetime"
+          checked
+          data-purchase-option
+        >
+        <span class="subscription-options__choice-content">
+          <span class="subscription-options__choice-title">
+            {{ 'products.product.one_time_purchase' | t | default: 'Achat unique' }}
+          </span>
+          <span class="subscription-options__choice-price" data-onetime-price>
+            {{ product.selected_or_first_available_variant.price | money }}
+          </span>
+        </span>
+      </label>
+
+      {%- comment -%} Subscription option {%- endcomment -%}
+      <label class="subscription-options__choice subscription-options__choice--subscribe">
+        <input
+          type="radio"
+          name="purchase_option"
+          value="subscribe"
+          data-purchase-option
+        >
+        <span class="subscription-options__choice-content">
+          <span class="subscription-options__choice-header">
+            <span class="subscription-options__choice-title">
+              {{ 'products.product.subscribe_save' | t | default: 'Abonnez-vous et économisez' }}
+            </span>
+            {%- assign first_plan = product.selling_plan_groups.first.selling_plans.first -%}
+            {%- if first_plan.price_adjustments.size > 0 -%}
+              {%- assign adjustment = first_plan.price_adjustments.first -%}
+              {%- if adjustment.value_type == 'percentage' -%}
+                <span class="subscription-options__badge">
+                  {{ 'products.product.save_percent' | t: percent: adjustment.value | default: 'Save' | append: ' ' | append: adjustment.value | append: '%' }}
+                </span>
+              {%- endif -%}
+            {%- endif -%}
+          </span>
+          <span class="subscription-options__choice-price" data-subscription-price>
+            {%- if first_plan.price_adjustments.size > 0 -%}
+              {%- assign adjustment = first_plan.price_adjustments.first -%}
+              {%- if adjustment.value_type == 'percentage' -%}
+                {%- assign discount = product.selected_or_first_available_variant.price | times: adjustment.value | divided_by: 100 -%}
+                {%- assign sub_price = product.selected_or_first_available_variant.price | minus: discount -%}
+                {{ sub_price | money }}
+              {%- else -%}
+                {{ product.selected_or_first_available_variant.price | minus: adjustment.value | money }}
+              {%- endif -%}
+            {%- else -%}
+              {{ product.selected_or_first_available_variant.price | money }}
+            {%- endif -%}
+          </span>
+        </span>
+      </label>
+    </div>
+
+    {%- comment -%} Frequency selector (shown when subscribe is selected) {%- endcomment -%}
+    <div class="subscription-options__frequency" data-frequency-wrapper style="display: none;">
+      <label for="selling_plan" class="subscription-options__frequency-label">
+        {{ 'products.product.delivery_frequency' | t | default: 'Fréquence de livraison' }}
+      </label>
+      <select
+        id="selling_plan"
+        name="selling_plan"
+        class="subscription-options__frequency-select"
+        data-selling-plan-select
+      >
+        {%- for group in product.selling_plan_groups -%}
+          {%- for plan in group.selling_plans -%}
+            <option
+              value="{{ plan.id }}"
+              data-price-adjustment-type="{{ plan.price_adjustments.first.value_type }}"
+              data-price-adjustment-value="{{ plan.price_adjustments.first.value }}"
+            >
+              {{ plan.name }}
+              {%- if plan.price_adjustments.size > 0 -%}
+                {%- assign adj = plan.price_adjustments.first -%}
+                {%- if adj.value_type == 'percentage' and adj.value > 0 -%}
+                  ({{ adj.value }}% de réduction)
+                {%- endif -%}
+              {%- endif -%}
+            </option>
+          {%- endfor -%}
+        {%- endfor -%}
+      </select>
+    </div>
+
+    {%- comment -%} Subscription benefits {%- endcomment -%}
+    <div class="subscription-options__benefits" data-benefits-wrapper style="display: none;">
+      <ul class="subscription-options__benefits-list">
+        <li>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M13.5 4.5L6 12L2.5 8.5" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+          {{ 'products.product.benefit_cancel' | t | default: 'Annulez à tout moment' }}
+        </li>
+        <li>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M13.5 4.5L6 12L2.5 8.5" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+          {{ 'products.product.benefit_skip' | t | default: 'Sautez ou reportez vos livraisons' }}
+        </li>
+        <li>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M13.5 4.5L6 12L2.5 8.5" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+          {{ 'products.product.benefit_exclusive' | t | default: 'Réductions exclusives abonnés' }}
+        </li>
+      </ul>
+    </div>
+  </div>
+{%- endif -%}
+
+<style>
+  .subscription-options {
+    margin: var(--spacing-md) 0;
+    padding: var(--spacing-md);
+    background-color: var(--color-background-light);
+    border-radius: var(--radius-md);
+  }
+
+  .subscription-options__title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .subscription-options__choices {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .subscription-options__choice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .subscription-options__choice:hover {
+    border-color: var(--color-primary);
+  }
+
+  .subscription-options__choice:has(input:checked) {
+    border-color: var(--color-primary);
+    background-color: rgba(var(--color-primary-rgb, 37, 99, 235), 0.05);
+  }
+
+  .subscription-options__choice input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    accent-color: var(--color-primary);
+    flex-shrink: 0;
+  }
+
+  .subscription-options__choice-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .subscription-options__choice-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .subscription-options__choice-title {
+    font-weight: 600;
+    font-size: 0.9375rem;
+  }
+
+  .subscription-options__badge {
+    display: inline-flex;
+    padding: 0.125rem 0.5rem;
+    background-color: var(--color-success);
+    color: white;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+  }
+
+  .subscription-options__choice-price {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  .subscription-options__frequency {
+    margin-top: var(--spacing-sm);
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .subscription-options__frequency-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--color-text-light);
+  }
+
+  .subscription-options__frequency-select {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 0.9375rem;
+    background-color: var(--color-background);
+    cursor: pointer;
+  }
+
+  .subscription-options__benefits {
+    margin-top: var(--spacing-sm);
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .subscription-options__benefits-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .subscription-options__benefits-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--color-text-light);
+  }
+
+  .subscription-options__benefits-list svg {
+    flex-shrink: 0;
+  }
+</style>
+
+<script>
+  (function() {
+    'use strict';
+
+    function initSubscriptionOptions(container) {
+      const purchaseOptions = container.querySelectorAll('[data-purchase-option]');
+      const frequencyWrapper = container.querySelector('[data-frequency-wrapper]');
+      const benefitsWrapper = container.querySelector('[data-benefits-wrapper]');
+      const sellingPlanSelect = container.querySelector('[data-selling-plan-select]');
+
+      if (!purchaseOptions.length) return;
+
+      function updateVisibility(isSubscription) {
+        if (frequencyWrapper) {
+          frequencyWrapper.style.display = isSubscription ? 'block' : 'none';
+        }
+        if (benefitsWrapper) {
+          benefitsWrapper.style.display = isSubscription ? 'block' : 'none';
+        }
+
+        // Update hidden selling_plan input
+        const form = container.closest('form');
+        if (form) {
+          let hiddenPlan = form.querySelector('input[name="selling_plan"][type="hidden"]');
+          if (!hiddenPlan) {
+            hiddenPlan = document.createElement('input');
+            hiddenPlan.type = 'hidden';
+            hiddenPlan.name = 'selling_plan';
+            form.appendChild(hiddenPlan);
+          }
+          hiddenPlan.value = isSubscription && sellingPlanSelect ? sellingPlanSelect.value : '';
+        }
+      }
+
+      purchaseOptions.forEach(option => {
+        option.addEventListener('change', (e) => {
+          updateVisibility(e.target.value === 'subscribe');
+        });
+      });
+
+      if (sellingPlanSelect) {
+        sellingPlanSelect.addEventListener('change', () => {
+          const form = container.closest('form');
+          if (form) {
+            const hiddenPlan = form.querySelector('input[name="selling_plan"][type="hidden"]');
+            if (hiddenPlan) {
+              hiddenPlan.value = sellingPlanSelect.value;
+            }
+          }
+
+          // Update displayed price
+          const selectedOption = sellingPlanSelect.options[sellingPlanSelect.selectedIndex];
+          const adjustmentType = selectedOption.dataset.priceAdjustmentType;
+          const adjustmentValue = parseInt(selectedOption.dataset.priceAdjustmentValue) || 0;
+
+          const priceEl = container.querySelector('[data-subscription-price]');
+          const onetimePriceEl = container.querySelector('[data-onetime-price]');
+
+          if (priceEl && onetimePriceEl && adjustmentType === 'percentage') {
+            // Calculate and display updated subscription price
+            const originalPriceText = onetimePriceEl.textContent;
+            const originalPrice = parseFloat(originalPriceText.replace(/[^0-9.]/g, ''));
+            const discount = originalPrice * adjustmentValue / 100;
+            const subPrice = originalPrice - discount;
+
+            // Format price (simplified - use Shopify.formatMoney in production)
+            const currency = originalPriceText.match(/[^0-9.,\s]+/)?.[0] || '$';
+            priceEl.textContent = currency + subPrice.toFixed(2);
+          }
+        });
+      }
+    }
+
+    document.querySelectorAll('[data-subscription-options]').forEach(initSubscriptionOptions);
+
+    if (Shopify.designMode) {
+      document.addEventListener('shopify:section:load', (e) => {
+        const options = e.target.querySelector('[data-subscription-options]');
+        if (options) initSubscriptionOptions(options);
+      });
+    }
+  })();
+</script>

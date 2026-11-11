@@ -1,0 +1,59 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import SchemaBreadcrumb from '../../components/seo/SchemaBreadcrumb.astro'
+import { getPages, getPage } from '../../lib/medusa'
+import { normalizeInternalHrefsInHTML } from '../../lib/url'
+
+export async function getStaticPaths() {
+  let pages: any[] = []
+  try {
+    const data = await getPages()
+    pages = data.pages || []
+  } catch (e) {
+    console.error('Failed to fetch pages:', e)
+  }
+
+  return pages.map((p: any) => ({
+    params: { handle: p.handle },
+  }))
+}
+
+const { handle } = Astro.params
+let page: any = null
+try {
+  const data = await getPage(handle!)
+  page = data.page
+} catch (e) {
+  console.error('Failed to fetch page:', e)
+}
+
+if (!page) {
+  return Astro.redirect('/404/')
+}
+---
+
+<Layout
+  title={page.seo_title || page.title}
+  description={page.seo_description || `${page.title} — Magic Crochet Kit`}
+>
+  <SchemaBreadcrumb
+    slot="head"
+    items={[
+      { name: 'Magic Crochet Kit', url: '/' },
+      { name: page.title, url: `/p/${page.handle}/` },
+    ]}
+  />
+  <section class="py-12 lg:py-16">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="mb-8 text-sm text-text-muted flex items-center gap-2 animate-fade-up">
+        <a href="/" class="hover:text-primary transition-colors">Magic Crochet Kit</a>
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-text">{page.title}</span>
+      </nav>
+
+      <h1 class="mb-8 animate-fade-up">{page.title}</h1>
+
+      <div class="prose max-w-none animate-fade-up delay-1" set:html={normalizeInternalHrefsInHTML(page.content)} />
+    </div>
+  </section>
+</Layout>

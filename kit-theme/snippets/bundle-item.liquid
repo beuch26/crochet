@@ -1,0 +1,222 @@
+{%- comment -%}
+  Bundle Item Component
+  Individual product card for bundle displays
+
+  Parameters:
+  - product: Product object (required)
+  - show_variant_selector: Show variant dropdown (default: true)
+  - show_price: Show price (default: true)
+  - compact: Compact mode (default: false)
+
+  Usage:
+  {%- render 'bundle-item', product: item_product, show_variant_selector: true -%}
+{%- endcomment -%}
+
+{%- liquid
+  assign show_variant_selector = show_variant_selector | default: true
+  assign show_price = show_price | default: true
+  assign compact = compact | default: false
+  assign current_variant = product.selected_or_first_available_variant
+-%}
+
+{%- if product != blank -%}
+  <div class="bundle-item {% if compact %}bundle-item--compact{% endif %}"
+       data-bundle-item
+       data-product-id="{{ product.id }}"
+       data-variant-id="{{ current_variant.id }}"
+       data-price="{{ current_variant.price }}">
+
+    <div class="bundle-item__checkbox">
+      <input type="checkbox"
+             id="bundle-item-{{ product.id }}"
+             class="bundle-item__input"
+             data-bundle-checkbox
+             checked>
+      <label for="bundle-item-{{ product.id }}" class="bundle-item__check-label">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M3 7l3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </label>
+    </div>
+
+    <a href="{{ product.url }}" class="bundle-item__image">
+      {%- if product.featured_image -%}
+        <img
+          src="{{ product.featured_image | image_url: width: 120 }}"
+          alt="{{ product.title }}"
+          width="120"
+          height="120"
+          loading="lazy"
+        >
+      {%- else -%}
+        {{ 'product-1' | placeholder_svg_tag: 'bundle-item__placeholder' }}
+      {%- endif -%}
+    </a>
+
+    <div class="bundle-item__details">
+      <a href="{{ product.url }}" class="bundle-item__title">
+        {{ product.title }}
+      </a>
+
+      {%- if show_variant_selector and product.has_only_default_variant == false -%}
+        <div class="bundle-item__variant">
+          <select class="bundle-item__select" data-bundle-variant-select data-product-id="{{ product.id }}">
+            {%- for variant in product.variants -%}
+              {%- if variant.available -%}
+                <option
+                  value="{{ variant.id }}"
+                  data-price="{{ variant.price }}"
+                  {% if variant == current_variant %}selected{% endif %}>
+                  {{ variant.title }}
+                </option>
+              {%- endif -%}
+            {%- endfor -%}
+          </select>
+        </div>
+      {%- endif -%}
+
+      {%- if show_price -%}
+        <div class="bundle-item__price">
+          {%- if current_variant.compare_at_price > current_variant.price -%}
+            <span class="bundle-item__price--compare">{{ current_variant.compare_at_price | money }}</span>
+          {%- endif -%}
+          <span class="bundle-item__price--current" data-item-price>{{ current_variant.price | money }}</span>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+{%- endif -%}
+
+<style>
+  .bundle-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+  }
+
+  .bundle-item:hover {
+    border-color: var(--color-primary);
+  }
+
+  .bundle-item--compact {
+    padding: var(--spacing-xs);
+  }
+
+  .bundle-item__checkbox {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .bundle-item__input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .bundle-item__check-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: transparent;
+  }
+
+  .bundle-item__input:checked + .bundle-item__check-label {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+  }
+
+  .bundle-item__input:focus + .bundle-item__check-label {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  .bundle-item__image {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+
+  .bundle-item--compact .bundle-item__image {
+    width: 48px;
+    height: 48px;
+  }
+
+  .bundle-item__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .bundle-item__details {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .bundle-item__title {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text);
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.25rem;
+  }
+
+  .bundle-item__title:hover {
+    color: var(--color-primary);
+  }
+
+  .bundle-item__variant {
+    margin-bottom: 0.25rem;
+  }
+
+  .bundle-item__select {
+    width: 100%;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-background);
+  }
+
+  .bundle-item__price {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+  }
+
+  .bundle-item__price--compare {
+    text-decoration: line-through;
+    color: var(--color-text-light);
+    font-size: 0.75rem;
+  }
+
+  .bundle-item__price--current {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .bundle-item__placeholder {
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-background-light);
+  }
+</style>

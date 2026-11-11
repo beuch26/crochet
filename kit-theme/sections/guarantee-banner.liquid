@@ -1,0 +1,340 @@
+{%- comment -%}
+  Guarantee Banner Section
+  Full-width banner with headline + image + text
+{%- endcomment -%}
+
+<section class="guarantee-banner" style="--guarantee-bg: {{ section.settings.background_color }}; --guarantee-text: {{ section.settings.text_color }};">
+  <div class="guarantee-banner__inner">
+
+    {%- comment -%} LEFT: Text Content {%- endcomment -%}
+    <div class="guarantee-banner__content">
+      {%- if section.settings.title != blank -%}
+        {%- if section.settings.enable_heading_style -%}
+          {%- render 'heading-styles',
+            text: section.settings.title,
+            tag: 'h2',
+            style: section.settings.heading_style,
+            color: section.settings.heading_style_color,
+            align: 'left',
+            size: 'xl',
+            typing_texts: section.settings.typing_texts
+          -%}
+        {%- else -%}
+          <h2 class="guarantee-banner__title">{{ section.settings.title }}</h2>
+        {%- endif -%}
+      {%- endif -%}
+      {%- if section.settings.text != blank -%}
+        <p class="guarantee-banner__text">{{ section.settings.text }}</p>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} RIGHT: Media (emoji, image, or video) {%- endcomment -%}
+    <div class="guarantee-banner__media">
+      {%- case section.settings.media_type -%}
+        {%- when 'image' -%}
+          {%- if section.settings.image != blank -%}
+            <img
+              src="{{ section.settings.image | image_url: width: 500 }}"
+              alt="{{ section.settings.image.alt | default: section.settings.title }}"
+              width="500"
+              height="{{ 500 | divided_by: section.settings.image.aspect_ratio | default: 1 | round }}"
+              loading="lazy"
+              class="guarantee-banner__image"
+            >
+          {%- else -%}
+            <div class="guarantee-banner__icon">
+              <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+                <circle cx="60" cy="60" r="50" stroke="currentColor" stroke-width="4"/>
+                <path d="M40 60l15 15 25-30" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          {%- endif -%}
+        {%- when 'video' -%}
+          {%- if section.settings.video_url != blank -%}
+            <div class="guarantee-banner__video">
+              {%- assign video_url = section.settings.video_url -%}
+              {%- if video_url contains 'youtube.com' or video_url contains 'youtu.be' -%}
+                {%- liquid
+                  if video_url contains 'youtu.be/'
+                    assign yt_id = video_url | split: 'youtu.be/' | last | split: '?' | first
+                  elsif video_url contains 'v='
+                    assign yt_id = video_url | split: 'v=' | last | split: '&' | first
+                  endif
+                -%}
+                <iframe
+                  src="https://www.youtube.com/embed/{{ yt_id }}"
+                  frameborder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                  loading="lazy"
+                ></iframe>
+              {%- elsif video_url contains 'vimeo.com' -%}
+                {%- assign vimeo_id = video_url | split: 'vimeo.com/' | last | split: '?' | first -%}
+                <iframe
+                  src="https://player.vimeo.com/video/{{ vimeo_id }}"
+                  frameborder="0"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowfullscreen
+                  loading="lazy"
+                ></iframe>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        {%- when 'emoji' -%}
+          <div class="guarantee-banner__emoji">
+            {{ section.settings.emoji | default: '✅' }}
+          </div>
+      {%- endcase -%}
+    </div>
+
+  </div>
+</section>
+
+<style>
+/* ========================================
+   GUARANTEE BANNER
+   ======================================== */
+
+.guarantee-banner {
+  --_bg: var(--guarantee-bg, #f9fafb);
+  --_text: var(--guarantee-text, #111827);
+  background: var(--_bg);
+  padding: clamp(3rem, 8vw, 5rem) 0;
+  overflow: hidden;
+}
+
+.guarantee-banner__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(2rem, 5vw, 4rem);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 4vw, 2rem);
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .guarantee-banner__inner {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+}
+
+/* ========================================
+   LEFT - Content
+   ======================================== */
+
+.guarantee-banner__content {
+  max-width: 500px;
+}
+
+@media (max-width: 768px) {
+  .guarantee-banner__content {
+    margin: 0 auto;
+    order: 2;
+  }
+}
+
+.guarantee-banner__title {
+  font-family: var(--font-heading, 'Georgia', serif);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  color: var(--_text);
+  line-height: 1.1;
+  margin: 0 0 1rem;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.guarantee-banner__text {
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  color: #6b7280;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ========================================
+   RIGHT - Image
+   ======================================== */
+
+.guarantee-banner__media {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .guarantee-banner__media {
+    order: 1;
+  }
+}
+
+.guarantee-banner__image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 1rem;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.guarantee-banner__icon {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary, #0369a1) 0%, color-mix(in srgb, var(--color-primary, #0369a1) 80%, black) 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 20px 40px rgba(3, 105, 161, 0.3);
+}
+
+.guarantee-banner__video {
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 16 / 9;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.guarantee-banner__video iframe {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.guarantee-banner__emoji {
+  font-size: clamp(5rem, 12vw, 8rem);
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .guarantee-banner__icon {
+    width: 120px;
+    height: 120px;
+  }
+
+  .guarantee-banner__icon svg {
+    width: 80px;
+    height: 80px;
+  }
+
+  .guarantee-banner__video {
+    max-width: 100%;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Bandeau Garantie",
+  "tag": "section",
+  "class": "section-guarantee-banner",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre",
+      "default": "GARANTIE 30 JOURS SATISFAIT OU REMBOURSÉ"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "Texte",
+      "default": "Nous sommes tellement confiants que vous allez adorer créer avec nos kits que nous vous offrons 30 jours pour essayer. Si vous n'êtes pas satisfait, retournez-le pour un remboursement complet."
+    },
+    {
+      "type": "header",
+      "content": "Média"
+    },
+    {
+      "type": "select",
+      "id": "media_type",
+      "label": "Type de média",
+      "options": [
+        { "value": "image", "label": "Image" },
+        { "value": "emoji", "label": "Emoji" },
+        { "value": "video", "label": "Vidéo (YouTube / Vimeo)" }
+      ],
+      "default": "image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image",
+      "info": "Utilisé quand le type est 'Image'"
+    },
+    {
+      "type": "text",
+      "id": "emoji",
+      "label": "Emoji",
+      "default": "✅",
+      "info": "Utilisé quand le type est 'Emoji'"
+    },
+    {
+      "type": "url",
+      "id": "video_url",
+      "label": "URL de la vidéo",
+      "info": "YouTube ou Vimeo. Utilisé quand le type est 'Vidéo'"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Couleur de fond",
+      "default": "#f9fafb"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Couleur du texte",
+      "default": "#111827"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Bandeau Garantie"
+    }
+  ]
+}
+{% endschema %}

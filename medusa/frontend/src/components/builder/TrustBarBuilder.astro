@@ -1,0 +1,44 @@
+---
+interface TrustItem {
+  icon: string
+  title: string
+  subtitle?: string
+}
+interface Props {
+  items?: TrustItem[]
+}
+
+const { items = [] } = Astro.props
+
+// Icon SVG paths by name
+const ICONS: Record<string, string> = {
+  truck: 'M3 19V8a1 1 0 011-1h15v12 M19 11h6l4 4v4h-3 M9 22a3 3 0 100-6 3 3 0 000 6z M24 22a3 3 0 100-6 3 3 0 000 6z M12 22h9',
+  card: 'M4 8h24v18a2 2 0 01-2 2H6a2 2 0 01-2-2V8z M4 14h24',
+  return: 'M4 16a12 12 0 0121-8l3-3v8h-8 M28 16a12 12 0 01-21 8l-3 3v-8h8',
+  headset: 'M6 12a10 10 0 0120 0v6a4 4 0 01-4 4h-1v-10h5 M6 12v6a4 4 0 004 4h1V12H6z',
+  shield: 'M16 4l11 5v8c0 7-5 13-11 15-6-2-11-8-11-15V9l11-5z',
+  gift: 'M5 14h22v14H5z M16 4v24 M5 14a4 4 0 014-4h6v4 M27 14a4 4 0 00-4-4h-6v4',
+  leaf: 'M16 28C8 28 4 22 4 16 4 8 12 4 16 4c4 0 12 4 12 12 0 6-4 12-12 12z M16 28V12',
+  star: 'M16 4l3.5 8 8.5 1-6 6 1.5 8.5L16 23.5 8.5 27.5 10 19l-6-6 8.5-1z',
+}
+---
+
+{items.length > 0 && (
+  <section class="py-10 lg:py-12 border-y border-border-light bg-bg-light/40 reveal">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class={`grid grid-cols-2 lg:grid-cols-${Math.min(items.length, 4)} divide-x divide-border-light`}>
+        {items.map((item) => (
+          <div class="flex items-center gap-3 px-4 lg:px-6 py-2">
+            <svg class="w-8 h-8 text-primary shrink-0" fill="none" viewBox="0 0 32 32" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d={ICONS[item.icon] || ICONS.star}/>
+            </svg>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-text leading-tight">{item.title}</p>
+              {item.subtitle && <p class="text-xs text-text-muted mt-0.5">{item.subtitle}</p>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}

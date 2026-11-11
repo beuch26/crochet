@@ -1,0 +1,51 @@
+---
+import { normalizeHref } from '../../lib/url'
+
+interface Props {
+  text?: string
+  enabled?: boolean
+  link?: string
+  bgColor?: string
+}
+const {
+  text = "🚚 Livraison gratuite dès 50€  ·  ⚡ Express dès 100€  ·  🎁 Cadeau dès 150€",
+  enabled = true,
+  link = '',
+  bgColor = '',
+} = Astro.props
+
+const style = bgColor ? `background-color: ${bgColor}` : ''
+const href = normalizeHref(link)
+---
+
+{enabled && (
+  <div id="announcement-bar" class={`text-white text-center text-sm py-2.5 px-4 relative ${bgColor ? '' : 'bg-primary'}`} style={style}>
+    {href ? (
+      <a href={href} class="font-medium hover:underline">{text}</a>
+    ) : (
+      <p class="font-medium">{text}</p>
+    )}
+    <button
+      id="dismiss-announcement"
+      type="button"
+      aria-label="Fermer"
+      class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-white/60 hover:text-white transition-colors"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+)}
+
+<script>
+  const bar = document.getElementById('announcement-bar')
+  const dismiss = document.getElementById('dismiss-announcement')
+  if (bar && sessionStorage.getItem('announcement_dismissed')) {
+    bar.style.display = 'none'
+  }
+  dismiss?.addEventListener('click', () => {
+    bar?.style.setProperty('display', 'none')
+    sessionStorage.setItem('announcement_dismissed', '1')
+  })
+</script>

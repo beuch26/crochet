@@ -1,0 +1,513 @@
+{%- comment -%}
+  Timeline Section - Journey/Progress Steps
+  Redesigned for Magic Crochet Kit - Crochet learning journey
+{%- endcomment -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign heading = section.settings.heading
+  assign subheading = section.settings.subheading
+-%}
+
+{%- render 'section-spacing', id: section.id, margin_top: section.settings.section_margin_top, margin_bottom: section.settings.section_margin_bottom -%}
+
+<section class="journey section journey--bg-{{ section.settings.background_type | default: 'gradient' }}" id="journey-{{ section_id }}">
+  <div class="container">
+    {%- if heading != blank or subheading != blank -%}
+      <header class="section-header section-header--center">
+        {%- if subheading != blank -%}
+          <p class="section-subtitle">{{ subheading }}</p>
+        {%- endif -%}
+        {%- if heading != blank -%}
+          {%- if section.settings.enable_heading_style -%}
+            {%- render 'heading-styles',
+              text: heading,
+              tag: 'h2',
+              style: section.settings.heading_style,
+              color: section.settings.heading_style_color,
+              align: 'center',
+              size: 'xl',
+              typing_texts: section.settings.typing_texts
+            -%}
+          {%- else -%}
+            <h2 class="section-title">{{ heading }}</h2>
+          {%- endif -%}
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      {%- assign badge_color_start = section.settings.badge_color_start | default: settings.color_primary -%}
+      {%- assign badge_color_end = section.settings.badge_color_end | default: '#38BDF8' -%}
+      {%- assign badge_text_color = section.settings.badge_text_color | default: '#ffffff' -%}
+      {%- assign card_border_color = section.settings.card_border_color | default: settings.color_border -%}
+      {%- assign card_bg_color = section.settings.card_bg_color | default: settings.color_background -%}
+      {%- assign label_color = section.settings.label_color | default: settings.color_primary -%}
+      {%- assign title_color = section.settings.title_color | default: settings.color_text -%}
+      {%- assign desc_color = section.settings.description_color | default: settings.color_text_light -%}
+      {%- assign connector_color = section.settings.connector_color | default: settings.color_primary -%}
+      {%- assign section_bg = section.settings.background_type -%}
+
+      <div class="journey__grid" style="--step-count: {{ section.blocks.size }}; --badge-gradient: linear-gradient(135deg, {{ badge_color_start }}, {{ badge_color_end }}); --badge-text-color: {{ badge_text_color }}; --card-border-color: {{ card_border_color }}; --card-bg-color: {{ card_bg_color }}; --label-color: {{ label_color }}; --title-color: {{ title_color }}; --desc-color: {{ desc_color }}; --connector-color: {{ connector_color }};">
+        {%- for block in section.blocks -%}
+          <article class="journey__card" {{ block.shopify_attributes }} style="--step-index: {{ forloop.index0 }};">
+            <div class="journey__card-inner">
+              {%- comment -%} Progress Connector {%- endcomment -%}
+              {%- unless forloop.last -%}
+                <div class="journey__connector" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </div>
+              {%- endunless -%}
+
+              {%- comment -%} Title row: badge + title inline {%- endcomment -%}
+              <div class="journey__title-row">
+                <div class="journey__step-badge">
+                  {%- if block.settings.icon != blank -%}
+                    <span class="journey__step-icon">{{ block.settings.icon }}</span>
+                  {%- else -%}
+                    <span class="journey__step-number">{{ forloop.index }}</span>
+                  {%- endif -%}
+                </div>
+                {%- if block.settings.title != blank -%}
+                  <h3 class="journey__title">{{ block.settings.title }}</h3>
+                {%- endif -%}
+              </div>
+
+              {%- comment -%} Content {%- endcomment -%}
+              <div class="journey__content">
+                {%- if block.settings.date != blank -%}
+                  <span class="journey__label">{{ block.settings.date }}</span>
+                {%- endif -%}
+
+                {%- if block.settings.description != blank -%}
+                  <p class="journey__description">{{ block.settings.description }}</p>
+                {%- endif -%}
+              </div>
+
+              {%- comment -%} Image (optional) {%- endcomment -%}
+              {%- if block.settings.image != blank -%}
+                <div class="journey__image">
+                  <img
+                    src="{{ block.settings.image | image_url: width: 400 }}"
+                    alt="{{ block.settings.title }}"
+                    loading="lazy"
+                  >
+                </div>
+              {%- endif -%}
+            </div>
+          </article>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<style>
+.journey {
+  padding: clamp(3rem, 8vw, 5rem) 0;
+}
+
+.journey--bg-gradient {
+  background: linear-gradient(180deg, var(--color-background) 0%, var(--color-background-light) 100%);
+}
+
+.journey--bg-light {
+  background: var(--color-background-light);
+}
+
+.journey--bg-white {
+  background: var(--color-background);
+}
+
+/* Grid Layout */
+.journey__grid {
+  display: grid;
+  grid-template-columns: repeat(var(--step-count, 3), 1fr);
+  gap: clamp(1rem, 3vw, 2rem);
+  position: relative;
+}
+
+@media (max-width: 1024px) {
+  .journey__grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .journey__grid {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+}
+
+/* Card */
+.journey__card {
+  animation: journeyFadeIn 0.5s ease both;
+  animation-delay: calc(var(--step-index, 0) * 0.1s);
+}
+
+@keyframes journeyFadeIn {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.journey__card-inner {
+  background: var(--card-bg-color, var(--color-background));
+  border-radius: 1.25rem;
+  padding: clamp(1.5rem, 4vw, 2rem);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border: 2px solid var(--card-border-color, var(--color-border));
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.journey__card-inner:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(80, 183, 241, 0.15);
+}
+
+/* Title Row: badge + title inline */
+.journey__title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Step Badge */
+.journey__step-badge {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 50%;
+  background: var(--badge-gradient, linear-gradient(135deg, var(--color-primary), #38BDF8));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(80, 183, 241, 0.25);
+  transition: transform 0.3s ease;
+}
+
+.journey__card-inner:hover .journey__step-badge {
+  transform: scale(1.1) rotate(-5deg);
+}
+
+.journey__step-number {
+  color: var(--badge-text-color, white);
+  font-weight: 800;
+  font-size: 1.125rem;
+}
+
+.journey__step-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+/* Connector Arrow */
+.journey__connector {
+  position: absolute;
+  top: 24px;
+  right: -1.5rem;
+  width: 2rem;
+  height: 28px;
+  color: var(--connector-color, var(--color-primary));
+  opacity: 0.4;
+  z-index: 2;
+  display: none;
+}
+
+@media (min-width: 1025px) {
+  .journey__connector {
+    display: block;
+  }
+}
+
+.journey__connector svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Title */
+.journey__title {
+  font-size: clamp(1.125rem, 3vw, 1.375rem);
+  font-weight: 700;
+  margin: 0;
+  color: var(--title-color, var(--color-text));
+  line-height: 1.3;
+}
+
+/* Content */
+.journey__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.journey__label {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--label-color, var(--color-primary));
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.journey__description {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--desc-color, var(--color-text-light));
+  margin: 0;
+  flex: 1;
+}
+
+/* Image */
+.journey__image {
+  margin-top: 1.25rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.journey__image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.journey__card-inner:hover .journey__image img {
+  transform: scale(1.05);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .journey__card {
+    animation: none;
+    opacity: 1;
+  }
+
+  .journey__card-inner,
+  .journey__step-badge,
+  .journey__image img {
+    transition: none;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Parcours / Étapes",
+  "tag": "section",
+  "class": "section-journey",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre",
+      "default": "Votre parcours crochet"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Sous-titre",
+      "default": "Progressez à votre rythme"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "header",
+      "content": "Couleurs des cartes"
+    },
+    {
+      "type": "color",
+      "id": "card_bg_color",
+      "label": "Fond des cartes",
+      "info": "Laissez vide pour utiliser le fond du theme"
+    },
+    {
+      "type": "color",
+      "id": "card_border_color",
+      "label": "Bordure des cartes",
+      "info": "Laissez vide pour utiliser la bordure du theme"
+    },
+    {
+      "type": "color",
+      "id": "title_color",
+      "label": "Couleur du titre des etapes",
+      "info": "Laissez vide pour utiliser la couleur du texte"
+    },
+    {
+      "type": "color",
+      "id": "description_color",
+      "label": "Couleur de la description",
+      "info": "Laissez vide pour utiliser le gris"
+    },
+    {
+      "type": "color",
+      "id": "label_color",
+      "label": "Couleur du label (badge texte)",
+      "info": "Laissez vide pour utiliser la couleur principale"
+    },
+    {
+      "type": "header",
+      "content": "Badge / Icone"
+    },
+    {
+      "type": "color",
+      "id": "badge_color_start",
+      "label": "Degrade du badge : debut",
+      "info": "Laissez vide pour utiliser la couleur principale"
+    },
+    {
+      "type": "color",
+      "id": "badge_color_end",
+      "label": "Degrade du badge : fin",
+      "default": "#38BDF8"
+    },
+    {
+      "type": "color",
+      "id": "badge_text_color",
+      "label": "Couleur du texte/numero dans le badge",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "connector_color",
+      "label": "Couleur des fleches de liaison",
+      "info": "Laissez vide pour utiliser la couleur principale"
+    },
+    {
+      "type": "header",
+      "content": "Arriere-plan"
+    },
+    {
+      "type": "select",
+      "id": "background_type",
+      "label": "Type d'arriere-plan",
+      "options": [
+        { "value": "gradient", "label": "Degrade (blanc vers gris clair)" },
+        { "value": "light", "label": "Gris clair" },
+        { "value": "white", "label": "Blanc" }
+      ],
+      "default": "gradient"
+    },
+    {
+      "type": "header",
+      "content": "Espacement de la section"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_top",
+      "label": "Marge en haut (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_bottom",
+      "label": "Marge en bas (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "milestone",
+      "name": "Étape",
+      "settings": [
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "Icône (emoji)",
+          "info": "Ex: 🌱, 🌿, 🌳"
+        },
+        {
+          "type": "text",
+          "id": "date",
+          "label": "Badge/Label",
+          "default": "Étape 1"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Titre",
+          "default": "Titre de l'étape"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description",
+          "default": "Décrivez cette étape."
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image (optionnel)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Parcours / Étapes",
+      "blocks": [
+        { "type": "milestone", "settings": { "icon": "🌱", "date": "Débutant", "title": "Premiers pas", "description": "Apprenez les bases du crochet avec nos kits débutants." } },
+        { "type": "milestone", "settings": { "icon": "🌿", "date": "Intermédiaire", "title": "Progressez", "description": "Maîtrisez de nouvelles techniques et créez des modèles plus complexes." } },
+        { "type": "milestone", "settings": { "icon": "🌳", "date": "Confirmé", "title": "Expertise", "description": "Créez vos propres designs et partagez votre passion." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

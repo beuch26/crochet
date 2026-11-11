@@ -1,0 +1,341 @@
+{%- comment -%}
+  Related Articles Section
+  Shows related blog posts from the same blog
+{%- endcomment -%}
+
+{%- assign article = article -%}
+{%- assign blog = blog -%}
+
+<section class="related-articles">
+  <div class="container">
+    <div class="related-articles__header">
+      {%- if section.settings.enable_heading_style -%}
+        {%- render 'heading-styles',
+          text: section.settings.title,
+          tag: 'h2',
+          style: section.settings.heading_style,
+          color: section.settings.heading_style_color,
+          align: 'center',
+          size: 'xl',
+          typing_texts: section.settings.typing_texts
+        -%}
+      {%- else -%}
+        <h2 class="related-articles__title">
+          {{ section.settings.title | default: 'Articles Similaires' }}
+        </h2>
+      {%- endif -%}
+    </div>
+
+    <div class="related-articles__grid">
+      {%- assign articles_to_show = section.settings.articles_to_show | default: 3 -%}
+      {%- assign articles_count = 0 -%}
+
+      {%- for blog_article in blog.articles -%}
+        {%- if blog_article.id != article.id and articles_count < articles_to_show -%}
+          {%- assign articles_count = articles_count | plus: 1 -%}
+
+          <article class="related-article-card">
+            {%- if blog_article.image -%}
+              <a href="{{ blog_article.url }}" class="related-article-card__image">
+                <img
+                  src="{{ blog_article.image | image_url: width: 600 }}"
+                  alt="{{ blog_article.image.alt | escape }}"
+                  loading="lazy"
+                  width="600"
+                  height="400"
+                >
+              </a>
+            {%- endif -%}
+
+            <div class="related-article-card__content">
+              {%- if section.settings.show_category and blog_article.tags.size > 0 -%}
+                <div class="related-article-card__category">
+                  {{ blog_article.tags.first }}
+                </div>
+              {%- endif -%}
+
+              <h3 class="related-article-card__title">
+                <a href="{{ blog_article.url }}">{{ blog_article.title }}</a>
+              </h3>
+
+              {%- if section.settings.show_excerpt and blog_article.excerpt != blank -%}
+                <div class="related-article-card__excerpt">
+                  {{ blog_article.excerpt | strip_html | truncatewords: 20 }}
+                </div>
+              {%- endif -%}
+
+              <div class="related-article-card__meta">
+                {%- if section.settings.show_date -%}
+                  <time datetime="{{ blog_article.published_at | date: '%Y-%m-%d' }}">
+                    {{ blog_article.published_at | date: '%d %b %Y' }}
+                  </time>
+                {%- endif -%}
+
+                {%- if section.settings.show_author -%}
+                  <span class="related-article-card__author">
+                    {{ 'blog.general.by' | t }} {{ blog_article.author }}
+                  </span>
+                {%- endif -%}
+              </div>
+
+              <a href="{{ blog_article.url }}" class="related-article-card__link">
+                {{ 'blog.general.read_more' | t }} →
+              </a>
+            </div>
+          </article>
+
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    {%- if section.settings.show_view_all -%}
+      <div class="related-articles__footer">
+        <a href="{{ blog.url }}" class="button button--secondary">
+          {{ 'blog.general.all_posts' | t }}
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<style>
+.related-articles {
+  padding: var(--spacing-xl) 0;
+  background: var(--color-background-light);
+}
+
+.related-articles__header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.related-articles__title {
+  font-size: 2rem;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.related-articles__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.related-article-card {
+  background: #fff;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.related-article-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.related-article-card__image {
+  display: block;
+  position: relative;
+  padding-bottom: 66.67%;
+  overflow: hidden;
+  background: var(--color-background-light);
+}
+
+.related-article-card__image img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-speed);
+}
+
+.related-article-card:hover .related-article-card__image img {
+  transform: scale(1.05);
+}
+
+.related-article-card__content {
+  padding: var(--spacing-md);
+}
+
+.related-article-card__category {
+  display: inline-block;
+  background: var(--color-primary);
+  color: #fff;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: var(--spacing-sm);
+  letter-spacing: 0.05em;
+}
+
+.related-article-card__title {
+  font-size: 1.25rem;
+  line-height: 1.4;
+  margin-bottom: var(--spacing-sm);
+}
+
+.related-article-card__title a {
+  color: var(--color-text);
+  text-decoration: none;
+  transition: color var(--transition-speed);
+}
+
+.related-article-card__title a:hover {
+  color: var(--color-primary);
+}
+
+.related-article-card__excerpt {
+  color: var(--color-text-light);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-md);
+  font-size: 0.9rem;
+}
+
+.related-article-card__meta {
+  display: flex;
+  gap: var(--spacing-sm);
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+  margin-bottom: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.related-article-card__link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: gap var(--transition-speed);
+}
+
+.related-article-card__link:hover {
+  gap: 0.5rem;
+}
+
+.related-articles__footer {
+  text-align: center;
+}
+
+@media (max-width: 1024px) {
+  .related-articles__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .related-articles__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .related-articles__title {
+    font-size: 1.5rem;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Articles associés",
+  "class": "section-related-articles",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre de la section",
+      "default": "Articles Similaires"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "range",
+      "id": "articles_to_show",
+      "label": "Nombre d'articles",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "checkbox",
+      "id": "show_category",
+      "label": "Afficher la catégorie",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_excerpt",
+      "label": "Afficher l'extrait",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "Afficher la date",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "label": "Afficher l'auteur",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "label": "Afficher le bouton 'Voir tout'",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Articles associés"
+    }
+  ]
+}
+{% endschema %}

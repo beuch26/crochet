@@ -1,0 +1,21 @@
+---
+interface Props {
+  name: string
+  description?: string
+  url: string
+  itemCount?: number
+}
+
+const { name, description = '', url, itemCount = 0 } = Astro.props
+
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": name,
+  "description": description,
+  "url": new URL(url, Astro.site).toString(),
+  ...(itemCount > 0 ? { "numberOfItems": itemCount } : {}),
+}
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />

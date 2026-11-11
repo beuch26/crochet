@@ -1,0 +1,83 @@
+---
+interface Plan {
+  name: string
+  price: string
+  period?: string
+  features: string[]
+  ctaText?: string
+  ctaLink?: string
+  highlighted?: boolean
+  badge?: string
+}
+
+interface Props {
+  title?: string
+  subtitle?: string
+  plans?: Plan[]
+}
+
+const {
+  title = '',
+  subtitle = '',
+  plans = [],
+} = Astro.props
+---
+
+{plans.length > 0 && (
+  <section class="py-16 lg:py-20 reveal">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      {(title || subtitle) && (
+        <div class="text-center mb-12 max-w-2xl mx-auto">
+          {title && <h2>{title}</h2>}
+          {subtitle && <p class="mt-3 text-text-light text-lg">{subtitle}</p>}
+        </div>
+      )}
+
+      <div class={`grid grid-cols-1 md:grid-cols-${Math.min(plans.length, 3)} gap-6 lg:gap-8`}>
+        {plans.map((plan) => (
+          <div class={`relative rounded-2xl p-8 border-2 transition-shadow duration-300 ${
+            plan.highlighted
+              ? 'border-primary bg-white shadow-xl shadow-primary/10 scale-[1.02]'
+              : 'border-border-light bg-white hover:shadow-lg'
+          }`}>
+            {plan.badge && (
+              <span class="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-white text-xs font-bold rounded-full whitespace-nowrap">
+                {plan.badge}
+              </span>
+            )}
+
+            <div class="text-center mb-6">
+              <h3 class="text-lg font-semibold font-['DM_Sans']">{plan.name}</h3>
+              <div class="mt-4">
+                <span class="text-4xl font-bold text-text font-['DM_Sans']">{plan.price}</span>
+                {plan.period && <span class="text-text-muted text-sm ml-1">/{plan.period}</span>}
+              </div>
+            </div>
+
+            <ul class="space-y-3 mb-8">
+              {plan.features.map((f) => (
+                <li class="flex items-start gap-2.5 text-sm text-text-light">
+                  <svg class="w-5 h-5 text-success shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  {f}
+                </li>
+              ))}
+            </ul>
+
+            <a
+              href={plan.ctaLink || '#'}
+              class={`block text-center py-3 rounded-xl font-semibold text-sm transition-all ${
+                plan.highlighted
+                  ? 'bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20'
+                  : 'bg-bg-light text-text hover:bg-primary hover:text-white'
+              }`}
+            >
+              {plan.ctaText || 'Choisir'}
+            </a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}

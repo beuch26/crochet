@@ -1,0 +1,299 @@
+{%- comment -%}
+  404 Page Not Found Section
+  Customizable error page with product recommendations
+{%- endcomment -%}
+
+<div class="page-404 section text-center">
+  <div class="container container--narrow">
+
+    {%- comment -%} 404 Number {%- endcomment -%}
+    {%- if section.settings.show_404_number -%}
+      <h1 class="page-404__title">404</h1>
+    {%- endif -%}
+
+    {%- comment -%} Title {%- endcomment -%}
+    <h2 class="page-404__subtitle">
+      {%- if section.settings.title != blank -%}
+        {{ section.settings.title }}
+      {%- else -%}
+        Page non trouvée
+      {%- endif -%}
+    </h2>
+
+    {%- comment -%} Description {%- endcomment -%}
+    {%- if section.settings.description != blank -%}
+      <div class="page-404__text">
+        {{ section.settings.description }}
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} Action Buttons {%- endcomment -%}
+    <div class="page-404__actions mt-lg">
+      {%- if section.settings.show_home_button -%}
+        <a href="{{ routes.root_url }}" class="btn btn--primary btn--large">
+          {%- if section.settings.home_button_text != blank -%}
+            {{ section.settings.home_button_text }}
+          {%- else -%}
+            Retour à l'accueil
+          {%- endif -%}
+        </a>
+      {%- endif -%}
+
+      {%- if section.settings.show_search_button -%}
+        <a href="{{ routes.search_url }}" class="btn btn--secondary btn--large">
+          {%- if section.settings.search_button_text != blank -%}
+            {{ section.settings.search_button_text }}
+          {%- else -%}
+            Rechercher
+          {%- endif -%}
+        </a>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} Product Recommendations {%- endcomment -%}
+    {%- if section.settings.show_products -%}
+      {%- liquid
+        assign products_count = section.settings.products_count | default: 4
+        assign collection_handle = section.settings.collection_handle
+
+        if collection_handle != blank
+          assign selected_collection = collections[collection_handle]
+        else
+          assign selected_collection = collections.all
+        endif
+      -%}
+
+      {%- if selected_collection.products.size > 0 -%}
+        <div class="page-404__products mt-2xl">
+          {%- if section.settings.products_title != blank -%}
+            <h3>{{ section.settings.products_title }}</h3>
+          {%- endif -%}
+
+          <div class="grid grid--{{ products_count }} mt-lg">
+            {%- for product in selected_collection.products limit: products_count -%}
+              {%- render 'product-card', product: product -%}
+            {%- endfor -%}
+          </div>
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+
+  </div>
+</div>
+
+<style>
+.page-404 {
+  padding: var(--spacing-2xl) 0;
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+}
+
+.page-404 .container--narrow {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-404__title {
+  font-size: clamp(4rem, 10vw, 8rem);
+  font-weight: 900;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-sm);
+  line-height: 1;
+}
+
+.page-404__subtitle {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text);
+}
+
+.page-404__text {
+  font-size: 1.125rem;
+  color: var(--color-text-light);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-md);
+}
+
+.page-404__actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.page-404__products {
+  margin-top: var(--spacing-2xl);
+  padding-top: var(--spacing-2xl);
+  border-top: 2px solid var(--color-border);
+}
+
+.page-404__products h3 {
+  font-size: 1.75rem;
+  margin-bottom: var(--spacing-lg);
+  color: var(--color-text);
+}
+
+/* Grid Styles */
+.grid {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.grid--2 {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.grid--3 {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.grid--4 {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.grid--6 {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+@media (min-width: 768px) {
+  .grid--2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .grid--4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .grid--6 {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .page-404 {
+    padding: var(--spacing-xl) 0;
+  }
+
+  .page-404__title {
+    font-size: 4rem;
+  }
+
+  .page-404__subtitle {
+    font-size: 1.5rem;
+  }
+
+  .page-404__text {
+    font-size: 1rem;
+  }
+
+  .page-404__actions {
+    flex-direction: column;
+  }
+
+  .page-404__actions .btn {
+    width: 100%;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "404 - Page non trouvée",
+  "class": "section-404-main",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Contenu principal"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_404_number",
+      "label": "Afficher le grand '404'",
+      "default": true,
+      "info": "Le grand numéro 404 en haut de la page"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre",
+      "default": "Page non trouvée",
+      "info": "Le titre principal de la page d'erreur"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Désolé, la page que vous recherchez n'existe pas ou a été déplacée.",
+      "info": "Texte descriptif sous le titre"
+    },
+    {
+      "type": "header",
+      "content": "Boutons d'action"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_home_button",
+      "label": "Afficher le bouton Accueil",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "home_button_text",
+      "label": "Texte du bouton Accueil",
+      "default": "Retour à l'accueil"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search_button",
+      "label": "Afficher le bouton Recherche",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "search_button_text",
+      "label": "Texte du bouton Recherche",
+      "default": "Rechercher"
+    },
+    {
+      "type": "header",
+      "content": "Produits recommandés"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_products",
+      "label": "Afficher les produits recommandés",
+      "default": true,
+      "info": "Affiche une sélection de produits en bas de page"
+    },
+    {
+      "type": "text",
+      "id": "products_title",
+      "label": "Titre de la section produits",
+      "default": "Découvrez nos produits",
+      "info": "Titre au-dessus des produits recommandés"
+    },
+    {
+      "type": "collection",
+      "id": "collection_handle",
+      "label": "Collection source",
+      "info": "Choisissez une collection. Laissez vide pour afficher tous les produits."
+    },
+    {
+      "type": "range",
+      "id": "products_count",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "label": "Nombre de produits",
+      "default": 4,
+      "info": "Nombre de produits à afficher"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,21 @@
+---
+const brands = ['Medela', 'Lansinoh', 'Alpine', 'BABIG', 'Yemma Shell', 'Schallwerk', 'Peltor', 'BBTKCARE']
+---
+
+<section class="py-8 border-y border-border-light overflow-hidden bg-bg-light">
+  <div class="flex animate-marquee whitespace-nowrap">
+    {[...brands, ...brands, ...brands].map((brand) => (
+      <span class="mx-8 text-lg font-semibold text-text-muted/40 font-['DM_Serif_Display'] select-none">{brand}</span>
+    ))}
+  </div>
+</section>
+
+<style>
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-33.33%); }
+  }
+  .animate-marquee {
+    animation: marquee 25s linear infinite;
+  }
+</style>

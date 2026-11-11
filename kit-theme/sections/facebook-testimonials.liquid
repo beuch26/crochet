@@ -1,0 +1,716 @@
+{%- comment -%}
+  Facebook Testimonials Section
+  Display testimonials styled like Facebook reviews/comments
+
+  Usage: Add via Theme Editor
+{%- endcomment -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign heading = section.settings.heading
+  assign subheading = section.settings.subheading
+  assign layout = section.settings.layout | default: 'grid'
+  assign columns = section.settings.columns | default: 3
+  assign facebook_page_url = section.settings.facebook_page_url
+  assign show_verified = section.settings.show_verified
+-%}
+
+<section class="fb-testimonials section section--{{ section_id }}" id="fb-testimonials-{{ section_id }}">
+  <div class="container">
+    {%- if heading != blank or subheading != blank -%}
+      <div class="section-header section-header--center">
+        {%- if heading != blank -%}
+          {%- if section.settings.enable_heading_style -%}
+            {%- render 'heading-styles',
+              text: heading,
+              tag: 'h2',
+              style: section.settings.heading_style,
+              color: section.settings.heading_style_color,
+              align: 'center',
+              size: 'xl',
+              typing_texts: section.settings.typing_texts
+            -%}
+          {%- else -%}
+            <h2 class="section-header__title">{{ heading }}</h2>
+          {%- endif -%}
+        {%- endif -%}
+        {%- if subheading != blank -%}
+          <p class="section-header__subtitle">{{ subheading }}</p>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <div
+        class="fb-testimonials__wrapper fb-testimonials__wrapper--{{ layout }}"
+        style="--fb-columns: {{ columns }};"
+        {% if layout == 'carousel' %}data-fb-carousel{% endif %}
+      >
+        {%- for block in section.blocks -%}
+          <article class="fb-testimonial" {{ block.shopify_attributes }}>
+            <div class="fb-testimonial__header">
+              <div class="fb-testimonial__avatar">
+                {%- if block.settings.avatar != blank -%}
+                  <img
+                    src="{{ block.settings.avatar | image_url: width: 80 }}"
+                    alt="{{ block.settings.author }}"
+                    width="40"
+                    height="40"
+                    loading="lazy"
+                  >
+                {%- else -%}
+                  {%- assign initials = block.settings.author | split: ' ' -%}
+                  {%- assign first_initial = initials[0] | slice: 0 | upcase -%}
+                  {%- assign last_initial = initials[1] | slice: 0 | upcase | default: '' -%}
+                  {%- assign avatar_colors = 'bg-blue,bg-green,bg-purple,bg-orange,bg-pink' | split: ',' -%}
+                  {%- assign color_index = forloop.index0 | modulo: 5 -%}
+                  <span class="fb-testimonial__avatar-placeholder fb-testimonial__avatar-placeholder--{{ avatar_colors[color_index] }}">
+                    {{ first_initial }}{{ last_initial }}
+                  </span>
+                {%- endif -%}
+              </div>
+
+              <div class="fb-testimonial__author-info">
+                <div class="fb-testimonial__author-name">
+                  {{ block.settings.author | default: 'Anonymous' }}
+                  {%- if show_verified -%}
+                    <svg class="fb-testimonial__verified" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-label="{{ 'sections.testimonials.verified' | t | default: 'Verified' }}">
+                      <circle cx="7" cy="7" r="7" fill="#1877F2"/>
+                      <path d="M4 7L6 9L10 5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  {%- endif -%}
+                </div>
+                <div class="fb-testimonial__meta">
+                  {%- if block.settings.date != blank -%}
+                    <span class="fb-testimonial__date">{{ block.settings.date }}</span>
+                  {%- endif -%}
+                  {%- if block.settings.recommendation != 'none' -%}
+                    <span class="fb-testimonial__recommendation fb-testimonial__recommendation--{{ block.settings.recommendation }}">
+                      {%- if block.settings.recommendation == 'recommends' -%}
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                          <path d="M3.5 7V11M1 8V11M6 4V11M8.5 1V11M11 5V11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        {{ 'sections.testimonials.recommends' | t | default: 'recommande' }}
+                      {%- else -%}
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                          <path d="M2 6H10M6 2V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        {{ 'sections.testimonials.doesnt_recommend' | t | default: "ne recommande pas" }}
+                      {%- endif -%}
+                    </span>
+                  {%- endif -%}
+                </div>
+              </div>
+
+              <div class="fb-testimonial__fb-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M20 10C20 4.48 15.52 0 10 0C4.48 0 0 4.48 0 10C0 14.84 3.44 18.87 8 19.8V13H6V10H8V7.5C8 5.57 9.57 4 11.5 4H14V7H12C11.45 7 11 7.45 11 8V10H14V13H11V19.95C16.05 19.45 20 15.19 20 10Z" fill="#1877F2"/>
+                </svg>
+              </div>
+            </div>
+
+            {%- if block.settings.rating > 0 -%}
+              <div class="fb-testimonial__rating" aria-label="{{ 'sections.testimonials.rating' | t: rating: block.settings.rating | default: block.settings.rating | append: ' stars' }}">
+                {%- for i in (1..5) -%}
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="{% if i <= block.settings.rating %}#F7B928{% else %}none{% endif %}">
+                    <path d="M8 1L10.2 5.5L15 6.2L11.5 9.6L12.4 14.3L8 12L3.6 14.3L4.5 9.6L1 6.2L5.8 5.5L8 1Z" stroke="#F7B928" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                {%- endfor -%}
+              </div>
+            {%- endif -%}
+
+            {%- if block.settings.content != blank -%}
+              <div class="fb-testimonial__content">
+                <p>{{ block.settings.content }}</p>
+              </div>
+            {%- endif -%}
+
+            {%- if block.settings.image != blank -%}
+              <div class="fb-testimonial__image">
+                <img
+                  src="{{ block.settings.image | image_url: width: 600 }}"
+                  alt="{{ block.settings.author }} review"
+                  width="{{ block.settings.image.width }}"
+                  height="{{ block.settings.image.height }}"
+                  loading="lazy"
+                >
+              </div>
+            {%- endif -%}
+
+            <div class="fb-testimonial__reactions">
+              {%- if block.settings.likes > 0 -%}
+                <span class="fb-testimonial__reaction">
+                  <span class="fb-testimonial__reaction-icons">
+                    <span class="fb-testimonial__reaction-icon fb-testimonial__reaction-icon--like">👍</span>
+                    {%- if block.settings.loves > 0 -%}
+                      <span class="fb-testimonial__reaction-icon fb-testimonial__reaction-icon--love">❤️</span>
+                    {%- endif -%}
+                  </span>
+                  <span class="fb-testimonial__reaction-count">{{ block.settings.likes | plus: block.settings.loves | default: 0 }}</span>
+                </span>
+              {%- endif -%}
+            </div>
+          </article>
+        {%- endfor -%}
+      </div>
+
+      {%- if layout == 'carousel' -%}
+        <div class="fb-testimonials__nav">
+          <button class="fb-testimonials__nav-btn fb-testimonials__nav-btn--prev" data-fb-prev aria-label="{{ 'accessibility.previous' | t | default: 'Précédent' }}">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="fb-testimonials__nav-btn fb-testimonials__nav-btn--next" data-fb-next aria-label="{{ 'accessibility.next' | t | default: 'Suivant' }}">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+
+    {%- if facebook_page_url != blank -%}
+      <div class="fb-testimonials__cta">
+        <a href="{{ facebook_page_url }}" class="btn btn--outline" target="_blank" rel="noopener noreferrer">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M20 10C20 4.48 15.52 0 10 0C4.48 0 0 4.48 0 10C0 14.84 3.44 18.87 8 19.8V13H6V10H8V7.5C8 5.57 9.57 4 11.5 4H14V7H12C11.45 7 11 7.45 11 8V10H14V13H11V19.95C16.05 19.45 20 15.19 20 10Z" fill="currentColor"/>
+          </svg>
+          {{ 'sections.testimonials.view_on_facebook' | t | default: 'Voir tous les avis sur Facebook' }}
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<style>
+  .fb-testimonials {
+    padding: var(--spacing-2xl) 0;
+  }
+
+  /* Grid Layout */
+  .fb-testimonials__wrapper--grid {
+    display: grid;
+    grid-template-columns: repeat(var(--fb-columns, 3), 1fr);
+    gap: var(--spacing-md);
+  }
+
+  /* Carousel Layout */
+  .fb-testimonials__wrapper--carousel {
+    display: flex;
+    gap: var(--spacing-md);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: var(--spacing-sm);
+  }
+
+  .fb-testimonials__wrapper--carousel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .fb-testimonials__wrapper--carousel .fb-testimonial {
+    flex: 0 0 calc(100% / var(--fb-columns, 3) - var(--spacing-md));
+    scroll-snap-align: start;
+  }
+
+  /* Masonry Layout */
+  .fb-testimonials__wrapper--masonry {
+    columns: var(--fb-columns, 3);
+    column-gap: var(--spacing-md);
+  }
+
+  .fb-testimonials__wrapper--masonry .fb-testimonial {
+    break-inside: avoid;
+    margin-bottom: var(--spacing-md);
+  }
+
+  /* Card Styles */
+  .fb-testimonial {
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .fb-testimonial:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .fb-testimonial__header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .fb-testimonial__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .fb-testimonial__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .fb-testimonial__avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: white;
+  }
+
+  .fb-testimonial__avatar-placeholder--bg-blue { background-color: #1877F2; }
+  .fb-testimonial__avatar-placeholder--bg-green { background-color: #42B72A; }
+  .fb-testimonial__avatar-placeholder--bg-purple { background-color: #9B51E0; }
+  .fb-testimonial__avatar-placeholder--bg-orange { background-color: #F7931A; }
+  .fb-testimonial__avatar-placeholder--bg-pink { background-color: #E84393; }
+
+  .fb-testimonial__author-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .fb-testimonial__author-name {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .fb-testimonial__verified {
+    flex-shrink: 0;
+  }
+
+  .fb-testimonial__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+    margin-top: 0.125rem;
+  }
+
+  .fb-testimonial__date {
+    opacity: 0.8;
+  }
+
+  .fb-testimonial__recommendation {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .fb-testimonial__recommendation--recommends {
+    color: #42B72A;
+  }
+
+  .fb-testimonial__recommendation--doesnt_recommend {
+    color: #F02849;
+  }
+
+  .fb-testimonial__fb-icon {
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
+
+  .fb-testimonial__rating {
+    display: flex;
+    gap: 2px;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .fb-testimonial__content {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--color-text);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .fb-testimonial__content p {
+    margin: 0;
+  }
+
+  .fb-testimonial__image {
+    margin: var(--spacing-sm) calc(-1 * var(--spacing-md));
+    overflow: hidden;
+  }
+
+  .fb-testimonial__image img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .fb-testimonial__reactions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--color-border);
+    margin-top: var(--spacing-sm);
+    font-size: 0.8125rem;
+    color: var(--color-text-light);
+  }
+
+  .fb-testimonial__reaction {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .fb-testimonial__reaction-icons {
+    display: flex;
+  }
+
+  .fb-testimonial__reaction-icon {
+    font-size: 0.875rem;
+    margin-right: -4px;
+    position: relative;
+  }
+
+  .fb-testimonial__reaction-icon--like {
+    z-index: 2;
+  }
+
+  .fb-testimonial__reaction-icon--love {
+    z-index: 1;
+  }
+
+  .fb-testimonial__reaction-count {
+    margin-left: 0.5rem;
+  }
+
+  /* Navigation */
+  .fb-testimonials__nav {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+  }
+
+  .fb-testimonials__nav-btn {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-background);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .fb-testimonials__nav-btn:hover {
+    border-color: #1877F2;
+    background-color: #1877F2;
+    color: white;
+  }
+
+  /* CTA */
+  .fb-testimonials__cta {
+    text-align: center;
+    margin-top: var(--spacing-lg);
+  }
+
+  .fb-testimonials__cta .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .fb-testimonials__cta .btn:hover {
+    border-color: #1877F2;
+    color: #1877F2;
+  }
+
+  /* Responsive */
+  @media (max-width: 999px) {
+    .fb-testimonials__wrapper--grid,
+    .fb-testimonials__wrapper--masonry {
+      grid-template-columns: repeat(2, 1fr);
+      columns: 2;
+    }
+
+    .fb-testimonials__wrapper--carousel .fb-testimonial {
+      flex: 0 0 calc(50% - var(--spacing-sm));
+    }
+  }
+
+  @media (max-width: 767px) {
+    .fb-testimonials__wrapper--grid,
+    .fb-testimonials__wrapper--masonry {
+      grid-template-columns: 1fr;
+      columns: 1;
+    }
+
+    .fb-testimonials__wrapper--carousel .fb-testimonial {
+      flex: 0 0 85%;
+    }
+
+    .fb-testimonials__nav {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  (function() {
+    'use strict';
+
+    function initFBCarousel(container) {
+      const wrapper = container.querySelector('[data-fb-carousel]');
+      if (!wrapper) return;
+
+      const prevBtn = container.querySelector('[data-fb-prev]');
+      const nextBtn = container.querySelector('[data-fb-next]');
+      const items = wrapper.querySelectorAll('.fb-testimonial');
+
+      if (!items.length) return;
+
+      const itemWidth = items[0].offsetWidth + parseInt(getComputedStyle(wrapper).gap);
+
+      function scrollTo(direction) {
+        const scrollAmount = direction === 'next' ? itemWidth : -itemWidth;
+        wrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      }
+
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => scrollTo('prev'));
+      }
+
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => scrollTo('next'));
+      }
+    }
+
+    document.querySelectorAll('.fb-testimonials').forEach(initFBCarousel);
+
+    if (Shopify.designMode) {
+      document.addEventListener('shopify:section:load', (e) => {
+        const section = e.target.querySelector('.fb-testimonials');
+        if (section) initFBCarousel(section);
+      });
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Témoignages Facebook",
+  "tag": "section",
+  "class": "section-fb-testimonials",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre",
+      "default": "Ce que disent nos clients"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Sous-titre",
+      "default": "Vrais avis de notre page Facebook"
+    },
+    {
+      "type": "url",
+      "id": "facebook_page_url",
+      "label": "URL de la page Facebook"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Disposition",
+      "options": [
+        { "value": "grid", "label": "Grille" },
+        { "value": "carousel", "label": "Carrousel" },
+        { "value": "masonry", "label": "Mosaïque" }
+      ],
+      "default": "grid"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Colonnes (bureau)",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "checkbox",
+      "id": "show_verified",
+      "label": "Afficher le badge vérifié",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "testimonial",
+      "name": "Témoignage",
+      "settings": [
+        {
+          "type": "text",
+          "id": "author",
+          "label": "Nom de l'auteur",
+          "default": "Marie D."
+        },
+        {
+          "type": "image_picker",
+          "id": "avatar",
+          "label": "Photo de l'auteur"
+        },
+        {
+          "type": "text",
+          "id": "date",
+          "label": "Date",
+          "default": "Il y a 2 jours"
+        },
+        {
+          "type": "select",
+          "id": "recommendation",
+          "label": "Recommandation",
+          "options": [
+            { "value": "none", "label": "Aucune" },
+            { "value": "recommends", "label": "Recommande" },
+            { "value": "doesnt_recommend", "label": "Ne recommande pas" }
+          ],
+          "default": "recommends"
+        },
+        {
+          "type": "range",
+          "id": "rating",
+          "label": "Note en étoiles",
+          "min": 0,
+          "max": 5,
+          "step": 1,
+          "default": 5,
+          "info": "Mettre à 0 pour masquer les étoiles"
+        },
+        {
+          "type": "textarea",
+          "id": "content",
+          "label": "Contenu de l'avis",
+          "default": "Produit incroyable ! Exactement ce que je cherchais. Livraison rapide et excellent service client."
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image de l'avis (optionnel)"
+        },
+        {
+          "type": "number",
+          "id": "likes",
+          "label": "Nombre de J'aime",
+          "default": 12
+        },
+        {
+          "type": "number",
+          "id": "loves",
+          "label": "Réactions J'adore",
+          "default": 3
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Témoignages Facebook",
+      "blocks": [
+        {
+          "type": "testimonial",
+          "settings": {
+            "author": "Sophie M.",
+            "date": "Il y a 1 jour",
+            "recommendation": "recommends",
+            "rating": 5,
+            "content": "J'adore cette boutique ! La qualité est incroyable et la livraison était super rapide. Je recommanderai sans hésiter !",
+            "likes": 24,
+            "loves": 8
+          }
+        },
+        {
+          "type": "testimonial",
+          "settings": {
+            "author": "Michel R.",
+            "date": "Il y a 3 jours",
+            "recommendation": "recommends",
+            "rating": 5,
+            "content": "Meilleur achat de l'année. L'équipe du service client était incroyablement serviable pour répondre à mes questions.",
+            "likes": 18,
+            "loves": 5
+          }
+        },
+        {
+          "type": "testimonial",
+          "settings": {
+            "author": "Émilie K.",
+            "date": "Il y a 1 semaine",
+            "recommendation": "recommends",
+            "rating": 4,
+            "content": "Excellent produit, conforme à la description. Je recommande à tous ceux qui cherchent des articles de qualité à prix juste.",
+            "likes": 31,
+            "loves": 12
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

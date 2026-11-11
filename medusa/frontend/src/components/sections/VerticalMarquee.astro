@@ -1,0 +1,47 @@
+---
+/**
+ * Vertical Marquee - scrolling text columns
+ * Like Olympus theme's vertical-marquee snippet
+ */
+interface Props {
+  items?: string[]
+  speed?: number
+  columns?: number
+}
+
+const {
+  items = ['Qualité', 'Confort', 'Sécurité', 'Naturel', 'Douceur', 'Expertise', 'Confiance', 'Bien-être'],
+  speed = 25,
+  columns = 3,
+} = Astro.props
+
+const repeated = [...items, ...items, ...items]
+---
+
+<section class="py-16 lg:py-20 overflow-hidden reveal">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex gap-6 justify-center h-[300px] lg:h-[400px]">
+      {Array.from({ length: columns }).map((_, col) => (
+        <div class="overflow-hidden flex-1 max-w-[200px]">
+          <div
+            class="flex flex-col gap-4"
+            style={`animation: vertical-scroll ${speed}s linear infinite; animation-direction: ${col % 2 === 0 ? 'normal' : 'reverse'};`}
+          >
+            {repeated.map((item) => (
+              <div class="px-6 py-5 bg-bg-light rounded-2xl border border-border-light text-center">
+                <span class="text-lg font-semibold font-['DM_Serif_Display'] text-text">{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  @keyframes vertical-scroll {
+    from { transform: translateY(0); }
+    to { transform: translateY(-50%); }
+  }
+</style>

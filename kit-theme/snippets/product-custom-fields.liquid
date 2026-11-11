@@ -1,0 +1,371 @@
+{%- comment -%}
+  Product Custom Fields
+  Dynamic form fields for product customization (engraving, text, dates, uploads)
+
+  Parameters:
+  - product: Product object (required)
+  - fields_config: JSON metafield for field configuration
+
+  Metafield: custom.product_fields (JSON)
+  Format: [{ "type": "text|textarea|select|date|file", "label": "...", "required": true, "options": [...] }]
+
+  Usage: Include in product form
+  {%- render 'product-custom-fields', product: product -%}
+{%- endcomment -%}
+
+{%- liquid
+  assign fields_json = product.metafields.custom.product_fields.value
+  assign show_fields = false
+  if fields_json != blank and fields_json.size > 0
+    assign show_fields = true
+  endif
+-%}
+
+{%- if show_fields -%}
+  <div class="product-custom-fields" data-custom-fields>
+    <h3 class="product-custom-fields__title">
+      {{ 'products.product.customize' | t | default: 'Personnalisez votre produit' }}
+    </h3>
+
+    {%- for field in fields_json -%}
+      {%- liquid
+        assign field_id = 'custom-field-' | append: forloop.index
+        assign field_name = 'properties[' | append: field.label | append: ']'
+        assign is_required = field.required | default: false
+      -%}
+
+      <div class="product-custom-fields__field" data-field-type="{{ field.type }}">
+        <label for="{{ field_id }}" class="product-custom-fields__label">
+          {{ field.label }}
+          {%- if is_required -%}
+            <span class="product-custom-fields__required" aria-hidden="true">*</span>
+          {%- endif -%}
+        </label>
+
+        {%- case field.type -%}
+          {%- when 'text' -%}
+            <input
+              type="text"
+              id="{{ field_id }}"
+              name="{{ field_name }}"
+              class="product-custom-fields__input"
+              placeholder="{{ field.placeholder | default: '' }}"
+              maxlength="{{ field.maxlength | default: 100 }}"
+              {% if is_required %}required aria-required="true"{% endif %}
+            >
+            {%- if field.maxlength -%}
+              <span class="product-custom-fields__counter">
+                <span data-char-count>0</span>/{{ field.maxlength }}
+              </span>
+            {%- endif -%}
+
+          {%- when 'textarea' -%}
+            <textarea
+              id="{{ field_id }}"
+              name="{{ field_name }}"
+              class="product-custom-fields__textarea"
+              placeholder="{{ field.placeholder | default: '' }}"
+              maxlength="{{ field.maxlength | default: 500 }}"
+              rows="4"
+              {% if is_required %}required aria-required="true"{% endif %}
+            ></textarea>
+            {%- if field.maxlength -%}
+              <span class="product-custom-fields__counter">
+                <span data-char-count>0</span>/{{ field.maxlength }}
+              </span>
+            {%- endif -%}
+
+          {%- when 'select' -%}
+            <select
+              id="{{ field_id }}"
+              name="{{ field_name }}"
+              class="product-custom-fields__select"
+              {% if is_required %}required aria-required="true"{% endif %}
+            >
+              <option value="">{{ 'products.product.select_option' | t | default: 'Sélectionnez une option' }}</option>
+              {%- for option in field.options -%}
+                <option value="{{ option }}">{{ option }}</option>
+              {%- endfor -%}
+            </select>
+
+          {%- when 'date' -%}
+            <input
+              type="date"
+              id="{{ field_id }}"
+              name="{{ field_name }}"
+              class="product-custom-fields__input product-custom-fields__input--date"
+              min="{{ 'now' | date: '%Y-%m-%d' }}"
+              {% if is_required %}required aria-required="true"{% endif %}
+            >
+            {%- if field.info -%}
+              <p class="product-custom-fields__info">{{ field.info }}</p>
+            {%- endif -%}
+
+          {%- when 'file' -%}
+            <div class="product-custom-fields__file-wrapper">
+              <input
+                type="file"
+                id="{{ field_id }}"
+                class="product-custom-fields__file-input"
+                accept="{{ field.accept | default: 'image/*,.pdf' }}"
+                data-max-size="{{ field.max_size | default: 5242880 }}"
+                {% if is_required %}required aria-required="true"{% endif %}
+              >
+              <label for="{{ field_id }}" class="product-custom-fields__file-label">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M17 12.5V15.5C17 16.3284 16.3284 17 15.5 17H4.5C3.67157 17 3 16.3284 3 15.5V12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M10 13V3M10 3L6 7M10 3L14 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span data-file-text>{{ 'products.product.upload_file' | t | default: 'Choisir un fichier' }}</span>
+              </label>
+              <input type="hidden" name="{{ field_name }}" data-file-url>
+              <p class="product-custom-fields__file-info">
+                {{ 'products.product.max_file_size' | t | default: 'Taille max.' }}: {{ field.max_size | default: 5242880 | divided_by: 1048576 }}Mo
+              </p>
+            </div>
+
+          {%- when 'checkbox' -%}
+            <label class="product-custom-fields__checkbox-label">
+              <input
+                type="checkbox"
+                name="{{ field_name }}"
+                value="{{ field.value | default: 'Yes' }}"
+                class="product-custom-fields__checkbox"
+                {% if is_required %}required aria-required="true"{% endif %}
+              >
+              <span>{{ field.checkbox_text | default: field.label }}</span>
+            </label>
+
+          {%- when 'color' -%}
+            <div class="product-custom-fields__color-wrapper">
+              <input
+                type="color"
+                id="{{ field_id }}"
+                name="{{ field_name }}"
+                class="product-custom-fields__color"
+                value="{{ field.default | default: '#000000' }}"
+              >
+              <span class="product-custom-fields__color-value" data-color-value>{{ field.default | default: '#000000' }}</span>
+            </div>
+
+        {%- endcase -%}
+
+        {%- if field.help -%}
+          <p class="product-custom-fields__help">{{ field.help }}</p>
+        {%- endif -%}
+      </div>
+    {%- endfor -%}
+  </div>
+{%- endif -%}
+
+<style>
+  .product-custom-fields {
+    margin: var(--spacing-md) 0;
+    padding: var(--spacing-md);
+    background-color: var(--color-background-light);
+    border-radius: var(--radius-md);
+  }
+
+  .product-custom-fields__title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .product-custom-fields__field {
+    margin-bottom: var(--spacing-md);
+  }
+
+  .product-custom-fields__field:last-child {
+    margin-bottom: 0;
+  }
+
+  .product-custom-fields__label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: var(--spacing-xs);
+    color: var(--color-text);
+  }
+
+  .product-custom-fields__required {
+    color: var(--color-error);
+    margin-left: 0.25rem;
+  }
+
+  .product-custom-fields__input,
+  .product-custom-fields__textarea,
+  .product-custom-fields__select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 0.9375rem;
+    font-family: inherit;
+    background-color: var(--color-background);
+    transition: border-color 0.2s ease;
+  }
+
+  .product-custom-fields__input:focus,
+  .product-custom-fields__textarea:focus,
+  .product-custom-fields__select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+
+  .product-custom-fields__textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  .product-custom-fields__counter {
+    display: block;
+    text-align: right;
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+    margin-top: 0.25rem;
+  }
+
+  .product-custom-fields__file-wrapper {
+    position: relative;
+  }
+
+  .product-custom-fields__file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    overflow: hidden;
+  }
+
+  .product-custom-fields__file-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .product-custom-fields__file-label:hover {
+    border-color: var(--color-primary);
+    background-color: rgba(var(--color-primary-rgb), 0.05);
+  }
+
+  .product-custom-fields__file-input:focus + .product-custom-fields__file-label {
+    border-color: var(--color-primary);
+  }
+
+  .product-custom-fields__file-info {
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+    margin-top: 0.25rem;
+  }
+
+  .product-custom-fields__checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+
+  .product-custom-fields__checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-primary);
+  }
+
+  .product-custom-fields__color-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .product-custom-fields__color {
+    width: 48px;
+    height: 48px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    padding: 2px;
+  }
+
+  .product-custom-fields__color-value {
+    font-family: monospace;
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+  }
+
+  .product-custom-fields__help,
+  .product-custom-fields__info {
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+    margin-top: 0.25rem;
+  }
+</style>
+
+<script>
+  (function() {
+    'use strict';
+
+    function initCustomFields(container) {
+      const textInputs = container.querySelectorAll('input[maxlength], textarea[maxlength]');
+      textInputs.forEach(input => {
+        const counter = input.parentElement.querySelector('[data-char-count]');
+        if (counter) {
+          input.addEventListener('input', () => {
+            counter.textContent = input.value.length;
+          });
+        }
+      });
+
+      const fileInputs = container.querySelectorAll('.product-custom-fields__file-input');
+      fileInputs.forEach(input => {
+        const textEl = input.parentElement.querySelector('[data-file-text]');
+        const urlInput = input.parentElement.querySelector('[data-file-url]');
+        const maxSize = parseInt(input.dataset.maxSize) || 5242880;
+
+        input.addEventListener('change', async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          if (file.size > maxSize) {
+            alert('Fichier trop volumineux. Taille max. : ' + Math.round(maxSize / 1048576) + 'Mo');
+            input.value = '';
+            return;
+          }
+
+          textEl.textContent = file.name;
+
+          // For file uploads, store base64 or use a file upload service
+          // This is a simplified version that stores file name
+          if (urlInput) {
+            urlInput.value = file.name;
+          }
+        });
+      });
+
+      const colorInputs = container.querySelectorAll('.product-custom-fields__color');
+      colorInputs.forEach(input => {
+        const valueEl = input.parentElement.querySelector('[data-color-value]');
+        if (valueEl) {
+          input.addEventListener('input', () => {
+            valueEl.textContent = input.value.toUpperCase();
+          });
+        }
+      });
+    }
+
+    document.querySelectorAll('[data-custom-fields]').forEach(initCustomFields);
+
+    if (Shopify.designMode) {
+      document.addEventListener('shopify:section:load', (e) => {
+        const fields = e.target.querySelector('[data-custom-fields]');
+        if (fields) initCustomFields(fields);
+      });
+    }
+  })();
+</script>

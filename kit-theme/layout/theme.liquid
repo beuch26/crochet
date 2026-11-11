@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}" dir="{{ settings.text_direction }}">
+<head>
+  <!--
+    Theme: Premium SEO Theme for Shopify 2.0
+    Version: 2.2.5
+    Last Updated: 2025-11-09
+    MEGA MENU: Nouveau mega-menu avec prévisualisation d'images (Vanilla JavaScript)
+    - Affichage automatique image collection/produit selon le lien
+    - Changement d'image au survol des sous-éléments
+    - Design moderne avec fond noir semi-transparent
+    HOMEPAGE: Enhanced with USPs/Features section
+    PRODUCT: Optimized UX, zoom fixed (high-res), compact design, trust badges, tabs
+    COLLECTION: Product cards now show ratings/reviews
+    BLOG ARTICLE: 5 sections (template: article.json - default)
+    BLOG LIST: 5 sections (template: blog.json)
+    SEARCH: All translations complete in French
+    CART DRAWER: Optimized (removed note/promo), +/- buttons working, title fixed
+    ZOOM: Fixed high-res images loading (click to open lightbox)
+    PAYMENT ICONS: On product page + footer (configurable - Visa, Mastercard, PayPal, Apple Pay, etc.)
+    CUSTOM FONTS: Import Google Fonts or upload custom fonts (.woff2, .woff) via settings
+    GitHub Sync Test: If you see this version number, GitHub sync is working!
+  -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="{{ settings.color_primary }}">
+
+  {%- comment -%}
+    Content Security Policy for enhanced security
+    Note: 'unsafe-inline' is required for Shopify themes due to inline scripts
+    Consider tightening this policy once all inline scripts are externalized
+  {%- endcomment -%}
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.shopify.com https://cdn.shopify.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.shopify.com https://cdn.shopify.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://cdnwidget.judge.me https://*.judge.me; style-src 'self' 'unsafe-inline' https://*.shopify.com https://cdn.shopify.com https://fonts.googleapis.com https://cdnwidget.judge.me https://*.judge.me; img-src 'self' data: https: http:; font-src 'self' data: https://fonts.gstatic.com https://cdn.shopify.com; connect-src 'self' https://*.shopify.com https://*.shopifysvc.com https://www.google-analytics.com https://www.facebook.com https://cdnwidget.judge.me https://*.judge.me; frame-src 'self' https://*.shopify.com https://www.youtube.com https://www.youtube-nocookie.com https://shop.app; object-src 'none'; base-uri 'self'; form-action 'self' https://*.shopify.com;">
+
+  {%- comment -%} Preconnect to critical domains for performance {%- endcomment -%}
+  <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  {%- if template == 'product' or request.path contains '/products/' -%}
+    <link rel="preconnect" href="https://cdnwidget.judge.me" crossorigin>
+  {%- endif -%}
+
+  {%- comment -%} Preload critical fonts for LCP optimization {%- endcomment -%}
+  {%- if settings.use_custom_font_heading and settings.custom_font_heading_url contains 'Circe-Bold' -%}
+    <link rel="preload" href="{{ settings.custom_font_heading_url }}" as="font" type="font/ttf" crossorigin>
+  {%- endif -%}
+  {%- if settings.use_custom_font_body and settings.custom_font_body_url contains 'GTStandard' -%}
+    <link rel="preload" href="{{ settings.custom_font_body_url }}" as="font" type="font/woff2" crossorigin>
+  {%- endif -%}
+
+  {%- comment -%} DNS Prefetch for external resources {%- endcomment -%}
+  <link rel="dns-prefetch" href="https://www.google-analytics.com">
+  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+
+  {%- comment -%} Custom Fonts / Polices Personnalisées {%- endcomment -%}
+  {%- comment -%} Only load Google Fonts URLs (fonts.googleapis.com), skip invalid or font file URLs {%- endcomment -%}
+  {%- if settings.use_custom_font_heading and settings.custom_font_heading_url != blank and settings.custom_font_heading_url contains 'fonts.googleapis.com' -%}
+    <link rel="stylesheet" href="{{ settings.custom_font_heading_url }}" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="{{ settings.custom_font_heading_url }}"></noscript>
+  {%- endif -%}
+  {%- if settings.use_custom_font_body and settings.custom_font_body_url != blank and settings.custom_font_body_url contains 'fonts.googleapis.com' -%}
+    <link rel="stylesheet" href="{{ settings.custom_font_body_url }}" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="{{ settings.custom_font_body_url }}"></noscript>
+  {%- endif -%}
+
+  {%- comment -%} Page Title - SEO Optimized {%- endcomment -%}
+  <title>
+    {%- if page_title == blank -%}
+      {{ shop.name }}
+    {%- elsif page_title contains shop.name -%}
+      {{ page_title }}
+    {%- else -%}
+      {{ page_title }} - {{ shop.name }}
+    {%- endif -%}
+  </title>
+
+  {%- comment -%} Canonical URL to prevent duplicate content {%- endcomment -%}
+  {%- if canonical_url -%}
+    <link rel="canonical" href="{{ canonical_url }}">
+  {%- endif -%}
+
+  {%- comment -%} Sitemap Reference for SEO Crawlers {%- endcomment -%}
+  <link rel="sitemap" type="application/xml" title="Sitemap" href="{{ shop.url }}/sitemap.xml">
+
+  {%- comment -%} Meta Description - SEO Critical {%- endcomment -%}
+  {%- if page_description -%}
+    <meta name="description" content="{{ page_description | escape }}">
+  {%- elsif template == 'index' and shop.description != blank -%}
+    <meta name="description" content="{{ shop.description | escape }}">
+  {%- endif -%}
+
+  {%- comment -%} Robots Meta Tag {%- endcomment -%}
+  {%- if settings.seo_noindex_pages contains template.name or page.metafields.seo.noindex -%}
+    <meta name="robots" content="noindex, nofollow">
+  {%- else -%}
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  {%- endif -%}
+
+  {%- comment -%} SEO Meta Tags (Open Graph, Twitter Cards) {%- endcomment -%}
+  {%- render 'seo-meta' -%}
+
+  {%- comment -%} Structured Data (Schema.org JSON-LD) {%- endcomment -%}
+  {%- render 'seo-schema-organization' -%}
+
+  {%- if template.name == 'product' -%}
+    {%- render 'seo-schema-product', product: product -%}
+  {%- elsif template.name == 'article' -%}
+    {%- render 'seo-schema-article', article: article -%}
+  {%- endif -%}
+
+  {%- comment -%} Breadcrumbs Schema {%- endcomment -%}
+  {%- unless template.name == 'index' or template.name == '404' -%}
+    {%- render 'seo-schema-breadcrumbs' -%}
+  {%- endunless -%}
+
+  {%- comment -%} Hreflang tags for multilingual SEO {%- endcomment -%}
+  {%- if settings.enable_multilingual -%}
+    {%- for locale in shop.published_locales -%}
+      <link rel="alternate" hreflang="{{ locale.iso_code }}" href="{{ canonical_url | default: request.origin }}{{ request.path }}?locale={{ locale.iso_code }}">
+    {%- endfor -%}
+    <link rel="alternate" hreflang="x-default" href="{{ canonical_url | default: request.origin }}{{ request.path }}">
+  {%- endif -%}
+
+  {%- comment -%} Favicon {%- endcomment -%}
+  {%- if settings.favicon -%}
+    <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ settings.favicon | image_url: width: 180, height: 180 }}">
+  {%- endif -%}
+
+  {%- comment -%} Preload critical assets for performance {%- endcomment -%}
+  <link rel="preload" href="{{ 'theme.css' | asset_url }}" as="style">
+  <link rel="preload" href="{{ 'theme.js' | asset_url }}" as="script">
+
+  {%- if settings.font_heading.url -%}
+    <link rel="preload" href="{{ settings.font_heading.url }}" as="font" type="font/woff2" crossorigin>
+  {%- endif -%}
+  {%- if settings.font_body.url -%}
+    <link rel="preload" href="{{ settings.font_body.url }}" as="font" type="font/woff2" crossorigin>
+  {%- endif -%}
+
+  {%- comment -%} Critical CSS Inline (Above the fold) {%- endcomment -%}
+  <style>
+    :root {
+      /* Color Tokens */
+      --color-primary: {{ settings.color_primary }};
+      --color-primary-light: {{ settings.color_primary | color_lighten: 15 }};
+      --color-primary-dark: {{ settings.color_primary | color_darken: 30 }};
+      --color-secondary: {{ settings.color_secondary }};
+      --color-secondary-light: {{ settings.color_secondary | color_lighten: 15 }};
+      --color-secondary-dark: {{ settings.color_secondary | color_darken: 30 }};
+      --color-text: {{ settings.color_text }};
+      --color-text-light: {{ settings.color_text_light }};
+      --color-background: {{ settings.color_background }};
+      --color-background-light: {{ settings.color_background_light }};
+      --color-border: {{ settings.color_border }};
+      --color-success: {{ settings.color_success | default: '#28a745' }};
+      --color-warning: {{ settings.color_warning | default: '#ffc107' }};
+      --color-error: {{ settings.color_error | default: '#dc3545' }};
+
+      /* Typography Tokens */
+      {%- if settings.use_custom_font_heading and settings.custom_font_heading_name != blank -%}
+        --font-heading: '{{ settings.custom_font_heading_name }}', sans-serif;
+      {%- else -%}
+        --font-heading: {{ settings.font_heading.family }}, {{ settings.font_heading.fallback_families }};
+      {%- endif -%}
+      {%- if settings.use_custom_font_body and settings.custom_font_body_name != blank -%}
+        --font-body: '{{ settings.custom_font_body_name }}', sans-serif;
+      {%- else -%}
+        --font-body: {{ settings.font_body.family }}, {{ settings.font_body.fallback_families }};
+      {%- endif -%}
+      --font-size-base: {{ settings.font_size_base | default: 16 }}px;
+      --line-height-base: {{ settings.line_height_base | default: 1.6 }};
+
+      /* Spacing Tokens */
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 1rem;
+      --spacing-md: 1.5rem;
+      --spacing-lg: 2rem;
+      --spacing-xl: 3rem;
+      --spacing-2xl: 4rem;
+
+      /* Border Radius */
+      --radius-sm: {{ settings.border_radius_sm | default: 4 }}px;
+      --radius-md: {{ settings.border_radius_md | default: 8 }}px;
+      --radius-lg: {{ settings.border_radius_lg | default: 12 }}px;
+
+      /* Button Radius */
+      --btn-radius-primary: {{ settings.button_radius_primary | default: '8px' }};
+      --btn-radius-secondary: {{ settings.button_radius_secondary | default: '8px' }};
+
+      /* Section Title Spacing */
+      --section-title-spacing: {{ settings.section_title_margin_bottom | default: 24 }}px;
+
+      /* Link Colors - defaults to theme primary/secondary */
+      --color-link: {{ settings.color_link | default: settings.color_primary }};
+      --color-link-hover: {{ settings.color_link_hover | default: settings.color_secondary }};
+
+      /* Price Colors - defaults to theme primary color */
+      --color-price: {{ settings.color_price | default: settings.color_primary }};
+      --color-price-sale: {{ settings.color_price_sale | default: settings.color_price | default: settings.color_primary }};
+      --color-price-compare: {{ settings.color_price_compare | default: settings.color_text_light }};
+
+      /* Button Hover Colors - defaults to theme primary color */
+      --btn-primary-hover-bg: {{ settings.button_primary_hover_bg | default: settings.color_primary }};
+      --btn-primary-hover-text: {{ settings.button_primary_hover_text | default: '#ffffff' }};
+      --btn-secondary-hover-bg: {{ settings.button_secondary_hover_bg | default: settings.color_primary }};
+      --btn-secondary-hover-text: {{ settings.button_secondary_hover_text | default: '#ffffff' }};
+
+      /* Transition */
+      --transition-speed: {{ settings.transition_speed | default: 0.3 }}s;
+      --transition-ease: ease-in-out;
+
+      /* Container Width */
+      --container-width: {{ settings.container_width | default: 1200 }}px;
+
+      /* Header Height - valeur par défaut généreuse, ajustée par JS */
+      --header-height: 100px;
+    }
+
+    {%- comment -%} Custom Font CSS (@font-face declarations) {%- endcomment -%}
+    {%- if settings.custom_font_css != blank -%}
+      {%- comment -%} Inject font-display: swap for better performance {%- endcomment -%}
+      {{ settings.custom_font_css | replace: 'font-style: normal;', 'font-style: normal; font-display: swap;' }}
+    {%- endif -%}
+
+    /* Free Price Badge with Shimmer Animation */
+    .price-free-badge {
+      display: inline-block;
+      text-transform: uppercase;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      background: linear-gradient(
+        90deg,
+        var(--color-primary, #0369a1) 0%,
+        #38bdf8 25%,
+        var(--color-primary, #0369a1) 50%,
+        #38bdf8 75%,
+        var(--color-primary, #0369a1) 100%
+      );
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer-free 2s linear infinite;
+    }
+
+    @keyframes shimmer-free {
+      0% {
+        background-position: 100% 0;
+      }
+      100% {
+        background-position: -100% 0;
+      }
+    }
+
+    /* Critical CSS - Above the fold */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: var(--font-size-base);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font-body);
+      line-height: var(--line-height-base);
+      color: var(--color-text);
+      background-color: var(--color-background);
+      overflow-x: hidden;
+    }
+
+    /* Skip to main content for accessibility */
+    .skip-to-content {
+      position: absolute;
+      left: -9999px;
+      z-index: 999;
+      padding: 1rem;
+      background-color: var(--color-primary);
+      color: white;
+      text-decoration: none;
+    }
+
+    .skip-to-content:focus {
+      left: 50%;
+      transform: translateX(-50%);
+      top: 1rem;
+    }
+
+    /* Loading state to prevent FOUC */
+    .loading {
+      opacity: 0;
+      animation: fadeIn 0.3s ease-in forwards;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    /* CLS Prevention: Reserve space for text elements */
+    .section-subtitle {
+      line-height: 1.6;
+      min-height: 1.6em;
+    }
+
+    /* Performance: Defer rendering of below-fold sections */
+    .section-featured-collection,
+    .section-collection-list,
+    .section-testimonials,
+    .section-newsletter,
+    .section-rich-text,
+    .section-image-with-text,
+    .section-faq,
+    .section-video,
+    .section-tiktok-feed,
+    .section-instagram-feed,
+    .section-product-stats {
+      content-visibility: auto;
+      contain-intrinsic-size: 0 500px;
+    }
+  </style>
+
+  {%- comment -%} Main Stylesheet {%- endcomment -%}
+  {{ 'theme.css' | asset_url | stylesheet_tag }}
+
+  {%- comment -%} Section specific stylesheets {%- endcomment -%}
+  {{ content_for_header }}
+
+  {%- comment -%}
+    Custom CSS from theme settings
+    ⚠️ SECURITY WARNING: This allows arbitrary CSS injection.
+    Only store owners should have access to theme settings.
+    Consider using assets/custom.css file instead for production.
+  {%- endcomment -%}
+  {%- if settings.custom_css != blank -%}
+    <style id="custom-css">
+      /* Custom CSS from Theme Settings - Use with caution */
+      {{ settings.custom_css }}
+    </style>
+  {%- endif -%}
+
+  {%- comment -%} Google Analytics 4 {%- endcomment -%}
+  {%- if settings.google_analytics_id != blank -%}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ settings.google_analytics_id }}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '{{ settings.google_analytics_id }}', {
+        'send_page_view': true,
+        'anonymize_ip': {{ settings.ga_anonymize_ip | default: true }}
+      });
+    </script>
+  {%- endif -%}
+
+  {%- comment -%} Meta Pixel (Facebook) - Deferred for performance {%- endcomment -%}
+  {%- if settings.facebook_pixel_id != blank -%}
+    <script>
+      window.fbq||(window.fbq=function(){window.fbq.queue.push(arguments)},window.fbq.queue=[]);
+      window.addEventListener('load',function(){
+        var s=document.createElement('script');
+        s.async=!0;s.src='https://connect.facebook.net/en_US/fbevents.js';
+        s.onload=function(){fbq('init','{{ settings.facebook_pixel_id }}');fbq('track','PageView')};
+        document.head.appendChild(s);
+      });
+    </script>
+    <noscript>
+      <img height="1" width="1" style="display:none"
+           src="https://www.facebook.com/tr?id={{ settings.facebook_pixel_id }}&ev=PageView&noscript=1"/>
+    </noscript>
+  {%- endif -%}
+
+  {%- comment -%} Fix pagination SEO: Shopify generates ?page=1 for rel="prev" on page 2, but it should be canonical URL without parameter {%- endcomment -%}
+  <script>
+    (function() {
+      var links = document.head.querySelectorAll('link[rel="prev"]');
+      links.forEach(function(link) {
+        var href = link.getAttribute('href');
+        if (href && (href.endsWith('?page=1') || href.match(/\?page=1$/))) {
+          link.setAttribute('href', href.replace(/\?page=1$/, ''));
+        }
+      });
+    })();
+  </script>
+</head>
+
+<body class="template-{{ template.name | handle }} {% if customer %}customer-logged-in{% endif %} loading" data-template="{{ template.name }}">
+
+  {%- comment -%} Scroll Progress Indicator {%- endcomment -%}
+  {%- render 'scroll-progress' -%}
+
+  {%- comment -%} Skip to main content link for accessibility {%- endcomment -%}
+  <a href="#main-content" class="skip-to-content">
+    {{ 'accessibility.skip_to_content' | t }}
+  </a>
+
+  {%- comment -%} Header {%- endcomment -%}
+  {% section 'header' %}
+
+  {%- comment -%} Main Content Area {%- endcomment -%}
+  <main id="main-content" role="main" class="main-content" tabindex="-1">
+    {{ content_for_layout }}
+  </main>
+
+  {%- comment -%} Footer {%- endcomment -%}
+  {% section 'footer' %}
+
+  {%- comment -%} Overlay for drawers and modals {%- endcomment -%}
+  <div class="overlay"></div>
+
+  {%- comment -%} Cart Drawer (Ajax Cart Sidebar) {%- endcomment -%}
+  {%- render 'cart-drawer' -%}
+
+  {%- comment -%} Search Drawer (Predictive Search) {%- endcomment -%}
+  {%- render 'search-drawer' -%}
+
+  {%- comment -%} Back to Top Button {%- endcomment -%}
+  <button id="back-to-top" class="back-to-top" aria-label="{{ 'accessibility.back_to_top' | t }}" style="display:none;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
+  {%- comment -%} Phase 3: Premium Features {%- endcomment -%}
+
+  {%- comment -%} Product Quick View Modal {%- endcomment -%}
+  {%- render 'product-quick-view' -%}
+
+  {%- comment -%} Wishlist Modal & System {%- endcomment -%}
+  {%- render 'wishlist' -%}
+
+  {%- comment -%} Loading Overlay {%- endcomment -%}
+  {%- render 'loading-overlay' -%}
+
+  {%- comment -%} Cookie Consent (GDPR) {%- endcomment -%}
+  {%- render 'cookie-consent' -%}
+
+  {%- comment -%} Age Verification (for CBD, alcohol, etc.) {%- endcomment -%}
+  {%- if settings.enable_age_verification -%}
+    {%- render 'age-verification' -%}
+  {%- endif -%}
+
+  {%- comment -%} Newsletter Popup (Exit Intent) - Section {%- endcomment -%}
+  {%- if settings.enable_newsletter_popup -%}
+    {%- section 'newsletter-popup' -%}
+  {%- endif -%}
+
+  {%- comment -%} Promo Popup (Discount + Newsletter) - Section {%- endcomment -%}
+  {%- section 'promo-popup' -%}
+
+  {%- comment -%} Main JavaScript {%- endcomment -%}
+  <script src="{{ 'theme.js' | asset_url }}" defer></script>
+
+  {%- comment -%} Shopify Required Scripts {%- endcomment -%}
+  <script>
+    window.theme = {
+      routes: {
+        cart_add_url: '/cart/add.js',
+        cart_change_url: '/cart/change.js',
+        cart_update_url: '/cart/update.js',
+        cart_url: '{{ routes.cart_url }}',
+        predictive_search_url: '{{ routes.predictive_search_url }}'
+      },
+      strings: {
+        add_to_cart: {{ 'products.product.add_to_cart' | t | json }},
+        sold_out: {{ 'products.product.sold_out' | t | json }},
+        unavailable: {{ 'products.product.unavailable' | t | json }},
+        cart_error: {{ 'cart.general.cart_error' | t | json }}
+      },
+      translations: {
+        freeShippingQualified: {{ 'shipping.free_shipping_qualified' | t | json }},
+        spendForFree: {{ 'shipping.spend_for_free' | t | json }}
+      },
+      moneyFormat: {{ shop.money_format | json }},
+      locale: {{ request.locale.iso_code | json }}
+    };
+  </script>
+
+  {%- comment -%}
+    Custom JavaScript from theme settings
+    ⚠️ SECURITY WARNING: This allows arbitrary JavaScript execution.
+    Only store owners should have access to theme settings.
+    RECOMMENDATION: Use assets/custom.js file instead for production.
+  {%- endcomment -%}
+  {%- if settings.custom_js != blank -%}
+    <script id="custom-js">
+      /* Custom JavaScript from Theme Settings - Use with caution */
+      {{ settings.custom_js }}
+    </script>
+  {%- endif -%}
+
+  {%- comment -%} Performance: Remove loading class after page load {%- endcomment -%}
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      document.body.classList.remove('loading');
+    });
+  </script>
+
+  {%- comment -%} Fixed Header Compensation: Add padding-top to main-content {%- endcomment -%}
+  <script>
+    (function() {
+      function setHeaderOffset() {
+        const header = document.querySelector('.header');
+        const mainContent = document.querySelector('.main-content');
+
+        if (header) {
+          const headerHeight = header.offsetHeight;
+          // Set CSS variable immediately for all sections that depend on it
+          document.documentElement.style.setProperty('--header-height', headerHeight + 'px');
+
+          if (mainContent) {
+            // Check if first section should be flush with header
+            const firstSection = mainContent.querySelector('.shopify-section:first-child');
+            const shouldBeFlush = firstSection && (
+              firstSection.classList.contains('section-hero-banner') ||
+              firstSection.classList.contains('section-collection-promo-banner') ||
+              firstSection.classList.contains('section-breadcrumb') ||
+              firstSection.classList.contains('section-ticker')
+            );
+
+            // Only add padding if first section is NOT flush with header
+            if (!shouldBeFlush) {
+              mainContent.style.paddingTop = headerHeight + 'px';
+            } else {
+              mainContent.style.paddingTop = '0';
+            }
+          }
+        }
+      }
+
+      // Run ASAP - don't wait for DOMContentLoaded if elements already exist
+      if (document.querySelector('.header')) {
+        setHeaderOffset();
+      }
+
+      // Also run on DOMContentLoaded to ensure it's set
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setHeaderOffset);
+      } else {
+        setHeaderOffset();
+      }
+
+      // Recalculate on resize (debounced)
+      let resizeTimer;
+      window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(setHeaderOffset, 250);
+      });
+    })();
+  </script>
+</body>
+</html>

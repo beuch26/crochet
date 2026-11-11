@@ -1,0 +1,33 @@
+---
+import CollectionBubbles from '../sections/CollectionBubbles.astro'
+import { getCollections, getCollectionProducts } from '../../lib/medusa'
+
+interface Props {
+  title?: string
+  limit?: number
+  shape?: 'circle' | 'square'
+}
+
+const { title = 'Nos univers', limit = 12 } = Astro.props
+
+let collections: any[] = []
+try {
+  const data = await getCollections()
+  const base = (data.collections || []).slice(0, limit)
+  // Attach first product thumbnail as the collection bubble image
+  const withThumbs = await Promise.all(
+    base.map(async (col: any) => {
+      try {
+        const { products } = await getCollectionProducts(col.id, 1)
+        const thumb = products?.[0]?.thumbnail || products?.[0]?.images?.[0]?.url || null
+        return { ...col, thumbnail: thumb }
+      } catch {
+        return col
+      }
+    })
+  )
+  collections = withThumbs
+} catch {}
+---
+
+{collections.length > 0 && <CollectionBubbles collections={collections} />}

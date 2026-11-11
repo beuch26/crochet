@@ -1,0 +1,402 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "breadcrumb": {
+      "type": "breadcrumb",
+      "settings": {
+        "show_breadcrumb": true,
+        "spacing_top_desktop": 0,
+        "spacing_top_mobile": 0,
+        "spacing_bottom": 0,
+        "section_height": 40,
+        "background_color": "#f9f9f9",
+        "text_home": "Magic Crochet Kit",
+        "text_products": "Produits",
+        "text_search": "Recherche",
+        "text_cart": "Panier",
+        "text_collections": "Collections",
+        "text_account": "Compte",
+        "text_addresses": "Adresses",
+        "text_order": "Commande"
+      }
+    },
+    "main": {
+      "type": "product-main",
+      "settings": {
+        "show_vendor": true,
+        "show_description": true,
+        "show_title_metafields": false,
+        "title_metafield_1": "",
+        "title_metafield_icon_1": "check",
+        "title_metafield_2": "",
+        "title_metafield_icon_2": "check",
+        "title_metafield_3": "",
+        "title_metafield_icon_3": "check",
+        "title_metafield_4": "",
+        "title_metafield_icon_4": "check",
+        "title_metafield_5": "",
+        "title_metafield_icon_5": "check",
+        "debug_metafields": false,
+        "show_reviews": true,
+        "show_sku": false,
+        "show_type": false,
+        "show_tags": false,
+        "show_share": false,
+        "variant_style": "dropdown",
+        "show_stock": true,
+        "low_stock_threshold": 5,
+        "show_stock_urgency": true,
+        "stock_urgency_threshold": 10,
+        "show_quantity": true,
+        "show_buy_now": true,
+        "show_dynamic_checkout": false,
+        "show_tax_info": false,
+        "show_countdown": false,
+        "countdown_end_date": "",
+        "countdown_title": "Limited Time Offer!",
+        "show_free_shipping_progress": false,
+        "free_shipping_threshold": 5000,
+        "show_estimated_delivery": true,
+        "delivery_min_days": 3,
+        "delivery_max_days": 5,
+        "show_quantity_breaks": true,
+        "show_subscription_options": true,
+        "show_size_chart": true,
+        "size_chart_text": "Guide des tailles",
+        "show_custom_fields": true,
+        "show_quantity_gift": false,
+        "show_shipping_estimator": false,
+        "show_urgency_badges": true,
+        "urgency_show_stock": true,
+        "urgency_show_sold": true,
+        "urgency_countdown_hours": 0,
+        "show_trust_guarantees": false,
+        "show_urgency_banner": false,
+        "urgency_banner_text": "",
+        "show_promo_marquee": false,
+        "show_vertical_marquee": false,
+        "show_decorative_elements": false
+      }
+    },
+    "product_features": {
+      "type": "product-features",
+      "blocks": {
+        "feature_1": {
+          "type": "feature",
+          "settings": {
+            "image_position": "auto",
+            "text": "<p>Tout ce dont vous avez besoin est inclus : laine premium, crochet ergonomique, rembourrage hypoallergénique, yeux de sécurité et aiguille à laine.</p>"
+          }
+        },
+        "feature_2": {
+          "type": "feature",
+          "settings": {
+            "image_position": "auto",
+            "text": "<p>Suivez notre tutoriel vidéo HD qui vous guide à travers chaque étape. Parfait pour les débutants comme pour les confirmés.</p>"
+          }
+        },
+        "feature_3": {
+          "type": "feature",
+          "settings": {
+            "image_position": "auto",
+            "text": "<p>Nous sommes tellement confiants dans la qualité de nos kits que nous offrons une garantie satisfait ou remboursé de 30 jours.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "feature_1",
+        "feature_2",
+        "feature_3"
+      ],
+      "settings": {
+        "title": "Pourquoi vous allez adorer ce kit",
+        "subtitle": "Découvrez tout ce qui rend notre kit unique",
+        "use_product_description": true,
+        "enable_heading_style": true,
+        "heading_style": "signature-1",
+        "heading_style_color": "#1e3a5f",
+        "typing_texts": ""
+      }
+    },
+    "faq_product_cG4pne": {
+      "type": "faq-product",
+      "name": "FAQ Produit",
+      "settings": {
+        "subtitle": "Besoin d'aide ?",
+        "title": "Questions fréquentes",
+        "heading_tag": "h2",
+        "open_first": true
+      }
+    },
+    "ticker_benefits": {
+      "type": "ticker-marquee",
+      "blocks": {
+        "benefit_1": {
+          "type": "text",
+          "settings": {
+            "text": "CRÉEZ VOTRE PREMIÈRE PELUCHE",
+            "icon": ""
+          }
+        },
+        "benefit_2": {
+          "type": "text",
+          "settings": {
+            "text": "APPRENEZ LE CROCHET FACILEMENT",
+            "icon": ""
+          }
+        },
+        "benefit_3": {
+          "type": "text",
+          "settings": {
+            "text": "CRÉEZ VOTRE PREMIÈRE PELUCHE",
+            "icon": ""
+          }
+        },
+        "benefit_4": {
+          "type": "text",
+          "settings": {
+            "text": "APPRENEZ LE CROCHET FACILEMENT",
+            "icon": ""
+          }
+        }
+      },
+      "block_order": [
+        "benefit_1",
+        "benefit_2",
+        "benefit_3",
+        "benefit_4"
+      ],
+      "settings": {
+        "speed": 30,
+        "direction": "right",
+        "pause_on_hover": false,
+        "font_size": "small",
+        "separator": "•",
+        "background_color": "#f3f4f6",
+        "text_color": "#374151"
+      }
+    },
+    "stats": {
+      "type": "product-stats",
+      "blocks": {
+        "stat_1": {
+          "type": "stat",
+          "settings": {
+            "number": "93%",
+            "text": "De nos clients réussissent leur premier projet du premier coup grâce à nos instructions détaillées et tutoriels vidéo."
+          }
+        },
+        "stat_2": {
+          "type": "stat",
+          "settings": {
+            "number": "87%",
+            "text": "Recommandent nos kits à leurs amis et famille pour débuter le crochet en toute confiance."
+          }
+        },
+        "stat_3": {
+          "type": "stat",
+          "settings": {
+            "number": "5h",
+            "text": "C'est le temps moyen pour créer votre première peluche, même en partant de zéro total."
+          }
+        }
+      },
+      "block_order": [
+        "stat_1",
+        "stat_2",
+        "stat_3"
+      ],
+      "settings": {
+        "image": "shopify://shop_images/1_f2d7dc6c-680e-4b56-8273-805d0b17ecde.png",
+        "accent_color": "#0369a1",
+        "background_color": "#ffffff"
+      }
+    },
+    "guarantee": {
+      "type": "guarantee-banner",
+      "settings": {
+        "title": "NOTRE ENGAGEMENT QUALITÉ",
+        "text": "Nous sommes tellement confiants dans la qualité de nos kits et de nos tutoriels que nous vous accompagnons jusqu'à la réussite de votre projet. Notre équipe est disponible 7j/7 pour répondre à vos questions et vous guider pas à pas.",
+        "background_color": "#f0f9ff",
+        "text_color": "#111827"
+      }
+    },
+    "comparison": {
+      "type": "comparison-table",
+      "blocks": {
+        "row_1": {
+          "type": "row",
+          "settings": {
+            "feature": "Kit 100% complet",
+            "other_value": "no",
+            "other_text": "",
+            "us_value": "yes",
+            "us_text": ""
+          }
+        },
+        "row_2": {
+          "type": "row",
+          "settings": {
+            "feature": "Instructions illustrées",
+            "other_value": "no",
+            "other_text": "",
+            "us_value": "yes",
+            "us_text": ""
+          }
+        },
+        "row_3": {
+          "type": "row",
+          "settings": {
+            "feature": "Tutoriels vidéo",
+            "other_value": "no",
+            "other_text": "",
+            "us_value": "yes",
+            "us_text": ""
+          }
+        },
+        "row_4": {
+          "type": "row",
+          "settings": {
+            "feature": "Support client 7j/7",
+            "other_value": "no",
+            "other_text": "",
+            "us_value": "yes",
+            "us_text": ""
+          }
+        },
+        "row_5": {
+          "type": "row",
+          "settings": {
+            "feature": "Garantie satisfait",
+            "other_value": "no",
+            "other_text": "",
+            "us_value": "yes",
+            "us_text": ""
+          }
+        }
+      },
+      "block_order": [
+        "row_1",
+        "row_2",
+        "row_3",
+        "row_4",
+        "row_5"
+      ],
+      "settings": {
+        "subtitle": "Pourquoi nous choisir",
+        "title": "La différence Magic Crochet",
+        "image": "shopify://shop_images/fanny_bert.jpg",
+        "image_badge": "",
+        "column_1_icon": "😕",
+        "column_1_title": "Autres",
+        "column_2_icon": "🧶",
+        "column_2_title": "Magic Crochet",
+        "button_label": "Voir tous nos kits",
+        "button_link": "/collections/kits-de-crochet",
+        "accent_color": "#0369a1",
+        "background_color": "#ffffff",
+        "enable_heading_style": false,
+        "heading_style": "signature-1",
+        "heading_style_color": "#dc2626",
+        "typing_texts": ""
+      }
+    },
+    "cta_bottom": {
+      "type": "cta-split",
+      "blocks": {
+        "text_1": {
+          "type": "text",
+          "settings": {
+            "text": "GARANTIE 1 AN"
+          }
+        },
+        "text_2": {
+          "type": "text",
+          "settings": {
+            "text": "KIT COMPLET"
+          }
+        },
+        "text_3": {
+          "type": "text",
+          "settings": {
+            "text": "30 JOURS GARANTIE"
+          }
+        },
+        "text_4": {
+          "type": "text",
+          "settings": {
+            "text": "HAUTE QUALITÉ"
+          }
+        },
+        "text_5": {
+          "type": "text",
+          "settings": {
+            "text": "TUTORIEL INCLUS"
+          }
+        },
+        "text_6": {
+          "type": "text",
+          "settings": {
+            "text": "SUPPORT 7J/7"
+          }
+        }
+      },
+      "block_order": [
+        "text_1",
+        "text_2",
+        "text_3",
+        "text_4",
+        "text_5",
+        "text_6"
+      ],
+      "settings": {
+        "show_overlay_content": true,
+        "title": "Prêt à créer ?",
+        "subtitle": "Découvrez tous nos kits pour débutants",
+        "button_label": "VOIR LES KITS",
+        "button_link": "/collections/kits-de-crochet",
+        "ticker_bg_color": "#0369a1",
+        "ticker_text_color": "#ffffff",
+        "text_size": 1.5,
+        "speed": 1
+      }
+    },
+    "product_tabs": {
+      "type": "product-tabs",
+      "settings": {}
+    },
+    "recommendations": {
+      "type": "product-recommendations",
+      "settings": {
+        "heading": "Vous aimerez aussi",
+        "products_to_show": 4,
+        "columns_desktop": "4",
+        "enable_heading_style": false,
+        "heading_style": "signature-1",
+        "heading_style_color": "#dc2626",
+        "typing_texts": ""
+      }
+    }
+  },
+  "order": [
+    "breadcrumb",
+    "main",
+    "product_features",
+    "faq_product_cG4pne",
+    "ticker_benefits",
+    "stats",
+    "guarantee",
+    "comparison",
+    "cta_bottom",
+    "product_tabs",
+    "recommendations"
+  ]
+}

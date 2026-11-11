@@ -1,0 +1,202 @@
+{%- comment -%}
+  Age Verification Modal
+  For age-restricted products (alcohol, CBD, etc.)
+  Usage: Add to layout/theme.liquid
+{%- endcomment -%}
+
+<div class="age-verification" data-age-verification style="display:none;">
+  <div class="age-verification__overlay"></div>
+
+  <div class="age-verification__container">
+    <div class="age-verification__icon">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <circle cx="40" cy="40" r="35" stroke="currentColor" stroke-width="3"/>
+        <text x="40" y="52" font-size="36" font-weight="bold" text-anchor="middle" fill="currentColor">21+</text>
+      </svg>
+    </div>
+
+    <h2 class="age-verification__title">
+      {{ 'age_verification.title' | t | default: 'Age Verification Required' }}
+    </h2>
+
+    <p class="age-verification__text">
+      {{ 'age_verification.text' | t | default: 'You must be 21 years or older to enter this site. Please confirm your age.' }}
+    </p>
+
+    <div class="age-verification__buttons">
+      <button type="button" class="btn btn--primary btn--large" data-age-confirm>
+        {{ 'age_verification.confirm' | t | default: 'I am 21 or older' }}
+      </button>
+      <button type="button" class="btn btn--secondary btn--large" data-age-deny>
+        {{ 'age_verification.deny' | t | default: 'I am under 21' }}
+      </button>
+    </div>
+
+    <p class="age-verification__disclaimer">
+      {{ 'age_verification.disclaimer' | t | default: 'By entering this site, you are agreeing to our Terms of Service and Privacy Policy.' }}
+    </p>
+  </div>
+</div>
+
+<style>
+.age-verification {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.age-verification__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.9) 100%);
+  backdrop-filter: blur(10px);
+}
+
+.age-verification__container {
+  position: relative;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: var(--spacing-3xl) var(--spacing-xl);
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  animation: fadeInScale 0.5s ease;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.age-verification__icon {
+  margin-bottom: var(--spacing-lg);
+  color: var(--color-primary);
+}
+
+.age-verification__title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  margin: 0 0 var(--spacing-md) 0;
+  line-height: 1.2;
+}
+
+.age-verification__text {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--color-text-light);
+  margin: 0 0 var(--spacing-2xl) 0;
+}
+
+.age-verification__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.age-verification__disclaimer {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  line-height: 1.4;
+  margin: 0;
+}
+</style>
+
+<script>
+(function() {
+  const AGE_COOKIE = 'age_verified';
+  const AGE_DAYS = 30;
+
+  const verification = document.querySelector('[data-age-verification]');
+  if (!verification) return;
+
+  // Check if age verification is needed
+  function needsVerification() {
+    // Check if already verified
+    if (getCookie(AGE_COOKIE)) {
+      return false;
+    }
+
+    // Only show on certain pages or for certain products
+    // You can customize this logic based on your needs
+    const requiresAge = document.body.classList.contains('age-restricted') ||
+                       document.querySelector('[data-age-restricted]') ||
+                       window.location.pathname.includes('/collections/cbd') ||
+                       window.location.pathname.includes('/collections/alcohol');
+
+    return requiresAge;
+  }
+
+  // Show verification
+  if (needsVerification()) {
+    verification.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  // Confirm age
+  document.querySelector('[data-age-confirm]')?.addEventListener('click', () => {
+    setCookie(AGE_COOKIE, 'true', AGE_DAYS);
+    hideVerification();
+
+    // Track event
+    if (window.dataLayer) {
+      window.dataLayer.push({
+        'event': 'age_verification_confirmed'
+      });
+    }
+  });
+
+  // Deny age
+  document.querySelector('[data-age-deny]')?.addEventListener('click', () => {
+    // Track event
+    if (window.dataLayer) {
+      window.dataLayer.push({
+        'event': 'age_verification_denied'
+      });
+    }
+
+    // Redirect to a safe page or show message
+    alert('{{ "age_verification.denied_message" | t | default: "Sorry, you must be 21 or older to access this content." }}');
+
+    // Redirect to homepage
+    window.location.href = '/';
+  });
+
+  function hideVerification() {
+    verification.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  // Cookie helpers
+  function setCookie(name, value, days) {
+    const date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/;SameSite=Strict`;
+  }
+
+  function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for(let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+      if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+  }
+})();
+</script>

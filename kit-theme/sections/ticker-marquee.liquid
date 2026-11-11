@@ -1,0 +1,376 @@
+{%- comment -%}
+  Ticker Marquee Section
+  Infinite scrolling text banner
+
+  Usage: Add via Theme Editor
+{%- endcomment -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign speed = section.settings.speed | default: 30
+  assign direction = section.settings.direction | default: 'left'
+  assign pause_on_hover = section.settings.pause_on_hover
+  assign background_color = section.settings.background_color
+  assign text_color = section.settings.text_color
+  assign font_size = section.settings.font_size | default: 'medium'
+  assign separator = section.settings.separator | default: '•'
+-%}
+
+{%- render 'section-spacing', id: section.id, margin_top: section.settings.section_margin_top, margin_bottom: section.settings.section_margin_bottom -%}
+
+<section
+  class="ticker-marquee ticker-marquee--{{ font_size }}"
+  id="ticker-{{ section_id }}"
+  style="--ticker-bg: {{ background_color }}; --ticker-color: {{ text_color }}; --ticker-speed: {{ speed }}s;"
+>
+  <div
+    class="ticker-marquee__track{% if pause_on_hover %} ticker-marquee__track--pause-hover{% endif %}"
+    data-ticker-track
+    data-direction="{{ direction }}"
+  >
+    {%- comment -%} Content gets duplicated via JS for seamless loop {%- endcomment -%}
+    <div class="ticker-marquee__content" data-ticker-content>
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+          {%- when 'text' -%}
+            <span class="ticker-marquee__item ticker-marquee__text" {{ block.shopify_attributes }}>
+              {%- if block.settings.icon != blank -%}
+                <span class="ticker-marquee__icon">{{ block.settings.icon }}</span>
+              {%- endif -%}
+              {{ block.settings.text }}
+            </span>
+            <span class="ticker-marquee__separator">{{ separator }}</span>
+
+          {%- when 'link' -%}
+            <a href="{{ block.settings.url }}" class="ticker-marquee__item ticker-marquee__link" {{ block.shopify_attributes }}>
+              {%- if block.settings.icon != blank -%}
+                <span class="ticker-marquee__icon">{{ block.settings.icon }}</span>
+              {%- endif -%}
+              {{ block.settings.text }}
+            </a>
+            <span class="ticker-marquee__separator">{{ separator }}</span>
+
+          {%- when 'image' -%}
+            <span class="ticker-marquee__item ticker-marquee__image-item" {{ block.shopify_attributes }}>
+              {%- if block.settings.image != blank -%}
+                <img
+                  src="{{ block.settings.image | image_url: height: 40 }}"
+                  alt="{{ block.settings.image.alt | default: 'Logo' }}"
+                  height="24"
+                  loading="lazy"
+                >
+              {%- endif -%}
+            </span>
+            <span class="ticker-marquee__separator">{{ separator }}</span>
+        {%- endcase -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+<style>
+  .ticker-marquee {
+    background-color: var(--ticker-bg);
+    color: var(--ticker-color);
+    overflow: hidden;
+    padding: var(--spacing-sm) 0;
+    width: 100%;
+  }
+
+  /* Si le ticker est la première section après le header fixe */
+  .section-ticker:first-child .ticker-marquee {
+    padding-top: calc(var(--header-height, 80px) + var(--spacing-sm));
+  }
+
+  .ticker-marquee--small {
+    font-size: 0.8125rem;
+    padding: var(--spacing-xs) 0;
+  }
+
+  .ticker-marquee--medium {
+    font-size: 1rem;
+  }
+
+  .ticker-marquee--large {
+    font-size: 1.25rem;
+    padding: var(--spacing-md) 0;
+  }
+
+  .ticker-marquee--xlarge {
+    font-size: 1.5rem;
+    padding: var(--spacing-lg) 0;
+  }
+
+  .ticker-marquee__track {
+    display: flex;
+    width: max-content;
+    animation: ticker-scroll var(--ticker-speed) linear infinite;
+    will-change: transform;
+  }
+
+  .ticker-marquee__track[data-direction="right"] {
+    animation-direction: reverse;
+  }
+
+  .ticker-marquee__track--pause-hover:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes ticker-scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .ticker-marquee__content {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    white-space: nowrap;
+    padding-right: var(--spacing-md);
+  }
+
+  .ticker-marquee__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .ticker-marquee__text {
+    color: inherit;
+  }
+
+  .ticker-marquee__link {
+    color: inherit;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .ticker-marquee__link:hover {
+    opacity: 0.7;
+  }
+
+  .ticker-marquee__icon {
+    font-size: 1.2em;
+  }
+
+  .ticker-marquee__separator {
+    opacity: 0.5;
+  }
+
+  .ticker-marquee__image-item img {
+    height: 24px;
+    width: auto;
+    vertical-align: middle;
+  }
+
+  .ticker-marquee--large .ticker-marquee__image-item img {
+    height: 32px;
+  }
+
+  .ticker-marquee--xlarge .ticker-marquee__image-item img {
+    height: 40px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ticker-marquee__track {
+      animation: none;
+    }
+
+    .ticker-marquee__content {
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: var(--spacing-sm);
+      gap: var(--spacing-sm) var(--spacing-md);
+    }
+  }
+</style>
+
+<script>
+  (function() {
+    'use strict';
+
+    function initTicker(section) {
+      const track = section.querySelector('[data-ticker-track]');
+      const content = section.querySelector('[data-ticker-content]');
+
+      if (!track || !content) return;
+
+      const clone = content.cloneNode(true);
+      clone.setAttribute('aria-hidden', 'true');
+      track.appendChild(clone);
+    }
+
+    document.querySelectorAll('.ticker-marquee').forEach(initTicker);
+
+    if (Shopify.designMode) {
+      document.addEventListener('shopify:section:load', (e) => {
+        if (e.target.classList.contains('ticker-marquee')) {
+          initTicker(e.target);
+        }
+      });
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Bandeau Défilant",
+  "tag": "section",
+  "class": "section-ticker",
+  "settings": [
+    {
+      "type": "range",
+      "id": "speed",
+      "label": "Vitesse d'animation",
+      "min": 10,
+      "max": 60,
+      "step": 5,
+      "default": 30,
+      "unit": "s",
+      "info": "Plus bas = plus rapide"
+    },
+    {
+      "type": "select",
+      "id": "direction",
+      "label": "Direction",
+      "options": [
+        { "value": "left", "label": "De gauche à droite" },
+        { "value": "right", "label": "De droite à gauche" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "checkbox",
+      "id": "pause_on_hover",
+      "label": "Pause au survol",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "font_size",
+      "label": "Taille du texte",
+      "options": [
+        { "value": "small", "label": "Petit" },
+        { "value": "medium", "label": "Moyen" },
+        { "value": "large", "label": "Grand" },
+        { "value": "xlarge", "label": "Très grand" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "text",
+      "id": "separator",
+      "label": "Séparateur",
+      "default": "•"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Couleur de fond",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Couleur du texte",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Espacement de la section"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_top",
+      "label": "Marge en haut (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_bottom",
+      "label": "Marge en bas (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "text",
+      "name": "Texte",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Texte",
+          "default": "Livraison gratuite dès 50€ d'achat"
+        },
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "Icône (emoji)",
+          "info": "Icône emoji optionnel"
+        }
+      ]
+    },
+    {
+      "type": "link",
+      "name": "Lien",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Texte",
+          "default": "Voir les nouveautés"
+        },
+        {
+          "type": "url",
+          "id": "url",
+          "label": "Lien"
+        },
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "Icône (emoji)",
+          "info": "Icône emoji optionnel"
+        }
+      ]
+    },
+    {
+      "type": "image",
+      "name": "Image/Logo",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Bandeau Défilant",
+      "blocks": [
+        { "type": "text", "settings": { "text": "Livraison gratuite dès 50€ d'achat", "icon": "🚚" } },
+        { "type": "text", "settings": { "text": "Retours sous 30 jours", "icon": "↩️" } },
+        { "type": "text", "settings": { "text": "Paiement sécurisé", "icon": "🔒" } },
+        { "type": "text", "settings": { "text": "Service client 24h/24", "icon": "💬" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

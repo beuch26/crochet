@@ -1,0 +1,386 @@
+{%- comment -%}
+  Breadcrumbs Navigation - Visual Display
+  Shows user's current location in site hierarchy
+  Essential for UX and SEO (paired with schema breadcrumbs)
+
+  Parameters:
+  - section: section object (optional) - contains settings for custom text
+{%- endcomment -%}
+
+{%- assign show_breadcrumb = section.settings.show_breadcrumb | default: true -%}
+
+{%- unless template.name == 'index' or template.name == '404' or show_breadcrumb == false -%}
+  <nav class="breadcrumbs" role="navigation" aria-label="{{ 'general.breadcrumbs.title' | t | default: 'Breadcrumb' }}">
+    <div class="container">
+      <ol class="breadcrumbs__list" itemscope itemtype="https://schema.org/BreadcrumbList">
+
+        {%- comment -%} Home Link {%- endcomment -%}
+        {%- if section.settings.text_home != blank -%}
+          {%- assign text_home = section.settings.text_home -%}
+        {%- else -%}
+          {%- assign text_home = shop.name -%}
+        {%- endif -%}
+        <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="{{ routes.root_url }}" class="breadcrumbs__link" itemprop="item">
+            <span itemprop="name">{{ text_home }}</span>
+          </a>
+          <meta itemprop="position" content="1">
+          <svg class="breadcrumbs__separator" width="8" height="12" viewBox="0 0 8 12" fill="none" aria-hidden="true">
+            <path d="M1.5 1L6.5 6L1.5 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </li>
+
+        {%- case template.name -%}
+
+          {%- comment -%} PRODUCT PAGE {%- endcomment -%}
+          {%- when 'product' -%}
+            {%- if collection -%}
+              <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                <a href="{{ collection.url }}" class="breadcrumbs__link" itemprop="item">
+                  <span itemprop="name">{{ collection.title }}</span>
+                </a>
+                <meta itemprop="position" content="2">
+                <svg class="breadcrumbs__separator" width="8" height="12" viewBox="0 0 8 12" fill="none" aria-hidden="true">
+                  <path d="M1.5 1L6.5 6L1.5 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </li>
+            {%- elsif product.collections.size > 0 -%}
+              {%- assign first_collection = product.collections.first -%}
+              <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                <a href="{{ first_collection.url }}" class="breadcrumbs__link" itemprop="item">
+                  <span itemprop="name">{{ first_collection.title }}</span>
+                </a>
+                <meta itemprop="position" content="2">
+                <svg class="breadcrumbs__separator" width="8" height="12" viewBox="0 0 8 12" fill="none" aria-hidden="true">
+                  <path d="M1.5 1L6.5 6L1.5 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </li>
+            {%- else -%}
+              {%- if section.settings.text_products != blank -%}
+                {%- assign text_products = section.settings.text_products -%}
+              {%- else -%}
+                {%- assign text_products = 'products.general.catalog' | t | default: 'Produits' -%}
+              {%- endif -%}
+              <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                <a href="{{ routes.all_products_collection_url }}" class="breadcrumbs__link" itemprop="item">
+                  <span itemprop="name">{{ text_products }}</span>
+                </a>
+                <meta itemprop="position" content="2">
+                <svg class="breadcrumbs__separator" width="8" height="12" viewBox="0 0 8 12" fill="none" aria-hidden="true">
+                  <path d="M1.5 1L6.5 6L1.5 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </li>
+            {%- endif -%}
+
+            <li class="breadcrumbs__item breadcrumbs__item--current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+              <span class="breadcrumbs__text" itemprop="name">{{ product.title | truncate: 50 }}</span>
+              <meta itemprop="position" content="3">
+            </li>
+
+          {%- comment -%} COLLECTION PAGE {%- endcomment -%}
+          {%- when 'collection' -%}
+            <li class="breadcrumbs__item breadcrumbs__item--current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+              <span class="breadcrumbs__text" itemprop="name">{{ collection.title }}</span>
+              <meta itemprop="position" content="2">
+            </li>
+
+          {%- comment -%} BLOG PAGE {%- endcomment -%}
+          {%- when 'blog' -%}
+            <li class="breadcrumbs__item breadcrumbs__item--current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+              <span class="breadcrumbs__text" itemprop="name">{{ blog.title }}</span>
+              <meta itemprop="position" content="2">
+            </li>
+
+          {%- comment -%} ARTICLE PAGE {%- endcomment -%}
+          {%- when 'article' -%}
+            <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+              <a href="{{ blog.url }}" class="breadcrumbs__link" itemprop="item">
+                <span itemprop="name">{{ blog.title }}</span>
+              </a>
+              <meta itemprop="position" content="2">
+              <svg class="breadcrumbs__separator" width="8" height="12" viewBox="0 0 8 12" fill="none" aria-hidden="true">
+                <path d="M1.5 1L6.5 6L1.5 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </li>
+            <li class="breadcrumbs__item breadcrumbs__item--current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+              <span class="breadcrumbs__text" itemprop="name">{{ article.title | truncate: 50 }}</span>
+              <meta itemprop="position" content="3">
+            </li>
+
+          {%- comment -%} PAGE {%- endcomment -%}
+          {%- when 'page' -%}
+            <li class="breadcrumbs__item breadcrumbs__item--current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+              <span class="breadcrumbs__text" itemprop="name">{{ page.title }}</span>
+              <meta itemprop="position" content="2">
+            </li>
+
+          {%- comment -%} SEARCH PAGE {%- endcomment -%}
+          {%- when 'search' -%}
+            {%- if section.settings.text_search != blank -%}
+              {%- assign text_search = section.settings.text_search -%}
+            {%- else -%}
+              {%- assign text_search = 'general.search.title' | t | default: 'Recherche' -%}
+            {%- endif -%}
+            <li class="breadcrumbs__item breadcrumbs__item--current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+              <span class="breadcrumbs__text" itemprop="name">
+                {{ text_search }}
+                {%- if search.terms -%}: "{{ search.terms }}"{%- endif -%}
+              </span>
+              <meta itemprop="position" content="2">
+            </li>
+
+          {%- comment -%} CART PAGE {%- endcomment -%}
+          {%- when 'cart' -%}
+            {%- if section.settings.text_cart != blank -%}
+              {%- assign text_cart = section.settings.text_cart -%}
+            {%- else -%}
+              {%- assign text_cart = 'cart.general.title' | t | default: 'Panier' -%}
+            {%- endif -%}
+            <li class="breadcrumbs__item breadcrumbs__item--current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+              <span class="breadcrumbs__text" itemprop="name">{{ text_cart }}</span>
+              <meta itemprop="position" content="2">
+            </li>
+
+          {%- comment -%} COLLECTIONS LIST {%- endcomment -%}
+          {%- when 'list-collections' -%}
+            {%- if section.settings.text_collections != blank -%}
+              {%- assign text_collections = section.settings.text_collections -%}
+            {%- else -%}
+              {%- assign text_collections = 'collections.general.title' | t | default: 'Collections' -%}
+            {%- endif -%}
+            <li class="breadcrumbs__item breadcrumbs__item--current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+              <span class="breadcrumbs__text" itemprop="name">{{ text_collections }}</span>
+              <meta itemprop="position" content="2">
+            </li>
+
+          {%- comment -%} CUSTOMER ACCOUNT {%- endcomment -%}
+          {%- when 'account', 'login', 'register', 'activate_account', 'reset_password' -%}
+            {%- if section.settings.text_account != blank -%}
+              {%- assign text_account = section.settings.text_account -%}
+            {%- else -%}
+              {%- assign text_account = 'customer.account.title' | t | default: 'Compte' -%}
+            {%- endif -%}
+            <li class="breadcrumbs__item breadcrumbs__item--current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+              <span class="breadcrumbs__text" itemprop="name">{{ text_account }}</span>
+              <meta itemprop="position" content="2">
+            </li>
+
+          {%- comment -%} CUSTOMER ADDRESSES {%- endcomment -%}
+          {%- when 'addresses' -%}
+            {%- if section.settings.text_account != blank -%}
+              {%- assign text_account = section.settings.text_account -%}
+            {%- else -%}
+              {%- assign text_account = 'customer.account.title' | t | default: 'Compte' -%}
+            {%- endif -%}
+            {%- if section.settings.text_addresses != blank -%}
+              {%- assign text_addresses = section.settings.text_addresses -%}
+            {%- else -%}
+              {%- assign text_addresses = 'customer.addresses.title' | t | default: 'Adresses' -%}
+            {%- endif -%}
+            <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+              <a href="{{ routes.account_url }}" class="breadcrumbs__link" itemprop="item">
+                <span itemprop="name">{{ text_account }}</span>
+              </a>
+              <meta itemprop="position" content="2">
+              <svg class="breadcrumbs__separator" width="8" height="12" viewBox="0 0 8 12" fill="none" aria-hidden="true">
+                <path d="M1.5 1L6.5 6L1.5 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </li>
+            <li class="breadcrumbs__item breadcrumbs__item--current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+              <span class="breadcrumbs__text" itemprop="name">{{ text_addresses }}</span>
+              <meta itemprop="position" content="3">
+            </li>
+
+          {%- comment -%} ORDER DETAILS {%- endcomment -%}
+          {%- when 'order' -%}
+            {%- if section.settings.text_account != blank -%}
+              {%- assign text_account = section.settings.text_account -%}
+            {%- else -%}
+              {%- assign text_account = 'customer.account.title' | t | default: 'Compte' -%}
+            {%- endif -%}
+            {%- if section.settings.text_order != blank -%}
+              {%- assign text_order = section.settings.text_order -%}
+            {%- else -%}
+              {%- assign text_order = 'customer.order.title' | t | default: 'Commande' -%}
+            {%- endif -%}
+            <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+              <a href="{{ routes.account_url }}" class="breadcrumbs__link" itemprop="item">
+                <span itemprop="name">{{ text_account }}</span>
+              </a>
+              <meta itemprop="position" content="2">
+              <svg class="breadcrumbs__separator" width="8" height="12" viewBox="0 0 8 12" fill="none" aria-hidden="true">
+                <path d="M1.5 1L6.5 6L1.5 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </li>
+            <li class="breadcrumbs__item breadcrumbs__item--current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+              <span class="breadcrumbs__text" itemprop="name">{{ text_order }} {{ order.name }}</span>
+              <meta itemprop="position" content="3">
+            </li>
+
+        {%- endcase -%}
+
+      </ol>
+    </div>
+  </nav>
+
+  <style>
+    {%- liquid
+      assign section_height = section.settings.section_height | default: 40
+      assign spacing_top_desktop = section.settings.spacing_top_desktop | default: 0
+      assign spacing_top_mobile = section.settings.spacing_top_mobile | default: 0
+      assign spacing_bottom = section.settings.spacing_bottom | default: 0
+      assign background_color = section.settings.background_color | default: '#f9f9f9'
+    -%}
+
+    /* Breadcrumb section - compensation header fixe avec couverture totale */
+    .section-breadcrumb {
+      position: relative;
+      margin: 0;
+      /* Padding dynamique basé sur la variable CSS mise à jour par JS */
+      padding-top: var(--header-height, 80px);
+      background-color: {{ background_color }};
+    }
+
+    /* Assure que le fond couvre tout l'espace au-dessus (même si header > 80px) */
+    .section-breadcrumb::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--header-height, 100px);
+      background-color: {{ background_color }};
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .breadcrumbs {
+      padding: 0;
+      margin: 0;
+      margin-top: {{ spacing_top_desktop }}px;
+      border-bottom: 1px solid var(--color-border, #e5e5e5);
+      font-size: 0.875rem;
+      background-color: {{ background_color }};
+    }
+
+    /* Transition fluide quand la variable CSS change */
+    .section-breadcrumb,
+    .section-breadcrumb::before {
+      transition: padding-top 0.1s ease, height 0.1s ease;
+    }
+
+    .section-breadcrumb + .section-product-main,
+    .section-breadcrumb + * {
+      margin-top: {{ spacing_bottom }}px;
+    }
+
+    .breadcrumbs .container {
+      height: {{ section_height }}px;
+      display: flex;
+      align-items: center;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      overflow: hidden;
+    }
+
+    /* Mobile : spacing différent */
+    @media (max-width: 768px) {
+      .breadcrumbs {
+        margin-top: {{ spacing_top_mobile }}px;
+      }
+    }
+
+    .breadcrumbs__list {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 0.5rem;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      line-height: 1;
+      width: 100%;
+    }
+
+    .breadcrumbs__item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .breadcrumbs__link {
+      color: var(--color-text-light, #666);
+      text-decoration: none;
+      transition: color var(--transition-speed, 0.3s) var(--transition-ease, ease-in-out);
+      display: inline-flex;
+      align-items: center;
+      line-height: 1;
+    }
+
+    .breadcrumbs__link span {
+      display: inline-block;
+      line-height: 1.4;
+    }
+
+    .breadcrumbs__link:hover,
+    .breadcrumbs__link:focus {
+      color: var(--color-primary);
+      text-decoration: underline;
+    }
+
+    .breadcrumbs__item--current {
+      flex-shrink: 1;
+      min-width: 0;
+    }
+
+    .breadcrumbs__item--current .breadcrumbs__text {
+      color: var(--color-text);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .breadcrumbs__text {
+      display: inline-block;
+      line-height: 1.4;
+    }
+
+    .breadcrumbs__separator {
+      color: var(--color-text-light, #999);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    @media (max-width: 768px) {
+      .breadcrumbs {
+        font-size: 0.8125rem;
+      }
+
+      .breadcrumbs__list {
+        flex-wrap: nowrap;
+        overflow: hidden;
+      }
+
+      .breadcrumbs__item {
+        flex-shrink: 0;
+      }
+
+      .breadcrumbs__item--current {
+        flex-shrink: 1;
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      .breadcrumbs__item--current .breadcrumbs__text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+      }
+    }
+  </style>
+{%- endunless -%}

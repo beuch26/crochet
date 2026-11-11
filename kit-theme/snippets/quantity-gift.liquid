@@ -1,0 +1,582 @@
+{%- comment -%}
+  Quantity Gift Component (Buy X Get Y) - Premium Design
+  Shows free gift promotion based on quantity threshold
+
+  Design: Modern marquee-style banner with premium feel
+
+  Parameters:
+  - product: Product object (optional, for product-specific gifts)
+  - threshold: Quantity required to get the gift (default: 2)
+  - gift_product: Gift product handle (optional)
+  - gift_message: Custom message for the gift promotion
+  - show_in_cart: Show in cart context (default: false)
+
+  Metafield:
+  - custom.quantity_gift (JSON): { "threshold": 2, "gift_handle": "free-gift-product", "message": "Buy 2, get 1 FREE!" }
+
+  Usage:
+  {%- render 'quantity-gift', product: product, threshold: 2 -%}
+{%- endcomment -%}
+
+{%- liquid
+  assign threshold = threshold | default: 2
+  assign show_in_cart = show_in_cart | default: false
+
+  assign gift_config = nil
+  if product != blank and product.metafields.custom.quantity_gift != blank
+    assign gift_config = product.metafields.custom.quantity_gift.value
+    if gift_config.threshold
+      assign threshold = gift_config.threshold
+    endif
+    if gift_config.gift_handle
+      assign gift_product = all_products[gift_config.gift_handle]
+    endif
+    if gift_config.message
+      assign gift_message = gift_config.message
+    endif
+  endif
+
+  assign gift_message = gift_message | default: 'Achetez-en {threshold}, recevez 1 GRATUIT' | replace: '{threshold}', threshold
+
+  assign current_quantity = 0
+  if show_in_cart
+    for item in cart.items
+      if product != blank and item.product.id == product.id
+        assign current_quantity = item.quantity
+        break
+      endif
+    endfor
+  endif
+
+  assign progress = current_quantity | times: 100 | divided_by: threshold
+  if progress > 100
+    assign progress = 100
+  endif
+
+  assign remaining = threshold | minus: current_quantity
+  if remaining < 0
+    assign remaining = 0
+  endif
+
+  assign qualified = false
+  if current_quantity >= threshold
+    assign qualified = true
+  endif
+-%}
+
+<div class="promo-gift-banner{% if qualified %} promo-gift-banner--qualified{% endif %}"
+     data-quantity-gift
+     data-threshold="{{ threshold }}"
+     data-product-id="{{ product.id | default: 'global' }}"
+     {% if gift_product %}data-gift-variant-id="{{ gift_product.selected_or_first_available_variant.id }}"{% endif %}>
+
+  {%- comment -%} Marquee Background Animation {%- endcomment -%}
+  <div class="promo-gift-banner__bg-track">
+    <div class="promo-gift-banner__bg-scroll">
+      {%- for i in (1..12) -%}
+        <span class="promo-gift-banner__bg-text">OFFRE SPÉCIALE</span>
+        <span class="promo-gift-banner__bg-star">✦</span>
+      {%- endfor -%}
+    </div>
+  </div>
+
+  <div class="promo-gift-banner__content">
+    {%- if qualified -%}
+      {%- comment -%} Success State {%- endcomment -%}
+      <div class="promo-gift-banner__success">
+        <div class="promo-gift-banner__icon promo-gift-banner__icon--success">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="12" stroke="currentColor" stroke-width="2"/>
+            <path d="M9 14l3.5 3.5 6.5-7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="promo-gift-banner__text-wrap">
+          <span class="promo-gift-banner__label">Félicitations !</span>
+          <strong class="promo-gift-banner__title promo-gift-banner__title--success">
+            Cadeau GRATUIT débloqué
+          </strong>
+          {%- if gift_product -%}
+            <span class="promo-gift-banner__gift-name">{{ gift_product.title }}</span>
+          {%- endif -%}
+        </div>
+        {%- if gift_product -%}
+          <button type="button"
+                  class="promo-gift-banner__claim-btn"
+                  data-claim-gift
+                  data-variant-id="{{ gift_product.selected_or_first_available_variant.id }}">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Ajouter
+          </button>
+        {%- endif -%}
+      </div>
+
+    {%- else -%}
+      {%- comment -%} Promo State {%- endcomment -%}
+      <div class="promo-gift-banner__promo">
+        <div class="promo-gift-banner__icon">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+            <rect x="3" y="10" width="20" height="13" rx="2" stroke="currentColor" stroke-width="2"/>
+            <path d="M13 10V23" stroke="currentColor" stroke-width="2"/>
+            <path d="M3 14h20" stroke="currentColor" stroke-width="2"/>
+            <path d="M8 10c0-2 1-4 3-4 2.5 0 2 4 2 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M18 10c0-2-1-4-3-4-2.5 0-2 4-2 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="promo-gift-banner__text-wrap">
+          <span class="promo-gift-banner__badge">Offre Exclusive</span>
+          <strong class="promo-gift-banner__title">{{ gift_message }}</strong>
+        </div>
+        <div class="promo-gift-banner__cta">
+          <span class="promo-gift-banner__cta-arrow">→</span>
+        </div>
+      </div>
+
+      {%- if show_in_cart and remaining > 0 -%}
+        <div class="promo-gift-banner__progress-wrap">
+          <div class="promo-gift-banner__progress-bar">
+            <div class="promo-gift-banner__progress-fill" data-gift-progress style="width: {{ progress }}%"></div>
+          </div>
+          <div class="promo-gift-banner__progress-info">
+            <span class="promo-gift-banner__progress-count">{{ current_quantity }}/{{ threshold }}</span>
+            <span class="promo-gift-banner__progress-remaining">Plus que {{ remaining }} pour débloquer</span>
+          </div>
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+</div>
+
+<style>
+  .promo-gift-banner {
+    --promo-primary: #1a1a2e;
+    --promo-accent: #e94560;
+    --promo-gold: #ffd700;
+    --promo-success: #10b981;
+
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    margin: 1rem 0;
+    background: linear-gradient(135deg, var(--promo-primary) 0%, #16213e 100%);
+    box-shadow: 0 4px 20px rgba(26, 26, 46, 0.3);
+  }
+
+  /* Background Marquee Animation */
+  .promo-gift-banner__bg-track {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    opacity: 0.08;
+    pointer-events: none;
+  }
+
+  .promo-gift-banner__bg-scroll {
+    display: flex;
+    white-space: nowrap;
+    animation: promo-scroll 20s linear infinite;
+    font-size: 4rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: white;
+    letter-spacing: 0.1em;
+  }
+
+  .promo-gift-banner__bg-text {
+    padding: 0 1rem;
+  }
+
+  .promo-gift-banner__bg-star {
+    color: var(--promo-gold);
+    padding: 0 0.5rem;
+  }
+
+  @keyframes promo-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* Content */
+  .promo-gift-banner__content {
+    position: relative;
+    z-index: 2;
+    padding: 1rem 1.25rem;
+  }
+
+  .promo-gift-banner__promo,
+  .promo-gift-banner__success {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .promo-gift-banner__icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--promo-accent) 0%, #ff6b6b 100%);
+    color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+    animation: promo-icon-pulse 2s ease-in-out infinite;
+  }
+
+  .promo-gift-banner__icon--success {
+    background: linear-gradient(135deg, var(--promo-success) 0%, #34d399 100%);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    animation: none;
+  }
+
+  @keyframes promo-icon-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  .promo-gift-banner__text-wrap {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .promo-gift-banner__badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    background: var(--promo-gold);
+    color: var(--promo-primary);
+    font-size: 0.625rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 4px;
+    margin-bottom: 0.25rem;
+  }
+
+  .promo-gift-banner__label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--promo-success);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.125rem;
+  }
+
+  .promo-gift-banner__title {
+    display: block;
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: white;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  .promo-gift-banner__title--success {
+    color: var(--promo-success);
+  }
+
+  .promo-gift-banner__gift-name {
+    display: block;
+    font-size: 0.8125rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 0.125rem;
+  }
+
+  .promo-gift-banner__cta {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+  }
+
+  .promo-gift-banner:hover .promo-gift-banner__cta {
+    background: var(--promo-accent);
+    transform: translateX(4px);
+  }
+
+  .promo-gift-banner__cta-arrow {
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 300;
+  }
+
+  .promo-gift-banner__claim-btn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.625rem 1rem;
+    background: var(--promo-success);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .promo-gift-banner__claim-btn:hover {
+    background: #059669;
+    transform: scale(1.02);
+  }
+
+  /* Progress Bar */
+  .promo-gift-banner__progress-wrap {
+    margin-top: 0.875rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .promo-gift-banner__progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .promo-gift-banner__progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--promo-accent), var(--promo-gold));
+    border-radius: 3px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+
+  .promo-gift-banner__progress-fill::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: promo-shimmer 2s infinite;
+  }
+
+  @keyframes promo-shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .promo-gift-banner__progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+  }
+
+  .promo-gift-banner__progress-count {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--promo-gold);
+  }
+
+  .promo-gift-banner__progress-remaining {
+    font-size: 0.6875rem;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  /* Qualified State Enhancement */
+  .promo-gift-banner--qualified {
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+  }
+
+  .promo-gift-banner--qualified .promo-gift-banner__bg-scroll {
+    color: var(--promo-success);
+  }
+
+  /* Mobile */
+  @media (max-width: 767px) {
+    .promo-gift-banner__content {
+      padding: 0.875rem 1rem;
+    }
+
+    .promo-gift-banner__icon {
+      width: 42px;
+      height: 42px;
+    }
+
+    .promo-gift-banner__icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .promo-gift-banner__title {
+      font-size: 1rem;
+    }
+
+    .promo-gift-banner__promo,
+    .promo-gift-banner__success {
+      gap: 0.75rem;
+    }
+
+    .promo-gift-banner__claim-btn {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.75rem;
+    }
+  }
+</style>
+
+<script>
+  (function() {
+    const giftEl = document.querySelector('[data-quantity-gift]');
+    if (!giftEl) return;
+
+    const claimBtn = giftEl.querySelector('[data-claim-gift]');
+    if (claimBtn) {
+      claimBtn.addEventListener('click', async () => {
+        const variantId = claimBtn.dataset.variantId;
+        if (!variantId) return;
+
+        claimBtn.classList.add('loading');
+        claimBtn.disabled = true;
+
+        try {
+          const response = await fetch(window.Shopify?.routes?.root + 'cart/add.js', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              items: [{
+                id: parseInt(variantId),
+                quantity: 1,
+                properties: {
+                  '_gift': 'true'
+                }
+              }]
+            })
+          });
+
+          if (!response.ok) throw new Error('Failed to add gift');
+
+          const cart = await fetch(window.Shopify?.routes?.root + 'cart.js').then(r => r.json());
+          document.dispatchEvent(new CustomEvent('cart:updated', { detail: { cart } }));
+
+          claimBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Ajouté !';
+
+          setTimeout(() => {
+            if (typeof Cart !== 'undefined' && Cart.openDrawer) {
+              Cart.openDrawer();
+              Cart.refreshDrawer();
+            }
+          }, 500);
+
+        } catch (error) {
+          console.error('Gift claim error:', error);
+          alert(window.theme?.translations?.cartError || 'Erreur lors de l\'ajout du cadeau');
+        } finally {
+          claimBtn.classList.remove('loading');
+        }
+      });
+    }
+
+    // Update progress on cart changes
+    document.addEventListener('cart:updated', (event) => {
+      const cart = event.detail.cart;
+      const productId = giftEl.dataset.productId;
+      const threshold = parseInt(giftEl.dataset.threshold);
+
+      if (productId === 'global') return;
+
+      let currentQuantity = 0;
+      cart.items.forEach(item => {
+        if (item.product_id == productId) {
+          currentQuantity += item.quantity;
+        }
+      });
+
+      const progress = Math.min((currentQuantity / threshold) * 100, 100);
+      const progressFill = giftEl.querySelector('[data-gift-progress]');
+      if (progressFill) {
+        progressFill.style.width = progress + '%';
+      }
+    });
+  })();
+</script>
+
+<script>
+  (function() {
+    const giftEl = document.querySelector('[data-quantity-gift]');
+    if (!giftEl) return;
+
+    const claimBtn = giftEl.querySelector('[data-claim-gift]');
+    if (claimBtn) {
+      claimBtn.addEventListener('click', async () => {
+        const variantId = claimBtn.dataset.variantId;
+        if (!variantId) return;
+
+        claimBtn.classList.add('loading');
+        claimBtn.disabled = true;
+
+        try {
+          const response = await fetch(window.Shopify?.routes?.root + 'cart/add.js', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              items: [{
+                id: parseInt(variantId),
+                quantity: 1,
+                properties: {
+                  '_gift': 'true'
+                }
+              }]
+            })
+          });
+
+          if (!response.ok) throw new Error('Failed to add gift');
+
+          const cart = await fetch(window.Shopify?.routes?.root + 'cart.js').then(r => r.json());
+          document.dispatchEvent(new CustomEvent('cart:updated', { detail: { cart } }));
+
+          claimBtn.textContent = window.theme?.translations?.giftAdded || '✓ Cadeau ajouté !';
+          claimBtn.classList.add('btn--success-claimed');
+
+          setTimeout(() => {
+            if (typeof Cart !== 'undefined' && Cart.openDrawer) {
+              Cart.openDrawer();
+              Cart.refreshDrawer();
+            }
+          }, 500);
+
+        } catch (error) {
+          console.error('Gift claim error:', error);
+          alert(window.theme?.translations?.cartError || 'Erreur lors de l\'ajout du cadeau');
+        } finally {
+          claimBtn.classList.remove('loading');
+        }
+      });
+    }
+
+    document.addEventListener('cart:updated', (event) => {
+      const cart = event.detail.cart;
+      const productId = giftEl.dataset.productId;
+      const threshold = parseInt(giftEl.dataset.threshold);
+
+      if (productId === 'global') return;
+
+      let currentQuantity = 0;
+      cart.items.forEach(item => {
+        if (item.product_id == productId) {
+          currentQuantity += item.quantity;
+        }
+      });
+
+      const progress = Math.min((currentQuantity / threshold) * 100, 100);
+      const progressFill = giftEl.querySelector('[data-gift-progress]');
+      if (progressFill) {
+        progressFill.style.width = progress + '%';
+      }
+    });
+  })();
+</script>

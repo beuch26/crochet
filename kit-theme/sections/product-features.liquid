@@ -1,0 +1,467 @@
+{%- comment -%}
+  Détails Produit Section
+  Alternating image/text layout for detailed product description
+
+  Modes:
+  1. Auto: Extracts zones from product.description using "---" delimiter
+  2. Manual: Uses blocks added in theme editor
+{%- endcomment -%}
+
+{%- liquid
+  assign product_images = product.images
+  assign feature_blocks = section.blocks | where: 'type', 'feature'
+  assign use_description = section.settings.use_product_description
+
+  # Parse product description into zones using --- delimiter
+  assign description_zones = null
+  if use_description and product.description != blank
+    assign clean_description = product.description | strip_html | strip
+    if clean_description contains '---'
+      assign description_zones = product.description | split: '---'
+    endif
+  endif
+-%}
+
+{%- comment -%} Check if we have content to display {%- endcomment -%}
+{%- liquid
+  assign has_content = false
+  if description_zones != null and description_zones.size > 0
+    assign has_content = true
+  elsif feature_blocks.size > 0
+    assign has_content = true
+  endif
+-%}
+
+{%- if has_content -%}
+<section class="product-features section" id="product-features-{{ section.id }}">
+  <div class="container">
+
+    {%- if section.settings.title != blank -%}
+      <header class="product-features__header">
+        {%- if section.settings.enable_heading_style -%}
+          {%- render 'heading-styles',
+            text: section.settings.title,
+            tag: 'h2',
+            style: section.settings.heading_style,
+            color: section.settings.heading_style_color,
+            align: 'center',
+            size: 'xl',
+            typing_texts: section.settings.typing_texts
+          -%}
+        {%- else -%}
+          <h2 class="product-features__title">{{ section.settings.title }}</h2>
+        {%- endif -%}
+        {%- if section.settings.subtitle != blank -%}
+          <p class="product-features__subtitle">{{ section.settings.subtitle }}</p>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    <div class="product-features__list">
+
+      {%- comment -%} MODE AUTO: Use description zones {%- endcomment -%}
+      {%- if description_zones != null and description_zones.size > 0 -%}
+        {%- for zone in description_zones -%}
+          {%- liquid
+            assign zone_content = zone | strip
+            if zone_content == blank
+              continue
+            endif
+
+            # Determine image position
+            # Check if we have a matching block with image_position setting
+            assign block_index = forloop.index0
+            assign current_block = feature_blocks[block_index]
+
+            assign is_reversed = false
+            if current_block != blank and current_block.settings.image_position == 'right'
+              assign is_reversed = true
+            elsif current_block != blank and current_block.settings.image_position == 'left'
+              assign is_reversed = false
+            else
+              # Auto: alternate based on index
+              assign mod_result = forloop.index | modulo: 2
+              if mod_result == 0
+                assign is_reversed = true
+              endif
+            endif
+
+            # Get image from block if available
+            assign feature_image = null
+            if current_block != blank and current_block.settings.image != blank
+              assign feature_image = current_block.settings.image
+            elsif product_images.size > 0
+              # Boucle sur les images si on en a moins que de zones
+              assign actual_image_index = block_index | modulo: product_images.size
+              assign feature_image = product_images[actual_image_index]
+            endif
+          -%}
+
+          <div class="product-features__item {% if is_reversed %}product-features__item--reversed{% endif %}" {% if current_block %}{{ current_block.shopify_attributes }}{% endif %}>
+            <div class="product-features__image">
+              {%- if feature_image != blank -%}
+                <img
+                  src="{{ feature_image | image_url: width: 600 }}"
+                  srcset="{{ feature_image | image_url: width: 400 }} 400w,
+                          {{ feature_image | image_url: width: 600 }} 600w,
+                          {{ feature_image | image_url: width: 800 }} 800w"
+                  sizes="(min-width: 768px) 50vw, 100vw"
+                  alt="{{ feature_image.alt | default: 'Détail produit' }}"
+                  loading="lazy"
+                  width="600"
+                  height="600"
+                >
+              {%- else -%}
+                <div class="product-features__placeholder">
+                  {{ 'product-1' | placeholder_svg_tag }}
+                </div>
+              {%- endif -%}
+            </div>
+
+            <div class="product-features__content">
+              <div class="product-features__text rte">
+                {{ zone_content }}
+              </div>
+            </div>
+          </div>
+        {%- endfor -%}
+
+      {%- comment -%} MODE MANUAL: Use blocks {%- endcomment -%}
+      {%- else -%}
+        {%- for block in feature_blocks -%}
+          {%- liquid
+            # Determine image position
+            assign is_reversed = false
+            if block.settings.image_position == 'right'
+              assign is_reversed = true
+            elsif block.settings.image_position == 'left'
+              assign is_reversed = false
+            else
+              # Auto: alternate based on index
+              assign mod_result = forloop.index | modulo: 2
+              if mod_result == 0
+                assign is_reversed = true
+              endif
+            endif
+
+            assign feature_image = block.settings.image
+            if feature_image == blank and product_images.size > 0
+              # Boucle sur les images si on en a moins que de blocs
+              assign actual_image_index = forloop.index0 | modulo: product_images.size
+              assign feature_image = product_images[actual_image_index]
+            endif
+          -%}
+
+          <div class="product-features__item {% if is_reversed %}product-features__item--reversed{% endif %}" {{ block.shopify_attributes }}>
+            <div class="product-features__image">
+              {%- if feature_image != blank -%}
+                <img
+                  src="{{ feature_image | image_url: width: 600 }}"
+                  srcset="{{ feature_image | image_url: width: 400 }} 400w,
+                          {{ feature_image | image_url: width: 600 }} 600w,
+                          {{ feature_image | image_url: width: 800 }} 800w"
+                  sizes="(min-width: 768px) 50vw, 100vw"
+                  alt="{{ feature_image.alt | default: 'Détail produit' }}"
+                  loading="lazy"
+                  width="600"
+                  height="600"
+                >
+              {%- else -%}
+                <div class="product-features__placeholder">
+                  {{ 'product-1' | placeholder_svg_tag }}
+                </div>
+              {%- endif -%}
+            </div>
+
+            <div class="product-features__content">
+              {%- if block.settings.text != blank -%}
+                <div class="product-features__text rte">
+                  {{ block.settings.text }}
+                </div>
+              {%- endif -%}
+            </div>
+          </div>
+        {%- endfor -%}
+      {%- endif -%}
+
+    </div>
+
+  </div>
+</section>
+{%- endif -%}
+
+<style>
+.product-features {
+  padding: var(--spacing-2xl) 0;
+  background: var(--color-background);
+}
+
+.product-features__header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.product-features__title {
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  color: var(--color-text);
+}
+
+.product-features__subtitle {
+  font-size: 1rem;
+  color: var(--color-text-light);
+  margin: 0;
+  max-width: 600px;
+  margin-inline: auto;
+}
+
+.product-features__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.product-features__item {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-lg);
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .product-features__item {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+  }
+
+  .product-features__item--reversed {
+    direction: rtl;
+  }
+
+  .product-features__item--reversed > * {
+    direction: ltr;
+  }
+}
+
+.product-features__image {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  aspect-ratio: 1/1;
+  background: var(--color-background-light);
+}
+
+.product-features__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.product-features__item:hover .product-features__image img {
+  transform: scale(1.03);
+}
+
+.product-features__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-features__placeholder svg {
+  width: 60%;
+  height: 60%;
+  opacity: 0.3;
+}
+
+.product-features__content {
+  padding: var(--spacing-md) 0;
+}
+
+@media (min-width: 768px) {
+  .product-features__content {
+    padding: var(--spacing-lg);
+  }
+}
+
+.product-features__text {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--color-text-light);
+}
+
+.product-features__text h1,
+.product-features__text h2,
+.product-features__text h3,
+.product-features__text h4,
+.product-features__text h5,
+.product-features__text h6 {
+  color: var(--color-text);
+  margin: 0 0 0.75rem;
+  font-weight: 700;
+}
+
+.product-features__text h3 {
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
+}
+
+.product-features__text p {
+  margin: 0 0 1rem;
+}
+
+.product-features__text p:last-child {
+  margin-bottom: 0;
+}
+
+.product-features__text ul,
+.product-features__text ol {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+}
+
+.product-features__text li {
+  margin-bottom: 0.5rem;
+}
+
+/* Support for emojis as visual headers */
+.product-features__text p:first-child {
+  font-size: 1.1rem;
+}
+</style>
+
+{% schema %}
+{
+  "name": "Détails Produit",
+  "tag": "section",
+  "class": "section-product-features",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre",
+      "default": "Pourquoi vous allez adorer ce kit"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Sous-titre",
+      "default": "Découvrez tout ce qui rend notre kit unique"
+    },
+    {
+      "type": "header",
+      "content": "Source du contenu"
+    },
+    {
+      "type": "checkbox",
+      "id": "use_product_description",
+      "label": "Utiliser la description du produit",
+      "default": false,
+      "info": "Extrait automatiquement les zones délimitées par '---' dans la description. Sinon, utilise les blocs manuels ci-dessous."
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "feature",
+      "name": "Caractéristique",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image",
+          "info": "Si vide, utilise automatiquement une image du produit"
+        },
+        {
+          "type": "select",
+          "id": "image_position",
+          "label": "Position de l'image",
+          "options": [
+            { "value": "auto", "label": "Automatique (alternance)" },
+            { "value": "left", "label": "Gauche" },
+            { "value": "right", "label": "Droite" }
+          ],
+          "default": "auto"
+        },
+        {
+          "type": "header",
+          "content": "Contenu (mode manuel uniquement)"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Contenu",
+          "info": "⚠️ Ignoré si 'Utiliser la description du produit' est activé. En mode auto, seuls l'image et la position ci-dessus sont utilisés."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Détails Produit",
+      "blocks": [
+        {
+          "type": "feature",
+          "settings": {
+            "image_position": "auto"
+          }
+        },
+        {
+          "type": "feature",
+          "settings": {
+            "image_position": "auto"
+          }
+        },
+        {
+          "type": "feature",
+          "settings": {
+            "image_position": "auto"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

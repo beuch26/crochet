@@ -1,0 +1,19 @@
+{%- comment -%}
+  Price Display Snippet
+  Affiche "Gratuit" si le prix est 0, sinon affiche le prix formaté
+
+  Usage:
+  {% render 'price-display', price: product.price %}
+  {% render 'price-display', price: variant.price, class: 'my-class' %}
+{%- endcomment -%}
+
+{%- liquid
+  assign display_price = price | default: 0
+  assign price_class = class | default: ''
+-%}
+
+{%- if display_price == 0 -%}
+  <span class="{{ price_class }}">{{ 'products.product.free' | t | default: 'Gratuit' }}</span>
+{%- else -%}
+  <span class="{{ price_class }}">{{ display_price | money }}</span>
+{%- endif -%}

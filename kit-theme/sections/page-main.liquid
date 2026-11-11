@@ -1,0 +1,233 @@
+{%- comment -%}
+  Page Main Section
+  Configurable standard page display
+{%- endcomment -%}
+
+{%- liquid
+  assign container_width = section.settings.container_width | default: 'narrow'
+  assign text_align = section.settings.text_alignment | default: 'left'
+-%}
+
+<div class="page section">
+  <div class="container container--{{ container_width }}">
+
+    {%- if section.settings.show_title -%}
+      <header class="page-header" style="text-align: {{ text_align }};">
+        <h1>{{ page.title }}</h1>
+      </header>
+    {%- endif -%}
+
+    <div class="page-content rte" style="text-align: {{ text_align }};">
+      {{ page.content }}
+    </div>
+  </div>
+</div>
+
+<style>
+.page {
+  padding: var(--spacing-2xl) 0;
+}
+
+.container--narrow {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.container--medium {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.container--wide {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.container--full {
+  max-width: 100%;
+}
+
+.page-header {
+  margin-bottom: var(--spacing-lg);
+}
+
+.page-header h1 {
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  margin: 0;
+}
+
+.page-content {
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--color-text);
+}
+
+/* Rich Text Editor Styles */
+.rte h2 {
+  font-size: 2rem;
+  margin-top: var(--spacing-xl);
+  margin-bottom: var(--spacing-md);
+}
+
+.rte h3 {
+  font-size: 1.5rem;
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-sm);
+}
+
+.rte h4 {
+  font-size: 1.25rem;
+  margin-top: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.rte p {
+  margin-bottom: var(--spacing-md);
+}
+
+.rte ul,
+.rte ol {
+  margin-bottom: var(--spacing-md);
+  padding-left: var(--spacing-lg);
+}
+
+.rte li {
+  margin-bottom: 0.5rem;
+}
+
+.rte img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  margin: var(--spacing-lg) 0;
+}
+
+.rte a {
+  color: var(--color-link);
+  text-decoration: underline;
+}
+
+.rte a:hover {
+  color: var(--color-link-hover);
+}
+
+.rte blockquote {
+  margin: var(--spacing-lg) 0;
+  padding-left: var(--spacing-lg);
+  border-left: 4px solid var(--color-primary);
+  font-style: italic;
+  color: var(--color-text-light);
+}
+
+.rte table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--spacing-lg) 0;
+}
+
+.rte table th,
+.rte table td {
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.rte table th {
+  background-color: var(--color-background-light);
+  font-weight: 700;
+}
+
+.rte hr {
+  border: none;
+  border-top: 2px solid var(--color-border);
+  margin: var(--spacing-xl) 0;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .page {
+    padding: var(--spacing-xl) 0;
+  }
+
+  .page-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .page-content {
+    font-size: 1rem;
+  }
+
+  .rte h2 {
+    font-size: 1.5rem;
+  }
+
+  .rte h3 {
+    font-size: 1.25rem;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Page principale",
+  "class": "section-page-main",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Mise en page"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_title",
+      "label": "Afficher le titre",
+      "default": true,
+      "info": "Affiche le titre de la page (H1)"
+    },
+    {
+      "type": "select",
+      "id": "container_width",
+      "label": "Largeur du conteneur",
+      "options": [
+        {
+          "value": "narrow",
+          "label": "Étroit (800px)"
+        },
+        {
+          "value": "medium",
+          "label": "Moyen (1000px)"
+        },
+        {
+          "value": "wide",
+          "label": "Large (1200px)"
+        },
+        {
+          "value": "full",
+          "label": "Pleine largeur"
+        }
+      ],
+      "default": "narrow",
+      "info": "Contrôle la largeur maximale du contenu"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Alignement du texte",
+      "options": [
+        {
+          "value": "left",
+          "label": "Gauche"
+        },
+        {
+          "value": "center",
+          "label": "Centre"
+        },
+        {
+          "value": "right",
+          "label": "Droite"
+        }
+      ],
+      "default": "left"
+    }
+  ]
+}
+{% endschema %}

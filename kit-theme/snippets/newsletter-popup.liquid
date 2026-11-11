@@ -1,0 +1,100 @@
+{%- comment -%}
+  Newsletter Popup (Exit Intent)
+{%- endcomment -%}
+
+<div class="newsletter-popup" data-newsletter-popup style="display:none;">
+  <div class="newsletter-popup__content">
+    <button class="newsletter-popup__close" data-popup-close aria-label="{{ 'general.accessibility.close' | t }}">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <h2>{{ 'newsletter.title' | t }}</h2>
+    <p>{{ 'newsletter.subtitle' | t }}</p>
+
+    {%- form 'customer', class: 'newsletter-popup__form' -%}
+      <input type="hidden" name="contact[tags]" value="newsletter">
+      <div class="form-group">
+        <label for="popup-newsletter-email" class="visually-hidden">{{ 'newsletter.email_placeholder' | t }}</label>
+        <input
+          type="email"
+          id="popup-newsletter-email"
+          name="contact[email]"
+          placeholder="{{ 'newsletter.email_placeholder' | t }}"
+          aria-label="{{ 'newsletter.email_placeholder' | t }}"
+          autocomplete="email"
+          required
+        >
+        <button type="submit" class="btn btn--primary btn--full">{{ 'newsletter.submit' | t }}</button>
+      </div>
+    {%- endform -%}
+  </div>
+</div>
+
+<script>
+(function() {
+  const popup = document.querySelector('[data-newsletter-popup]');
+  const closeBtn = document.querySelector('[data-popup-close]');
+  const hasSeenPopup = localStorage.getItem('newsletter-popup-seen');
+
+  if (!hasSeenPopup && popup) {
+    // Exit intent
+    document.addEventListener('mouseout', function(e) {
+      if (!e.toElement && !e.relatedTarget) {
+        showPopup();
+      }
+    });
+
+    // Time delay
+    setTimeout(() => showPopup(), 10000);
+  }
+
+  function showPopup() {
+    if (popup.style.display !== 'flex') {
+      popup.style.display = 'flex';
+      localStorage.setItem('newsletter-popup-seen', 'true');
+    }
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      popup.style.display = 'none';
+    });
+  }
+})();
+</script>
+
+<style>
+.newsletter-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+
+.newsletter-popup__content {
+  background-color: var(--color-background);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+  text-align: center;
+}
+
+.newsletter-popup__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+</style>

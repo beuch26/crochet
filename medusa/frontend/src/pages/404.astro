@@ -1,0 +1,90 @@
+---
+import Layout from '../layouts/Layout.astro'
+import ProductCard from '../components/product/ProductCard.astro'
+import { getProducts, getProductPrice } from '../lib/medusa'
+
+let products: any[] = []
+try {
+  const data = await getProducts(8)
+  products = (data.products || []).sort(() => 0.5 - Math.random()).slice(0, 4)
+} catch {}
+---
+
+<Layout title="Page non trouvée" noindex={true}>
+  <section class="py-20 lg:py-28">
+    <div class="max-w-xl mx-auto px-4 text-center">
+      <div class="relative inline-block mb-6">
+        <span class="text-[140px] lg:text-[180px] font-bold text-primary/5 font-['DM_Serif_Display'] leading-none select-none">404</span>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-primary/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+      </div>
+      <h1 class="text-2xl lg:text-3xl">Page introuvable</h1>
+      <p class="mt-4 text-text-light leading-relaxed text-lg">
+        Oups ! La page que vous recherchez n'existe pas ou a été déplacée.
+      </p>
+      <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <a href="/" class="btn btn-primary px-8 py-3">Retour à l'accueil</a>
+        <a href="/collections/" class="btn btn-outline px-8 py-3">Voir la boutique</a>
+        <a href="/contact/" class="btn btn-outline px-8 py-3">Nous contacter</a>
+      </div>
+
+      <!-- Search -->
+      <div class="mt-10 max-w-md mx-auto">
+        <form action="/search/" class="relative">
+          <input
+            type="search"
+            name="q"
+            placeholder="Rechercher un produit..."
+            class="w-full px-5 py-3.5 pl-12 border border-border rounded-2xl bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+          />
+          <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Product suggestions -->
+  {products.length > 0 && (
+    <section class="pb-20 lg:pb-28">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-center mb-8">Vous pourriez aimer</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
+          {products.map((p: any) => (
+            <ProductCard
+              id={p.id}
+              title={p.title}
+              handle={p.handle}
+              price={getProductPrice(p)}
+              thumbnail={p.thumbnail}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+</Layout>
+
+<script>
+  // Check for redirects on 404 pages (handles PrestaShop → Medusa migration)
+  const MEDUSA_URL = document.querySelector('meta[name="medusa-url"]')?.getAttribute('content') || ''
+  const API_KEY = document.querySelector('meta[name="medusa-key"]')?.getAttribute('content') || ''
+  const path = window.location.pathname
+
+  if (MEDUSA_URL && path !== '/') {
+    fetch(`${MEDUSA_URL}/store/redirects?path=${encodeURIComponent(path)}`, {
+      headers: { 'x-publishable-api-key': API_KEY },
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.redirect?.target) {
+          window.location.replace(data.redirect.target)
+        }
+      })
+      .catch(() => {})
+  }
+</script>

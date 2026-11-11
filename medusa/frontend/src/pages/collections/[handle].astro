@@ -1,0 +1,1010 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import ProductCard from '../../components/product/ProductCard.astro'
+import SchemaBreadcrumb from '../../components/seo/SchemaBreadcrumb.astro'
+import SchemaFAQ from '../../components/seo/SchemaFAQ.astro'
+import { getCollections, getCollectionProducts, getProductPrice, getProductHoverImage } from '../../lib/medusa'
+import { collectionDescriptions } from '../../lib/collection-descriptions'
+import { normalizeInternalHrefsInHTML } from '../../lib/url'
+import SchemaCollection from '../../components/seo/SchemaCollection.astro'
+
+// French color name -> hex (for color swatches in filters)
+const colorMap: Record<string, string> = {
+  'noir': '#000', 'black': '#000', 'blanc': '#fff', 'white': '#fff',
+  'rouge': '#dc2626', 'red': '#dc2626', 'bleu': '#2563eb', 'blue': '#2563eb',
+  'vert': '#16a34a', 'green': '#16a34a', 'rose': '#ec4899', 'pink': '#ec4899',
+  'jaune': '#eab308', 'yellow': '#eab308', 'orange': '#f97316',
+  'violet': '#8b5cf6', 'purple': '#8b5cf6', 'gris': '#6b7280', 'grey': '#6b7280', 'gray': '#6b7280',
+  'marron': '#92400e', 'brown': '#92400e', 'beige': '#d4b896', 'creme': '#fffdd0', 'cream': '#fffdd0',
+  'moutarde': '#c8a415', 'turquoise': '#06b6d4',
+  'vert_deau': '#7fd4b8', 'menthe': '#b8e5c8', 'rose_nude': '#e8c5c0',
+  'blanc_vert_deau': '#d5ece0', 'multicolore': '#e5c6ec',
+}
+
+export async function getStaticPaths() {
+  let collections: any[] = []
+  try {
+    const data = await getCollections()
+    collections = data.collections || []
+  } catch (e) {
+    console.error('Failed to fetch collections for paths:', e)
+  }
+
+  return collections.map((col: any) => ({
+    params: { handle: col.handle },
+    props: { collection: col },
+  }))
+}
+
+const { collection } = Astro.props
+let products: any[] = []
+let allCollections: any[] = []
+try {
+  const [pData, cData] = await Promise.all([
+    getCollectionProducts(collection.id, 100),
+    getCollections(),
+  ])
+  products = pData.products || []
+  allCollections = cData.collections || []
+
+  // Aggregate sub-collections for parent groups (matches Shopify's smart collections layout).
+  // We always aggregate, then dedupe — this way a parent like "kits-de-crochet" shows
+  // all products from kits-debutants/intermediaires/avances/amigurumi too.
+  const PARENT_GROUPS: Record<string, string[]> = {
+    // Top-level collections aggregate all sub-collections
+    'kits-de-crochet': [
+      'kits-debutants-faciles',
+      'kits-intermediaires',
+      'kits-avances',
+      'amigurumi',
+      'box-par-theme-personnages-1',
+    ],
+    'fils-materiaux': [
+      'fil-acrylique',
+      'crochets',
+    ],
+    // The "amigurumi" sub-collection also pulls in the MCK direct kits
+    // (which are stored in kits-debutants-faciles but are all amigurumi).
+    'amigurumi': ['kits-debutants-faciles'],
+    // Same for "animaux" : nos kits sont tous des animaux
+    'box-par-theme-personnages-1': ['kits-debutants-faciles'],
+  }
+  const childHandles = PARENT_GROUPS[collection.handle]
+  if (childHandles) {
+    const childCollections = allCollections.filter((c: any) => childHandles.includes(c.handle))
+    const childResults = await Promise.all(
+      childCollections.map((c: any) => getCollectionProducts(c.id, 100).catch(() => ({ products: [] })))
+    )
+    const seen = new Set<string>(products.map((p) => p.id))
+    for (const r of childResults) {
+      for (const p of r.products || []) {
+        if (!seen.has(p.id)) { seen.add(p.id); products.push(p) }
+      }
+    }
+  }
+} catch (e) {
+  console.error('Failed to fetch collection products:', e)
+}
+
+// Priority: intro_text from admin > Shopify description (imported in metadata.description_html) > hardcoded fallback
+const desc = collectionDescriptions[collection.handle]
+const shopifyDesc = (collection.metadata as any)?.description_html || ''
+const introText = normalizeInternalHrefsInHTML((collection.metadata as any)?.intro_text || shopifyDesc || desc?.intro || '')
+const seoText = normalizeInternalHrefsInHTML((collection.metadata as any)?.seo_text || desc?.seo || '')
+const metaDesc = introText.replace(/<[^>]+>/g, '') || `Découvrez nos ${collection.title.toLowerCase()} — Magic Crochet Kit`
+
+// Build filter data from product options + variants
+const configuredFilters: string[] = (collection.metadata as any)?.filters
+  ? JSON.parse((collection.metadata as any).filters)
+  : ['price'] // Default: only price filter
+
+// Extract all option values from products
+const optionMap: Record<string, Set<string>> = {}
+const prices: number[] = []
+
+// Custom metadata filter maps (labels shown + products that have each value)
+const brandMap = new Set<string>()
+const ageMap = new Set<string>()
+const dbMap = new Set<string>() // bucket: "23-24", "25-27", "28+"
+const usageMap = new Set<string>()
+
+function bucketDb(db: number): string {
+  if (db <= 24) return "22-24"
+  if (db <= 27) return "25-27"
+  return "28+"
+}
+
+products.forEach((p: any) => {
+  const price = getProductPrice(p)
+  if (price > 0) prices.push(price)
+
+  // Extract from product options + variant options
+  p.options?.forEach((opt: any) => {
+    if (!optionMap[opt.title]) optionMap[opt.title] = new Set()
+    opt.values?.forEach((v: any) => {
+      if (v.value) optionMap[opt.title].add(v.value)
+    })
+  })
+
+  // Extract metadata-based filters
+  const meta = p.metadata || {}
+  if (meta.brand) brandMap.add(meta.brand)
+  if (meta.age_range) ageMap.add(meta.age_range)
+  if (meta.attenuation_db) dbMap.add(bucketDb(Number(meta.attenuation_db)))
+  let usage = meta.usage_tags
+  if (typeof usage === 'string') { try { usage = JSON.parse(usage) } catch { usage = [] } }
+  if (Array.isArray(usage)) usage.forEach((u: string) => usageMap.add(u))
+})
+
+// Labels for human-readable filter values
+const AGE_LABELS: Record<string, string> = {
+  'bebe': 'Bébé (0-3 ans)',
+  'enfant': 'Enfant (3-10 ans)',
+  'grand-enfant': 'Grand enfant (5-16 ans)',
+  'evolutif': 'Évolutif (0-12 ans)',
+}
+const USAGE_LABELS: Record<string, string> = {
+  'concert': 'Concert / festival',
+  'feu-artifice': 'Feu d\'artifice',
+  'avion': 'Voyage en avion',
+  'mariage': 'Mariage / fête',
+  'sport': 'Événement sportif',
+  'sommeil': 'Sommeil',
+  'ecole': 'École / cantine',
+  'tdah': 'TDAH / hypersensible',
+  'autisme': 'Autisme / TSA',
+  'concentration': 'Concentration',
+  'irm': 'IRM (sans métal)',
+}
+
+// Build available filters (only those configured for this collection)
+const availableFilters: { key: string; label: string; type: string; values?: { value: string; label: string }[] }[] = []
+
+if (configuredFilters.includes('price') && prices.length > 0) {
+  availableFilters.push({ key: 'price', label: 'Prix', type: 'range' })
+}
+
+if (configuredFilters.includes('brand') && brandMap.size > 1) {
+  availableFilters.push({
+    key: 'brand',
+    label: 'Marque',
+    type: 'checkbox',
+    values: Array.from(brandMap).sort().map((v) => ({ value: v, label: v })),
+  })
+}
+
+if (configuredFilters.includes('age_range') && ageMap.size > 1) {
+  // Order: bebe -> enfant -> grand-enfant -> evolutif
+  const order = ['bebe', 'enfant', 'grand-enfant', 'evolutif']
+  const sorted = Array.from(ageMap).sort((a, b) => order.indexOf(a) - order.indexOf(b))
+  availableFilters.push({
+    key: 'age_range',
+    label: 'Âge',
+    type: 'checkbox',
+    values: sorted.map((v) => ({ value: v, label: AGE_LABELS[v] || v })),
+  })
+}
+
+if (configuredFilters.includes('attenuation_db') && dbMap.size > 1) {
+  const order = ['22-24', '25-27', '28+']
+  const sorted = Array.from(dbMap).sort((a, b) => order.indexOf(a) - order.indexOf(b))
+  availableFilters.push({
+    key: 'attenuation_db',
+    label: 'Atténuation (dB)',
+    type: 'checkbox',
+    values: sorted.map((v) => ({ value: v, label: `${v} dB` })),
+  })
+}
+
+if (configuredFilters.includes('usage_tags') && usageMap.size > 1) {
+  availableFilters.push({
+    key: 'usage_tags',
+    label: 'Utilisation',
+    type: 'checkbox',
+    values: Array.from(usageMap).sort().map((v) => ({ value: v, label: USAGE_LABELS[v] || v })),
+  })
+}
+
+for (const [optName, vals] of Object.entries(optionMap)) {
+  if (configuredFilters.includes(optName) && vals.size > 1) {
+    availableFilters.push({
+      key: optName,
+      label: optName,
+      type: optName.toLowerCase().includes('couleur') || optName.toLowerCase().includes('color') ? 'color' : 'checkbox',
+      values: Array.from(vals).sort().map((v) => ({ value: v, label: v })),
+    })
+  }
+}
+
+const minPrice = prices.length > 0 ? Math.floor(Math.min(...prices)) : 0
+const maxPrice = prices.length > 0 ? Math.ceil(Math.max(...prices)) : 1000
+
+// Affiliate check: how many products are affiliate
+const affiliateProducts = products.filter((p: any) => p.metadata?.affiliate_enabled === 'true' || p.metadata?.affiliate_enabled === true)
+
+// Collection hierarchy — sister collections (same parent category)
+const COLLECTION_GROUPS: Record<string, string[]> = {
+  maman: [
+    'soins-allaitement', 'soins-grossesse', 'tire-lait', 'bout-de-sein',
+    'coussinet-allaitement', 'coquillage-allaitement-nacre', 'conservation-lait-maternel',
+    'soutien-gorge-allaitement', 'pour-maman',
+  ],
+  bebe: [
+    'casque-anti-bruit-bebe', 'tresse-de-lit-bebe', 'vaisselle-bebe',
+    'biberons-tetines', 'trousse-de-soin-bebe', 'attache-tetine', 'bebe',
+  ],
+  bijoux: [
+    'bola-de-grossesse', 'bijoux',
+  ],
+  'vetements-allaitement': [
+    'vetements-allaitement', 'robe-allaitement', 'tunique-allaitement',
+    'pyjama-allaitement', 'pull-allaitement', 't-shirt-allaitement',
+    'salopette-allaitement', 'maillot-bain-allaitement', 'pantalon-allaitement',
+    'soutien-gorge-allaitement',
+  ],
+}
+
+// Find which group this collection belongs to
+function getSisterCollections(handle: string): string[] {
+  for (const group of Object.values(COLLECTION_GROUPS)) {
+    if (group.includes(handle)) return group
+  }
+  return [] // If not in any group, show nothing (or all)
+}
+
+const sisterHandles = getSisterCollections(collection.handle)
+const sisterCollections = sisterHandles.length > 0
+  ? allCollections.filter((c: any) => sisterHandles.includes(c.handle))
+  : allCollections // fallback: show all if not in any group
+
+// Parent collection detection: if the current collection is a sub-collection of a known parent,
+// find that parent to display it in the breadcrumb.
+const PARENTS: Record<string, { handle: string; title: string }> = {
+  'robe-allaitement': { handle: 'vetements-allaitement', title: "Vêtements d'allaitement" },
+  'tunique-allaitement': { handle: 'vetements-allaitement', title: "Vêtements d'allaitement" },
+  'pyjama-allaitement': { handle: 'vetements-allaitement', title: "Vêtements d'allaitement" },
+  'pull-allaitement': { handle: 'vetements-allaitement', title: "Vêtements d'allaitement" },
+  't-shirt-allaitement': { handle: 'vetements-allaitement', title: "Vêtements d'allaitement" },
+  'salopette-allaitement': { handle: 'vetements-allaitement', title: "Vêtements d'allaitement" },
+  'maillot-bain-allaitement': { handle: 'vetements-allaitement', title: "Vêtements d'allaitement" },
+  'pantalon-allaitement': { handle: 'vetements-allaitement', title: "Vêtements d'allaitement" },
+}
+const parent = PARENTS[collection.handle]
+
+// Precompute sister thumbnails — one image per collection for the bubbles
+const sisterThumbnails: Record<string, string> = {}
+for (const sis of sisterCollections) {
+  if (sis.id === collection.id) continue
+  // Try to find a product of that sister collection; fall back to loading its first product
+  try {
+    const sisterData = await getCollectionProducts(sis.id, 5).catch(() => ({ products: [] }))
+    const firstWithThumb = (sisterData.products || []).find((p: any) => p.thumbnail)
+    if (firstWithThumb) sisterThumbnails[sis.handle] = firstWithThumb.thumbnail
+  } catch {}
+}
+
+// FAQs from collection metadata
+let collectionFaqs: { q: string; a: string }[] = []
+try {
+  const rawFaqs = (collection.metadata as any)?.faqs
+  if (rawFaqs) {
+    const parsed = typeof rawFaqs === 'string' ? JSON.parse(rawFaqs) : rawFaqs
+    if (Array.isArray(parsed)) collectionFaqs = parsed.filter((f: any) => f.q && f.a)
+  }
+} catch {}
+---
+
+<Layout title={collection.metadata?.meta_title || collection.title} description={collection.metadata?.meta_description || metaDesc.substring(0, 160)}>
+  <SchemaCollection
+    slot="head"
+    name={collection.title}
+    description={introText}
+    url={`/collections/${collection.handle}`}
+    itemCount={products.length}
+  />
+  <SchemaBreadcrumb
+    slot="head"
+    items={[
+      { name: 'Magic Crochet Kit', url: '/' },
+      ...(parent ? [{ name: parent.title, url: `/collections/${parent.handle}/` }] : []),
+      { name: collection.title, url: `/collections/${collection.handle}/` },
+    ]}
+  />
+  {collectionFaqs.length > 0 && (
+    <SchemaFAQ slot="head" items={collectionFaqs.map(f => ({ question: f.q, answer: f.a }))} />
+  )}
+  <section class="py-12 lg:py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Breadcrumb -->
+      <nav class="mb-8 text-sm text-text-muted flex items-center gap-2 flex-wrap animate-fade-up">
+        <a href="/" class="hover:text-primary transition-colors">Accueil</a>
+        {parent && (
+          <>
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            <a href={`/collections/${parent.handle}/`} class="hover:text-primary transition-colors">{parent.title}</a>
+          </>
+        )}
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-text">{collection.title}</span>
+      </nav>
+
+      <!-- Header with description -->
+      <div class="text-center mb-10 animate-fade-up delay-1 max-w-3xl mx-auto">
+        <h1>{collection.title}</h1>
+        {introText && (
+          <div class="mt-4 text-text-light text-lg leading-relaxed prose mx-auto" set:html={introText}></div>
+        )}
+      </div>
+      <span id="col-count" class="hidden">{products.length}</span>
+
+      <!-- Sister categories bubbles (circular thumbnails with category names) -->
+      {sisterCollections.length > 1 && (
+        <div class="mb-12 animate-fade-up delay-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div class="flex sm:justify-center gap-4 sm:gap-6 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide snap-x snap-mandatory">
+            {sisterCollections.filter((c: any) => c.handle !== collection.handle && sisterThumbnails[c.handle]).slice(0, 9).map((col: any) => {
+              const thumb = sisterThumbnails[col.handle]
+              return (
+                <a href={`/collections/${col.handle}/`} class="group flex flex-col items-center shrink-0 snap-start w-20 sm:w-24 text-center">
+                  <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-bg-light border-2 border-border-light group-hover:border-primary group-hover:shadow-lg group-hover:shadow-primary/20 transition-all duration-300">
+                    <img src={thumb} alt={col.title} loading="lazy" class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300" />
+                  </div>
+                  <p class="mt-2 text-xs font-medium text-text-light group-hover:text-primary transition-colors line-clamp-2 leading-tight">{col.title}</p>
+                </a>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      <!-- Toolbar: Filters + Sort -->
+      <div class="flex items-center justify-between mb-6 animate-fade-up delay-2 gap-3">
+        <div class="flex items-center gap-3">
+          {availableFilters.length > 0 && (
+            <button id="filter-toggle" type="button" class="flex items-center gap-2 px-4 py-2 border border-border rounded-xl text-sm font-medium text-text hover:border-primary transition-colors lg:hidden">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+              Filtrer
+              <span id="filter-badge" class="hidden w-5 h-5 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center"></span>
+            </button>
+          )}
+          <div class="flex items-center gap-2">
+            <label for="col-sort" class="text-sm text-text-muted hidden sm:inline">Trier par :</label>
+            <select id="col-sort" class="text-sm bg-white border border-border rounded-xl px-3 py-2 text-text focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer">
+              <option value="default">Pertinence</option>
+              <option value="price-asc">Prix croissant</option>
+              <option value="price-desc">Prix decroissant</option>
+              <option value="name-asc">Nom A-Z</option>
+              <option value="name-desc">Nom Z-A</option>
+            </select>
+          </div>
+        </div>
+        <span id="col-page-info" class="text-sm text-text-muted"></span>
+      </div>
+
+      <!-- Layout: Sidebar filters + Grid -->
+      <div class={availableFilters.length > 0 ? 'lg:grid lg:grid-cols-[260px_1fr] lg:gap-10' : ''}>
+
+        <!-- Filters sidebar — refined design -->
+        {availableFilters.length > 0 && (
+          <aside id="filter-sidebar" class="hidden lg:block mb-6 lg:mb-0">
+            <div class="lg:sticky lg:top-24">
+              <!-- Header with count + reset -->
+              <div class="flex items-center justify-between pb-4 mb-4 border-b border-border-light">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-text" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                  <span class="text-[13px] font-semibold text-text uppercase tracking-wider font-['DM_Sans']">Filtres</span>
+                </div>
+                <button id="filter-reset" type="button" class="hidden text-[11px] text-primary hover:underline font-medium uppercase tracking-wide">Reinitialiser</button>
+              </div>
+
+              <!-- Active filter chips (always at top when active) -->
+              <div id="filter-active" class="hidden mb-5 pb-5 border-b border-border-light">
+                <div id="filter-tags" class="flex flex-wrap gap-1.5"></div>
+              </div>
+
+              <!-- Filter sections -->
+              <div class="space-y-1">
+                {availableFilters.map((filter, idx) => (
+                  <div class="filter-section py-4 border-b border-border-light last:border-b-0">
+                    <button type="button" class="filter-section-toggle flex items-center justify-between w-full group" data-target={`filter-${filter.key}`}>
+                      <span class="text-[13px] font-semibold text-text font-['DM_Sans']">{filter.label}</span>
+                      <svg class={`w-4 h-4 text-text-muted transition-transform group-hover:text-text ${idx === 0 ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div id={`filter-${filter.key}`} class={`mt-4 ${idx === 0 ? '' : 'hidden'}`}>
+                      {filter.type === 'range' && (
+                        <div class="price-range-slider px-1.5 pt-2 pb-1" data-min={minPrice} data-max={maxPrice}>
+                          <!-- Live value display -->
+                          <div class="flex items-baseline justify-between mb-4">
+                            <div>
+                              <span class="text-[11px] text-text-muted block">A partir de</span>
+                              <span class="text-sm font-semibold text-text"><span id="price-display-min">{minPrice}</span> €</span>
+                            </div>
+                            <div class="text-right">
+                              <span class="text-[11px] text-text-muted block">Jusqu'a</span>
+                              <span class="text-sm font-semibold text-text"><span id="price-display-max">{maxPrice}</span> €</span>
+                            </div>
+                          </div>
+
+                          <!-- Dual range slider -->
+                          <div class="relative h-1.5 mb-1">
+                            <!-- Track background -->
+                            <div class="absolute inset-0 bg-bg-light rounded-full"></div>
+                            <!-- Active range -->
+                            <div id="price-range-fill" class="absolute h-full bg-primary rounded-full" style="left:0%;right:0%"></div>
+                            <!-- Min slider -->
+                            <input
+                              type="range"
+                              id="filter-price-min"
+                              min={minPrice}
+                              max={maxPrice}
+                              value={minPrice}
+                              step="1"
+                              class="price-range-input absolute inset-0 w-full appearance-none bg-transparent pointer-events-none"
+                            />
+                            <!-- Max slider -->
+                            <input
+                              type="range"
+                              id="filter-price-max"
+                              min={minPrice}
+                              max={maxPrice}
+                              value={maxPrice}
+                              step="1"
+                              class="price-range-input absolute inset-0 w-full appearance-none bg-transparent pointer-events-none"
+                            />
+                          </div>
+
+                          <!-- Bounds labels -->
+                          <div class="flex items-center justify-between text-[10px] text-text-muted px-0.5 mt-3">
+                            <span>{minPrice} €</span>
+                            <span>{maxPrice} €</span>
+                          </div>
+                        </div>
+                      )}
+                      {filter.type === 'checkbox' && (
+                        <div class="flex flex-wrap gap-1.5">
+                          {filter.values?.map((v: any) => (
+                            <button type="button" class="filter-pill px-3 py-1.5 border border-border rounded-full text-[12px] font-medium text-text-light hover:border-primary hover:text-primary transition-all" data-filter={filter.key} data-value={v.value}>
+                              {v.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {filter.type === 'color' && (
+                        <div class="flex flex-wrap gap-2">
+                          {filter.values?.map((v: any) => {
+                            const normalized = v.value.toLowerCase().replace(/['\/]/g, '').replace(/\s+/g, '_').replace(/_+/g, '_')
+                            const hex = colorMap[normalized] || '#e5e7eb'
+                            const isLight = hex === '#fff' || hex === '#fffdd0' || hex === '#d4b896' || hex === '#fbcfe8'
+                            return (
+                              <button type="button" class="filter-color-btn relative w-8 h-8 rounded-full border-2 border-border hover:border-primary hover:scale-110 transition-all" data-filter={filter.key} data-value={v.value} title={v.label} aria-label={v.label}>
+                                <span class={`block w-full h-full rounded-full ${isLight ? 'ring-1 ring-inset ring-black/10' : ''}`} style={`background-color: ${hex}`}></span>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </aside>
+        )}
+
+        <!-- Products grid -->
+        <div>
+          <div id="col-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 lg:gap-6">
+            {products.length > 0 ? (
+              products.map((product: any) => {
+                const isAffiliate = product.metadata?.affiliate_enabled === 'true' || product.metadata?.affiliate_enabled === true
+                // Build data attributes for filtering
+                const optionData = {} as any
+                product.options?.forEach((opt: any) => {
+                  const vals = opt.values?.map((v: any) => v.value).filter(Boolean) || []
+                  if (vals.length > 0) optionData[opt.title] = vals.join('|')
+                })
+                const optAttrs = Object.fromEntries(
+                  Object.entries(optionData).map(([k, v]) => [`data-opt-${k.toLowerCase().replace(/\s+/g, '-')}`, v])
+                )
+                // Metadata-based filter attributes
+                const meta = product.metadata || {}
+                let usageTags = meta.usage_tags
+                if (typeof usageTags === 'string') { try { usageTags = JSON.parse(usageTags) } catch { usageTags = [] } }
+                const dbVal = meta.attenuation_db ? Number(meta.attenuation_db) : 0
+                const dbBucket = dbVal <= 24 ? '22-24' : dbVal <= 27 ? '25-27' : dbVal > 0 ? '28+' : ''
+                return (
+                  <div
+                    class="col-product-item"
+                    data-title={product.title.toLowerCase()}
+                    data-price={getProductPrice(product)}
+                    data-meta-brand={meta.brand || ''}
+                    data-meta-age_range={meta.age_range || ''}
+                    data-meta-attenuation_db={dbBucket}
+                    data-meta-usage_tags={Array.isArray(usageTags) ? usageTags.join('|') : ''}
+                    data-affiliate={isAffiliate ? 'true' : ''}
+                    data-affiliate-url={isAffiliate ? (product.metadata?.affiliate_url || '') : ''}
+                    {...optAttrs}
+                  >
+                    <ProductCard
+                      id={product.id}
+                      title={product.title}
+                      handle={product.handle}
+                      price={getProductPrice(product)}
+                      thumbnail={product.thumbnail}
+                      hoverImage={getProductHoverImage(product)}
+                      affiliateUrl={isAffiliate ? (product.metadata?.affiliate_url || '') : ''}
+                      affiliateLabel={isAffiliate ? (product.metadata?.affiliate_label || 'Voir sur le site partenaire') : ''}
+                    />
+                  </div>
+                )
+              })
+            ) : (
+              <div class="col-span-full text-center py-16">
+                <p class="text-text-light text-lg mb-4">Aucun produit dans cette categorie.</p>
+                <a href="/collections/" class="btn btn-outline">Voir toutes les categories</a>
+              </div>
+            )}
+          </div>
+
+          <!-- No results after filtering -->
+          <div id="col-no-results" class="hidden text-center py-16">
+            <svg class="w-12 h-12 mx-auto text-text-muted mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+            <p class="text-text-light text-lg mb-2">Aucun produit ne correspond a vos filtres</p>
+            <button type="button" id="col-reset-filters" class="text-primary text-sm hover:underline">Reinitialiser les filtres</button>
+          </div>
+
+          <!-- Pagination -->
+          <nav id="col-pagination" class="hidden mt-10 flex items-center justify-center gap-2" aria-label="Pagination"></nav>
+        </div>
+      </div>
+
+      <!-- FAQ section -->
+      {collectionFaqs.length > 0 && (
+        <div class="mt-16 pt-12 border-t border-border-light max-w-3xl mx-auto reveal">
+          <div class="text-center mb-10">
+            <span class="inline-block px-3 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full uppercase tracking-wider">FAQ</span>
+            <h2 class="mt-3">Questions frequentes</h2>
+            <p class="mt-2 text-text-muted text-sm">Tout ce que vous devez savoir sur {collection.title.toLowerCase()}</p>
+          </div>
+          <div class="space-y-3">
+            {collectionFaqs.map((faq, i) => (
+              <details class="group border border-border-light rounded-2xl bg-white overflow-hidden hover:border-primary/30 transition-colors" {...(i === 0 ? { open: true } : {})}>
+                <summary class="flex items-center justify-between gap-4 p-5 cursor-pointer list-none">
+                  <span class="text-sm font-semibold text-text pr-4">{faq.q}</span>
+                  <svg class="w-5 h-5 text-text-muted shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </summary>
+                <div class="px-5 pb-5 -mt-1">
+                  <p class="text-sm text-text-light leading-relaxed whitespace-pre-line">{faq.a}</p>
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- SEO text -->
+      {seoText && (
+        <div class="mt-16 pt-10 border-t border-border-light max-w-4xl mx-auto reveal">
+          {seoText.trim().startsWith('<') ? (
+            <div class="collection-seo prose prose-lg max-w-none text-text-light" set:html={seoText} />
+          ) : (
+            <div class="prose prose-lg max-w-none text-text-light space-y-4">
+              {seoText.split('\n\n').filter(Boolean).map((paragraph: string) => (
+                <p>{paragraph.trim()}</p>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const allItems = Array.from(document.querySelectorAll('.col-product-item')) as HTMLElement[]
+  const grid = document.getElementById('col-grid')!
+  const paginationEl = document.getElementById('col-pagination')!
+  const sortSelect = document.getElementById('col-sort') as HTMLSelectElement
+  const pageInfo = document.getElementById('col-page-info')!
+  const noResults = document.getElementById('col-no-results')!
+  const countEl = document.getElementById('col-count')
+
+  const PER_PAGE = 12
+  let currentPage = 1
+  let visibleItems = [...allItems]
+
+  // ============================================
+  // FILTERS — with URL persistence
+  // ============================================
+  const activeFilters: Record<string, Set<string>> = {}
+  let priceMin = 0
+  let priceMax = Infinity
+
+  // Sync filters to URL (shareable + back button works)
+  function syncToURL() {
+    const params = new URLSearchParams()
+    if (priceMin > 0) params.set('price_min', String(priceMin))
+    if (priceMax < Infinity) params.set('price_max', String(priceMax))
+    for (const [key, vals] of Object.entries(activeFilters)) {
+      if (vals.size > 0) params.set(key.toLowerCase(), Array.from(vals).join(','))
+    }
+    if (sortSelect?.value && sortSelect.value !== 'default') params.set('sort', sortSelect.value)
+    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
+    history.replaceState(null, '', newUrl)
+  }
+
+  // Load filters from URL on page load
+  function loadFromURL() {
+    const params = new URLSearchParams(window.location.search)
+    const min = params.get('price_min')
+    const max = params.get('price_max')
+    if (min) {
+      priceMin = Number(min)
+      const minInput = document.getElementById('filter-price-min') as HTMLInputElement
+      if (minInput) minInput.value = min
+    }
+    if (max) {
+      priceMax = Number(max)
+      const maxInput = document.getElementById('filter-price-max') as HTMLInputElement
+      if (maxInput) maxInput.value = max
+    }
+    // Re-render slider visual after URL load
+    if ((min || max) && typeof updatePriceUI === 'function') updatePriceUI()
+    // Load pill/color filters
+    document.querySelectorAll('.filter-pill').forEach(pill => {
+      const el = pill as HTMLElement
+      const key = el.dataset.filter!
+      const val = el.dataset.value!
+      const urlVals = params.get(key.toLowerCase())?.split(',') || []
+      if (urlVals.includes(val)) {
+        el.classList.add('bg-primary', 'text-white', 'border-primary')
+        el.classList.remove('text-text-light')
+        if (!activeFilters[key]) activeFilters[key] = new Set()
+        activeFilters[key].add(val)
+      }
+    })
+    document.querySelectorAll('.filter-color-btn').forEach(btn => {
+      const el = btn as HTMLElement
+      const key = el.dataset.filter!
+      const val = el.dataset.value!
+      const urlVals = params.get(key.toLowerCase())?.split(',') || []
+      if (urlVals.includes(val)) {
+        el.classList.add('ring-2', 'ring-primary', 'ring-offset-2')
+        if (!activeFilters[key]) activeFilters[key] = new Set()
+        activeFilters[key].add(val)
+      }
+    })
+    const sortVal = params.get('sort')
+    if (sortVal && sortSelect) sortSelect.value = sortVal
+  }
+
+  function applyFilters() {
+    visibleItems = allItems.filter(item => {
+      // Price filter
+      const price = Number(item.dataset.price) || 0
+      const priceEur = price
+      if (priceEur < priceMin || priceEur > priceMax) return false
+
+      // Filters: first try metadata (data-meta-X), then product options (data-opt-X)
+      const META_KEYS = new Set(['brand', 'age_range', 'attenuation_db', 'usage_tags'])
+      for (const [filterKey, selectedValues] of Object.entries(activeFilters)) {
+        if (selectedValues.size === 0) continue
+        let itemValues: string[]
+        if (META_KEYS.has(filterKey)) {
+          itemValues = (item.getAttribute(`data-meta-${filterKey}`) || '').split('|').filter(Boolean)
+        } else {
+          const attrKey = `opt-${filterKey.toLowerCase().replace(/\s+/g, '-')}`
+          itemValues = (item.dataset[attrKey.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] || '').split('|')
+        }
+        if (!itemValues.some(v => selectedValues.has(v))) return false
+      }
+
+      return true
+    })
+
+    currentPage = 1
+    applyView()
+    updateFilterUI()
+    syncToURL()
+  }
+
+  function updateFilterUI() {
+    const filterBadge = document.getElementById('filter-badge')
+    const filterReset = document.getElementById('filter-reset')
+    const filterActive = document.getElementById('filter-active')
+    const filterTags = document.getElementById('filter-tags')
+
+    let count = 0
+    for (const vals of Object.values(activeFilters)) count += vals.size
+    if (priceMin > 0 || priceMax < Infinity) count++
+
+    if (filterBadge) {
+      if (count > 0) {
+        filterBadge.textContent = String(count)
+        filterBadge.classList.remove('hidden')
+      } else {
+        filterBadge.classList.add('hidden')
+      }
+    }
+
+    if (filterReset) {
+      count > 0 ? filterReset.classList.remove('hidden') : filterReset.classList.add('hidden')
+    }
+
+    // Active filter tags
+    if (filterActive && filterTags) {
+      if (count > 0) {
+        filterActive.classList.remove('hidden')
+        let html = ''
+        if (priceMin > 0 || priceMax < Infinity) {
+          const label = priceMax < Infinity ? `${priceMin} - ${priceMax} EUR` : `> ${priceMin} EUR`
+          html += `<span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
+            ${label}
+            <button type="button" class="filter-tag-remove hover:text-error" data-type="price">&times;</button>
+          </span>`
+        }
+        for (const [key, vals] of Object.entries(activeFilters)) {
+          vals.forEach(v => {
+            html += `<span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
+              ${v}
+              <button type="button" class="filter-tag-remove hover:text-error" data-type="option" data-filter="${key}" data-value="${v}">&times;</button>
+            </span>`
+          })
+        }
+        filterTags.innerHTML = html
+
+        // Bind tag remove buttons
+        filterTags.querySelectorAll('.filter-tag-remove').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const el = btn as HTMLElement
+            if (el.dataset.type === 'price') {
+              priceMin = 0; priceMax = Infinity
+              const minInput = document.getElementById('filter-price-min') as HTMLInputElement
+              const maxInput = document.getElementById('filter-price-max') as HTMLInputElement
+              if (minInput) minInput.value = ''
+              if (maxInput) maxInput.value = ''
+            } else {
+              const key = el.dataset.filter!
+              const val = el.dataset.value!
+              activeFilters[key]?.delete(val)
+              const pill = document.querySelector(`.filter-pill[data-filter="${key}"][data-value="${val}"]`) as HTMLElement
+              if (pill) pill.classList.remove('bg-primary', 'text-white', 'border-primary')
+              const colorBtn = document.querySelector(`.filter-color-btn[data-filter="${key}"][data-value="${val}"]`) as HTMLElement
+              if (colorBtn) colorBtn.classList.remove('ring-2', 'ring-primary', 'ring-offset-2')
+            }
+            applyFilters()
+          })
+        })
+      } else {
+        filterActive.classList.add('hidden')
+      }
+    }
+
+    // Update count
+    if (countEl) countEl.textContent = String(visibleItems.length)
+
+    // Show/hide no results
+    if (visibleItems.length === 0) {
+      noResults.classList.remove('hidden')
+      grid.classList.add('hidden')
+    } else {
+      noResults.classList.add('hidden')
+      grid.classList.remove('hidden')
+    }
+  }
+
+  // Pill filters
+  document.querySelectorAll('.filter-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      const el = pill as HTMLElement
+      const key = el.dataset.filter!
+      const val = el.dataset.value!
+      if (!activeFilters[key]) activeFilters[key] = new Set()
+      if (activeFilters[key].has(val)) {
+        activeFilters[key].delete(val)
+        el.classList.remove('bg-primary', 'text-white', 'border-primary')
+        el.classList.add('text-text-light')
+      } else {
+        activeFilters[key].add(val)
+        el.classList.add('bg-primary', 'text-white', 'border-primary')
+        el.classList.remove('text-text-light')
+      }
+      applyFilters()
+    })
+  })
+
+  // Color filters
+  document.querySelectorAll('.filter-color-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const el = btn as HTMLElement
+      const key = el.dataset.filter!
+      const val = el.dataset.value!
+      if (!activeFilters[key]) activeFilters[key] = new Set()
+      if (activeFilters[key].has(val)) {
+        activeFilters[key].delete(val)
+        el.classList.remove('ring-2', 'ring-primary', 'ring-offset-2')
+      } else {
+        activeFilters[key].add(val)
+        el.classList.add('ring-2', 'ring-primary', 'ring-offset-2')
+      }
+      applyFilters()
+    })
+  })
+
+  // ============================================
+  // Dual range slider — price filter
+  // ============================================
+  const priceSliderContainer = document.querySelector('.price-range-slider') as HTMLElement
+  const minSlider = document.getElementById('filter-price-min') as HTMLInputElement
+  const maxSlider = document.getElementById('filter-price-max') as HTMLInputElement
+  const priceFill = document.getElementById('price-range-fill')
+  const priceDisplayMin = document.getElementById('price-display-min')
+  const priceDisplayMax = document.getElementById('price-display-max')
+
+  const PRICE_BOUND_MIN = priceSliderContainer ? Number(priceSliderContainer.dataset.min || '0') : 0
+  const PRICE_BOUND_MAX = priceSliderContainer ? Number(priceSliderContainer.dataset.max || '1000') : 1000
+
+  function updatePriceUI() {
+    if (!minSlider || !maxSlider) return
+    let minVal = Number(minSlider.value)
+    let maxVal = Number(maxSlider.value)
+
+    // Prevent overlap (gap of at least 1)
+    if (minVal >= maxVal) {
+      if (document.activeElement === minSlider) {
+        minVal = maxVal - 1
+        minSlider.value = String(minVal)
+      } else {
+        maxVal = minVal + 1
+        maxSlider.value = String(maxVal)
+      }
+    }
+
+    // Update fill
+    const minPct = ((minVal - PRICE_BOUND_MIN) / (PRICE_BOUND_MAX - PRICE_BOUND_MIN)) * 100
+    const maxPct = ((maxVal - PRICE_BOUND_MIN) / (PRICE_BOUND_MAX - PRICE_BOUND_MIN)) * 100
+    if (priceFill) {
+      priceFill.style.left = `${minPct}%`
+      priceFill.style.right = `${100 - maxPct}%`
+    }
+
+    // Update labels
+    if (priceDisplayMin) priceDisplayMin.textContent = String(minVal)
+    if (priceDisplayMax) priceDisplayMax.textContent = String(maxVal)
+  }
+
+  function commitPriceFilter() {
+    if (!minSlider || !maxSlider) return
+    const minVal = Number(minSlider.value)
+    const maxVal = Number(maxSlider.value)
+
+    // Only filter if user actually changed the range
+    priceMin = minVal > PRICE_BOUND_MIN ? minVal : 0
+    priceMax = maxVal < PRICE_BOUND_MAX ? maxVal : Infinity
+
+    applyFilters()
+  }
+
+  if (minSlider && maxSlider) {
+    // Live visual update during drag
+    minSlider.addEventListener('input', updatePriceUI)
+    maxSlider.addEventListener('input', updatePriceUI)
+    // Apply filter only on release (avoid spamming on every pixel)
+    minSlider.addEventListener('change', commitPriceFilter)
+    maxSlider.addEventListener('change', commitPriceFilter)
+    // Initial render
+    updatePriceUI()
+  }
+
+  // Reset all filters
+  document.getElementById('filter-reset')?.addEventListener('click', resetFilters)
+  document.getElementById('col-reset-filters')?.addEventListener('click', resetFilters)
+
+  function resetFilters() {
+    for (const key of Object.keys(activeFilters)) activeFilters[key].clear()
+    priceMin = 0; priceMax = Infinity
+    document.querySelectorAll('.filter-pill').forEach(pill => {
+      pill.classList.remove('bg-primary', 'text-white', 'border-primary')
+      pill.classList.add('text-text-light')
+    })
+    document.querySelectorAll('.filter-color-btn').forEach(btn => btn.classList.remove('ring-2', 'ring-primary', 'ring-offset-2'))
+    if (minSlider) minSlider.value = String(PRICE_BOUND_MIN)
+    if (maxSlider) maxSlider.value = String(PRICE_BOUND_MAX)
+    updatePriceUI()
+    applyFilters()
+  }
+
+  // Filter sidebar toggle (mobile)
+  document.getElementById('filter-toggle')?.addEventListener('click', () => {
+    const sidebar = document.getElementById('filter-sidebar')
+    sidebar?.classList.toggle('hidden')
+  })
+
+  // Collapsible filter sections
+  document.querySelectorAll('.filter-section-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById((btn as HTMLElement).dataset.target!)
+      target?.classList.toggle('hidden')
+      const arrow = btn.querySelector('svg')
+      arrow?.classList.toggle('rotate-180')
+    })
+  })
+
+  // ============================================
+  // SORT + PAGINATION
+  // ============================================
+  function applyView() {
+    const totalPages = Math.ceil(visibleItems.length / PER_PAGE)
+    if (currentPage > totalPages) currentPage = 1
+
+    // Hide all, then show visible page
+    allItems.forEach(item => item.style.display = 'none')
+    const start = (currentPage - 1) * PER_PAGE
+    const end = start + PER_PAGE
+    visibleItems.slice(start, end).forEach(item => item.style.display = '')
+
+    pageInfo.textContent = totalPages > 1 ? `Page ${currentPage} / ${totalPages}` : ''
+    renderPagination(totalPages)
+  }
+
+  function renderPagination(totalPages: number) {
+    if (totalPages <= 1) { paginationEl.classList.add('hidden'); return }
+    paginationEl.classList.remove('hidden')
+
+    let html = `<button data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''} class="w-10 h-10 rounded-xl border border-border flex items-center justify-center text-text-muted hover:bg-primary hover:text-white hover:border-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    </button>`
+
+    for (let i = 1; i <= totalPages; i++) {
+      html += `<button data-page="${i}" class="w-10 h-10 rounded-xl border text-sm font-medium transition-all ${
+        i === currentPage ? 'bg-primary text-white border-primary' : 'border-border text-text-muted hover:bg-primary hover:text-white hover:border-primary'
+      }">${i}</button>`
+    }
+
+    html += `<button data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''} class="w-10 h-10 rounded-xl border border-border flex items-center justify-center text-text-muted hover:bg-primary hover:text-white hover:border-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+    </button>`
+
+    paginationEl.innerHTML = html
+    paginationEl.querySelectorAll('button[data-page]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = parseInt(btn.getAttribute('data-page') || '1')
+        if (p >= 1 && p <= totalPages) {
+          currentPage = p
+          applyView()
+          grid.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      })
+    })
+  }
+
+  // Sort
+  sortSelect?.addEventListener('change', () => {
+    visibleItems.sort((a, b) => {
+      const priceA = Number(a.dataset.price) || 0
+      const priceB = Number(b.dataset.price) || 0
+      const nameA = a.dataset.title || ''
+      const nameB = b.dataset.title || ''
+      switch (sortSelect.value) {
+        case 'price-asc': return priceA - priceB
+        case 'price-desc': return priceB - priceA
+        case 'name-asc': return nameA.localeCompare(nameB)
+        case 'name-desc': return nameB.localeCompare(nameA)
+        default: return 0
+      }
+    })
+    visibleItems.forEach(item => grid.appendChild(item))
+    currentPage = 1
+    applyView()
+    syncToURL()
+  })
+
+  // Initial load: read URL params + apply filters
+  loadFromURL()
+  if (Object.keys(activeFilters).some(k => activeFilters[k].size > 0) || priceMin > 0 || priceMax < Infinity) {
+    applyFilters()
+  } else {
+    applyView()
+  }
+</script>

@@ -1,0 +1,128 @@
+{%- comment -%}
+  Payment Icons Snippet
+  Shows accepted payment methods with icons
+  Usage: {% render 'payment-icons' %}
+  Optional: {% render 'payment-icons', show_label: true %}
+{%- endcomment -%}
+
+<div class="payment-icons">
+  {%- if settings.show_payment_icons -%}
+    {%- if show_label -%}
+      <p class="payment-icons__label">Paiement 100% sécurisé</p>
+    {%- endif -%}
+    <div class="payment-icons__wrapper">
+      {%- if settings.payment_visa -%}
+        <div class="payment-icon">
+          <img src="{{ 'payments-visa.webp' | asset_url }}" alt="Visa" width="48" height="32" loading="lazy">
+        </div>
+      {%- endif -%}
+
+      {%- if settings.payment_mastercard -%}
+        <div class="payment-icon">
+          <img src="{{ 'payments-mastercard.webp' | asset_url }}" alt="Mastercard" width="48" height="32" loading="lazy">
+        </div>
+      {%- endif -%}
+
+      {%- if settings.payment_amex -%}
+        <div class="payment-icon">
+          <svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg">
+            <rect width="48" height="32" rx="4" fill="#006FCF"/>
+            <path d="M11 12h4l1 2 1-2h4v8h-3v-5l-2 3h-1l-2-3v5h-2v-8zm15 0l-3 8h3l.5-1.5h3l.5 1.5h3l-3-8h-4zm1.5 2l1 3h-2l1-3z" fill="white"/>
+          </svg>
+        </div>
+      {%- endif -%}
+
+      {%- if settings.payment_paypal -%}
+        <div class="payment-icon">
+          <img src="{{ 'payments-paypal.webp' | asset_url }}" alt="PayPal" width="48" height="32" loading="lazy">
+        </div>
+      {%- endif -%}
+
+      {%- if settings.payment_apple_pay -%}
+        <div class="payment-icon">
+          <img src="{{ 'payments-applepay.webp' | asset_url }}" alt="Apple Pay" width="48" height="32" loading="lazy">
+        </div>
+      {%- endif -%}
+
+      {%- if settings.payment_google_pay -%}
+        <div class="payment-icon">
+          <img src="{{ 'payments-googlepay.webp' | asset_url }}" alt="Google Pay" width="48" height="32" loading="lazy">
+        </div>
+      {%- endif -%}
+
+      {%- if settings.payment_shop_pay -%}
+        <div class="payment-icon">
+          <svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg">
+            <rect width="48" height="32" rx="4" fill="#5A31F4"/>
+            <path d="M16.5 14.5c0-.8.6-1.3 1.5-1.3 1.3 0 2.3.9 2.3 2.3v4h1.7v-4.3c0-2.3-1.5-3.7-3.5-3.7-.9 0-1.8.4-2.3 1.1v-.9h-1.6v7.8h1.7v-4.5-.5zm8.5-2.8c-.9 0-1.8.4-2.2 1.1v-.9h-1.6v7.8h1.7v-4.5c0-.8.6-1.3 1.4-1.3s1.3.5 1.3 1.3v4.5h1.7v-4.5c0-1.8-1.2-2.8-2.5-2.8l.2.3zm8.8-.1c-2.2 0-3.9 1.6-3.9 4s1.7 4 3.9 4 3.9-1.6 3.9-4-1.7-4-3.9-4zm0 6.5c-1.3 0-2.2-1-2.2-2.5s.9-2.5 2.2-2.5 2.2 1 2.2 2.5-.9 2.5-2.2 2.5z" fill="white"/>
+          </svg>
+        </div>
+      {%- endif -%}
+
+      {%- if settings.payment_klarna -%}
+        <div class="payment-icon">
+          <img src="{{ 'payments-klarna.webp' | asset_url }}" alt="Klarna" width="48" height="32" loading="lazy">
+        </div>
+      {%- endif -%}
+
+      {%- if settings.payment_bancontact -%}
+        <div class="payment-icon">
+          <svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg">
+            <rect width="48" height="32" rx="4" fill="#005498"/>
+            <path d="M15 14h-3v1h3c.6 0 1 .4 1 1v2c0 .6-.4 1-1 1h-3v-4h-2v6h5c1.7 0 3-1.3 3-3v-2c0-1.7-1.3-3-3-3zm8 0h-3v1h3c.6 0 1 .4 1 1v2c0 .6-.4 1-1 1h-3v-4h-2v6h5c1.7 0 3-1.3 3-3v-2c0-1.7-1.3-3-3-3zm8 7c-1.7 0-3-1.3-3-3v-4h2v4c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-4h2v4c0 1.7-1.3 3-3 3h-2z" fill="white"/>
+          </svg>
+        </div>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</div>
+
+<style>
+.payment-icons {
+  margin: var(--spacing-md) 0;
+}
+
+.payment-icons__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  margin: 0 0 var(--spacing-xs);
+  text-align: center;
+}
+
+.payment-icons__wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+  justify-content: center;
+}
+
+.payment-icon {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  padding: 2px 0;
+}
+
+.payment-icon svg,
+.payment-icon img {
+  height: 100%;
+  width: auto;
+  max-width: 48px;
+  object-fit: contain;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .payment-icon {
+    height: 30px;
+    padding: 1px 0;
+  }
+
+  .payment-icon svg,
+  .payment-icon img {
+    max-width: 42px;
+  }
+}
+</style>

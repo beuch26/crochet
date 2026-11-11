@@ -1,0 +1,495 @@
+{%- comment -%}
+  Announcement Bar Section - Premium Style
+  Displays promotional messages at the top of the site
+{%- endcomment -%}
+
+{%- if section.settings.show_announcement -%}
+  <div
+    class="announcement-bar announcement-bar--{{ section.settings.style }}"
+    style="background-color: {{ section.settings.bg_color }}; color: {{ section.settings.text_color }};"
+    data-announcement-bar
+    role="region"
+    aria-label="Announcement"
+  >
+    <div class="container">
+      <div class="announcement-bar__content">
+
+        {%- comment -%} Icon {%- endcomment -%}
+        {%- if section.settings.show_icon -%}
+          <span class="announcement-bar__icon" aria-hidden="true">
+            {%- case section.settings.icon_type -%}
+              {%- when 'shipping' -%}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="1" y="3" width="15" height="13" rx="2" stroke-width="2"/>
+                  <path d="M16 8h3l3 3v5h-4M2 16h2M16 16h-2" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="7" cy="16" r="2" stroke-width="2"/>
+                  <circle cx="19" cy="16" r="2" stroke-width="2"/>
+                </svg>
+              {%- when 'gift' -%}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="3" y="8" width="18" height="4" stroke-width="2" stroke-linecap="round"/>
+                  <rect x="3" y="12" width="18" height="9" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M12 8V21M7 8C7 6.5 8 4 10.5 4C12 4 12 5 12 5C12 5 12 4 13.5 4C16 4 17 6.5 17 8" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              {%- when 'tag' -%}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="7" cy="7" r="1.5" fill="currentColor"/>
+                </svg>
+              {%- when 'star' -%}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              {%- when 'percent' -%}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                  <path d="M8 8l8 8M9 8a1 1 0 11-2 0 1 1 0 012 0zM17 16a1 1 0 11-2 0 1 1 0 012 0z" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              {%- else -%}
+                {{ section.settings.custom_icon }}
+            {%- endcase -%}
+          </span>
+        {%- endif -%}
+
+        {%- comment -%} Message {%- endcomment -%}
+        <div class="announcement-bar__message">
+          <p class="announcement-bar__text">{{ section.settings.text }}</p>
+
+          {%- if section.settings.subtext != blank -%}
+            <p class="announcement-bar__subtext">{{ section.settings.subtext }}</p>
+          {%- endif -%}
+        </div>
+
+        {%- comment -%} CTA Link {%- endcomment -%}
+        {%- if section.settings.link_text != blank and section.settings.link_url != blank -%}
+          <a href="{{ section.settings.link_url }}" class="announcement-bar__cta">
+            {{ section.settings.link_text }}
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M6 12l4-4-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        {%- endif -%}
+
+        {%- comment -%} Close Button {%- endcomment -%}
+        {%- if section.settings.show_close -%}
+          <button
+            type="button"
+            class="announcement-bar__close"
+            data-announcement-close
+            aria-label="Close announcement"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <path d="M14 4L4 14M4 4l10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+<style>
+/* Base Announcement Bar */
+.announcement-bar {
+  position: relative;
+  padding: 1rem 0;
+  text-align: center;
+  font-size: 0.875rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.announcement-bar.hiding {
+  max-height: 0;
+  padding: 0;
+  opacity: 0;
+}
+
+.announcement-bar__content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0 2rem;
+}
+
+/* Icon */
+.announcement-bar__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.announcement-bar__icon svg {
+  display: block;
+}
+
+/* Message */
+.announcement-bar__message {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.announcement-bar__text {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  letter-spacing: 0.01em;
+}
+
+.announcement-bar__subtext {
+  margin: 0;
+  font-size: 0.8125rem;
+  opacity: 0.9;
+  font-weight: 400;
+}
+
+/* CTA Link */
+.announcement-bar__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: inherit;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border: 2px solid currentColor;
+  border-radius: 2rem;
+  transition: all var(--transition-speed);
+  white-space: nowrap;
+}
+
+.announcement-bar__cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.announcement-bar__cta svg {
+  transition: transform var(--transition-speed);
+}
+
+.announcement-bar__cta:hover svg {
+  transform: translateX(2px);
+}
+
+/* Close Button */
+.announcement-bar__close {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.1);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: inherit;
+  transition: all var(--transition-speed);
+  flex-shrink: 0;
+}
+
+.announcement-bar__close:hover {
+  background: rgba(0,0,0,0.2);
+  transform: translateY(-50%) rotate(90deg);
+}
+
+/* Style Variants */
+
+/* Default Style - Solid */
+.announcement-bar--default {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+/* Gradient Style */
+.announcement-bar--gradient {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  color: white;
+}
+
+/* Outlined Style */
+.announcement-bar--outlined {
+  border-bottom: 2px solid currentColor;
+  background: transparent;
+}
+
+/* Minimal Style */
+.announcement-bar--minimal {
+  background: rgba(0,0,0,0.03);
+  padding: 0.75rem 0;
+}
+
+/* Bold Style with Animation */
+.announcement-bar--bold {
+  font-weight: 700;
+  padding: 1.25rem 0;
+  position: relative;
+}
+
+.announcement-bar--bold::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    currentColor 50%,
+    transparent 100%);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .announcement-bar {
+    font-size: 0.8125rem;
+    padding: 0.875rem 0;
+  }
+
+  .announcement-bar__content {
+    padding: 0 3rem 0 0.75rem;
+    gap: 0.625rem;
+  }
+
+  .announcement-bar__text {
+    font-size: 0.8125rem;
+  }
+
+  .announcement-bar__subtext {
+    font-size: 0.75rem;
+  }
+
+  .announcement-bar__cta {
+    font-size: 0.8125rem;
+    padding: 0.375rem 0.875rem;
+  }
+
+  .announcement-bar__icon {
+    display: none;
+  }
+
+  .announcement-bar__message {
+    align-items: flex-start;
+    text-align: left;
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .announcement-bar__content {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .announcement-bar__cta {
+    width: 100%;
+    justify-content: center;
+  }
+}
+</style>
+
+<script>
+// Close announcement bar
+document.addEventListener('DOMContentLoaded', function() {
+  const announcementBar = document.querySelector('[data-announcement-bar]');
+  const closeButton = document.querySelector('[data-announcement-close]');
+
+  if (closeButton && announcementBar) {
+    closeButton.addEventListener('click', function() {
+      announcementBar.classList.add('hiding');
+
+      setTimeout(() => {
+        announcementBar.style.display = 'none';
+        // Store in session so it stays closed during this session
+        sessionStorage.setItem('announcementClosed', 'true');
+      }, 300);
+    });
+  }
+
+  // Check if announcement was closed in this session
+  if (sessionStorage.getItem('announcementClosed') === 'true' && announcementBar) {
+    announcementBar.style.display = 'none';
+  }
+});
+</script>
+
+{% schema %}
+{
+  "name": "Barre d'annonce",
+  "class": "section-announcement-bar",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Visibilite"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_announcement",
+      "label": "Afficher la barre d'annonce",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_close",
+      "label": "Afficher le bouton de fermeture",
+      "default": true,
+      "info": "Permet aux utilisateurs de masquer l'annonce (stocke en session)"
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "select",
+      "id": "style",
+      "label": "Style de la barre",
+      "options": [
+        {
+          "value": "default",
+          "label": "Par defaut (Uni)"
+        },
+        {
+          "value": "gradient",
+          "label": "Degrade"
+        },
+        {
+          "value": "outlined",
+          "label": "Contour"
+        },
+        {
+          "value": "minimal",
+          "label": "Minimal"
+        },
+        {
+          "value": "bold",
+          "label": "Gras (avec animation)"
+        }
+      ],
+      "default": "gradient"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Couleur de fond",
+      "default": "#2563eb",
+      "info": "Utilise pour les styles 'Par defaut' et 'Degrade'"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Couleur du texte",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Icone"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_icon",
+      "label": "Afficher l'icone",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "icon_type",
+      "label": "Type d'icone",
+      "options": [
+        {
+          "value": "shipping",
+          "label": "Camion de livraison"
+        },
+        {
+          "value": "gift",
+          "label": "Boite cadeau"
+        },
+        {
+          "value": "tag",
+          "label": "Etiquette de prix"
+        },
+        {
+          "value": "star",
+          "label": "Etoile"
+        },
+        {
+          "value": "percent",
+          "label": "% Pourcentage (Promotion)"
+        },
+        {
+          "value": "custom",
+          "label": "Personnalise (emoji ou HTML)"
+        }
+      ],
+      "default": "shipping"
+    },
+    {
+      "type": "html",
+      "id": "custom_icon",
+      "label": "Icone personnalisee",
+      "info": "Utilise uniquement si le type d'icone 'Personnalise' est selectionne. Ajoutez un emoji ou du code SVG.",
+      "default": "📢"
+    },
+    {
+      "type": "header",
+      "content": "Message"
+    },
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Texte principal",
+      "default": "Livraison gratuite sur toutes les commandes de plus de 50€"
+    },
+    {
+      "type": "text",
+      "id": "subtext",
+      "label": "Sous-texte (Optionnel)",
+      "placeholder": "Details supplementaires...",
+      "info": "Texte plus petit affiche sous le message principal"
+    },
+    {
+      "type": "header",
+      "content": "Appel a l'action (Optionnel)"
+    },
+    {
+      "type": "text",
+      "id": "link_text",
+      "label": "Texte du bouton",
+      "placeholder": "Acheter maintenant"
+    },
+    {
+      "type": "url",
+      "id": "link_url",
+      "label": "Lien du bouton"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Barre d'annonce",
+      "settings": {
+        "show_announcement": true,
+        "style": "gradient",
+        "show_icon": true,
+        "icon_type": "shipping",
+        "text": "Livraison gratuite sur toutes les commandes de plus de 50€",
+        "show_close": true
+      }
+    }
+  ]
+}
+{% endschema %}

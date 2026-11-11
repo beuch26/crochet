@@ -1,0 +1,707 @@
+{%- comment -%}
+  Instagram/Reels Section
+  Displays videos in a TikTok-style vertical grid
+
+  Features:
+  - Vertical 9/16 format cards
+  - Auto YouTube thumbnail extraction
+  - Click to open fullscreen viewer
+  - Grid or carousel layout
+{%- endcomment -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign heading = section.settings.heading
+  assign subheading = section.settings.subheading
+  assign instagram_handle = section.settings.instagram_handle
+  assign layout = section.settings.layout | default: 'grid'
+  assign columns = section.settings.columns | default: 4
+-%}
+
+<section class="instagram-feed section section--{{ section_id }}" id="insta-{{ section_id }}">
+  <div class="container">
+    {%- if heading != blank or subheading != blank -%}
+      <div class="section-header section-header--center">
+        {%- if heading != blank -%}
+          {%- if section.settings.enable_heading_style -%}
+            {%- render 'heading-styles',
+              text: heading,
+              tag: 'h2',
+              style: section.settings.heading_style,
+              color: section.settings.heading_style_color,
+              align: 'center',
+              size: 'xl',
+              typing_texts: section.settings.typing_texts
+            -%}
+          {%- else -%}
+            <h2 class="section-header__title">
+              <svg class="instagram-icon" width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2"/>
+                <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
+                <circle cx="18" cy="6" r="1.5" fill="currentColor"/>
+              </svg>
+              {{ heading }}
+            </h2>
+          {%- endif -%}
+        {%- endif -%}
+        {%- if subheading != blank -%}
+          <p class="section-header__subtitle">{{ subheading }}</p>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <div
+        class="instagram-feed__wrapper instagram-feed__wrapper--{{ layout }}"
+        style="--insta-columns: {{ columns }};"
+        data-instagram-feed
+        {% if layout == 'carousel' %}data-instagram-carousel{% endif %}
+      >
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign video_url = block.settings.video_url
+            assign video_id = ''
+            assign video_provider = ''
+            assign thumbnail_url = ''
+
+            # Extract video ID and provider
+            if video_url != blank
+              if video_url contains 'youtube.com' or video_url contains 'youtu.be'
+                assign video_provider = 'youtube'
+                if video_url contains 'youtube.com/watch?v='
+                  assign video_id = video_url | split: 'v=' | last | split: '&' | first
+                elsif video_url contains 'youtu.be/'
+                  assign video_id = video_url | split: 'youtu.be/' | last | split: '?' | first
+                elsif video_url contains 'youtube.com/shorts/'
+                  assign video_id = video_url | split: 'shorts/' | last | split: '?' | first
+                endif
+                # Auto YouTube thumbnail
+                if video_id != ''
+                  assign thumbnail_url = 'https://img.youtube.com/vi/' | append: video_id | append: '/maxresdefault.jpg'
+                endif
+              elsif video_url contains 'vimeo.com'
+                assign video_provider = 'vimeo'
+                assign video_id = video_url | split: 'vimeo.com/' | last | split: '/' | first
+              endif
+            endif
+
+            assign has_video = false
+            if block.settings.video != blank or video_url != blank
+              assign has_video = true
+            endif
+          -%}
+
+          <div class="instagram-feed__item" {{ block.shopify_attributes }}>
+            <button
+              type="button"
+              class="instagram-feed__card"
+              data-video-id="{{ video_id }}"
+              data-video-provider="{{ video_provider }}"
+              data-video-url="{{ block.settings.video_url }}"
+              aria-label="{{ block.settings.title | default: 'Lire la vidéo' }}"
+            >
+              <div class="instagram-feed__thumbnail">
+                {%- if block.settings.thumbnail != blank -%}
+                  <img
+                    src="{{ block.settings.thumbnail | image_url: width: 400 }}"
+                    alt="{{ block.settings.title | default: 'Instagram' }}"
+                    width="400"
+                    height="711"
+                    loading="lazy"
+                    class="instagram-feed__image"
+                  >
+                {%- elsif thumbnail_url != '' -%}
+                  <img
+                    src="{{ thumbnail_url }}"
+                    alt="{{ block.settings.title | default: 'Instagram' }}"
+                    width="400"
+                    height="711"
+                    loading="lazy"
+                    class="instagram-feed__image"
+                    onerror="this.src='https://img.youtube.com/vi/{{ video_id }}/hqdefault.jpg'"
+                  >
+                {%- elsif block.settings.image != blank -%}
+                  <img
+                    src="{{ block.settings.image | image_url: width: 400 }}"
+                    alt="{{ block.settings.title | default: 'Instagram' }}"
+                    width="400"
+                    height="711"
+                    loading="lazy"
+                    class="instagram-feed__image"
+                  >
+                {%- else -%}
+                  <div class="instagram-feed__placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                      <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="1.5"/>
+                      <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.5"/>
+                      <circle cx="18" cy="6" r="1.5" fill="currentColor"/>
+                    </svg>
+                  </div>
+                {%- endif -%}
+
+                <div class="instagram-feed__overlay">
+                  <svg class="instagram-feed__play" width="56" height="56" viewBox="0 0 56 56" fill="none">
+                    <circle cx="28" cy="28" r="27" stroke="currentColor" stroke-width="2"/>
+                    <path d="M38 28L22 38V18L38 28Z" fill="currentColor"/>
+                  </svg>
+                </div>
+
+                {%- if video_provider != '' -%}
+                  <div class="instagram-feed__badge instagram-feed__badge--{{ video_provider }}">
+                    {%- if video_provider == 'youtube' -%}
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M23.5 6.2c-.3-1-1-1.8-2-2.1C19.6 3.5 12 3.5 12 3.5s-7.6 0-9.5.6c-1 .3-1.7 1.1-2 2.1-.6 1.9-.6 5.8-.6 5.8s0 3.9.6 5.8c.3 1 1 1.8 2 2.1 1.9.6 9.5.6 9.5.6s7.6 0 9.5-.6c1-.3 1.7-1.1 2-2.1.6-1.9.6-5.8.6-5.8s0-3.9-.6-5.8zM9.5 15.5v-7l6.4 3.5-6.4 3.5z"/>
+                      </svg>
+                    {%- endif -%}
+                  </div>
+                {%- endif -%}
+
+                {%- comment -%} Inline video container {%- endcomment -%}
+                <div class="instagram-feed__video-container" data-video-container style="display: none;"></div>
+              </div>
+
+              {%- if block.settings.title != blank -%}
+                <div class="instagram-feed__content">
+                  <p class="instagram-feed__title">{{ block.settings.title }}</p>
+                </div>
+              {%- endif -%}
+            </button>
+          </div>
+        {%- endfor -%}
+      </div>
+
+      {%- if layout == 'carousel' -%}
+        <div class="instagram-feed__nav">
+          <button class="instagram-feed__nav-btn instagram-feed__nav-btn--prev" data-insta-prev aria-label="Précédent">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="instagram-feed__nav-btn instagram-feed__nav-btn--next" data-insta-next aria-label="Suivant">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      {%- endif -%}
+    {%- else -%}
+      <div class="instagram-feed__empty">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
+          <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
+          <circle cx="18" cy="6" r="1.5" fill="currentColor" opacity="0.3"/>
+        </svg>
+        <p>{{ 'sections.instagram.add_videos' | t | default: "Ajoutez des vidéos via l'éditeur de thème" }}</p>
+      </div>
+    {%- endif -%}
+
+    {%- if instagram_handle != blank -%}
+      <div class="instagram-feed__cta">
+        <a href="https://instagram.com/{{ instagram_handle }}" class="btn btn--outline" target="_blank" rel="noopener noreferrer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2"/>
+            <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
+            <circle cx="18" cy="6" r="1.5" fill="currentColor"/>
+          </svg>
+          {{ 'sections.instagram.follow_us' | t | default: 'Suivez-nous' }} @{{ instagram_handle }}
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<style>
+.instagram-feed {
+  padding: var(--spacing-2xl) 0;
+}
+
+.instagram-feed .section-header--center {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.instagram-feed .section-header__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  margin: 0 0 0.5rem;
+}
+
+.instagram-feed .instagram-icon {
+  color: #E1306C;
+}
+
+.instagram-feed .section-header__subtitle {
+  color: var(--color-text-light);
+  margin: 0;
+}
+
+/* Grid Layout */
+.instagram-feed__wrapper--grid {
+  display: grid;
+  grid-template-columns: repeat(var(--insta-columns, 4), 1fr);
+  gap: var(--spacing-md);
+}
+
+/* Carousel Layout */
+.instagram-feed__wrapper--carousel {
+  display: flex;
+  gap: var(--spacing-md);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: var(--spacing-sm);
+}
+
+.instagram-feed__wrapper--carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.instagram-feed__wrapper--carousel .instagram-feed__item {
+  flex: 0 0 calc(100% / var(--insta-columns, 4) - var(--spacing-md));
+  scroll-snap-align: start;
+}
+
+/* Card Styles */
+.instagram-feed__item {
+  position: relative;
+}
+
+.instagram-feed__card {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.instagram-feed__thumbnail {
+  position: relative;
+  aspect-ratio: 9/16;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: linear-gradient(135deg, #833AB4 0%, #E1306C 50%, #F77737 100%);
+}
+
+.instagram-feed__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.instagram-feed__card:hover .instagram-feed__image {
+  transform: scale(1.05);
+}
+
+.instagram-feed__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.instagram-feed__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.6) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.instagram-feed__card:hover .instagram-feed__overlay {
+  opacity: 1;
+}
+
+.instagram-feed__play {
+  color: white;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.instagram-feed__card:hover .instagram-feed__play {
+  transform: scale(1);
+}
+
+.instagram-feed__badge {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: var(--radius-sm);
+  color: white;
+}
+
+.instagram-feed__badge--youtube {
+  background: #FF0000;
+}
+
+/* Content */
+.instagram-feed__content {
+  padding: var(--spacing-sm) 0;
+}
+
+.instagram-feed__title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Navigation */
+.instagram-feed__nav {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.instagram-feed__nav-btn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-background);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.instagram-feed__nav-btn:hover {
+  border-color: #E1306C;
+  background-color: #E1306C;
+  color: white;
+}
+
+.instagram-feed__nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Empty State */
+.instagram-feed__empty {
+  text-align: center;
+  padding: var(--spacing-2xl);
+  color: var(--color-text-light);
+}
+
+.instagram-feed__empty svg {
+  margin-bottom: var(--spacing-sm);
+}
+
+/* CTA */
+.instagram-feed__cta {
+  text-align: center;
+  margin-top: var(--spacing-lg);
+}
+
+.instagram-feed__cta .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.instagram-feed__cta .btn:hover {
+  border-color: #E1306C;
+  background-color: #E1306C;
+  color: white;
+}
+
+
+/* Responsive */
+@media (max-width: 999px) {
+  .instagram-feed__wrapper--grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .instagram-feed__wrapper--carousel .instagram-feed__item {
+    flex: 0 0 calc(100% / 3 - var(--spacing-md));
+  }
+}
+
+@media (max-width: 767px) {
+  .instagram-feed__wrapper--grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .instagram-feed__wrapper--carousel .instagram-feed__item {
+    flex: 0 0 calc(50% - var(--spacing-sm));
+  }
+
+  .instagram-feed__nav {
+    display: none;
+  }
+}
+
+@media (max-width: 479px) {
+  .instagram-feed__wrapper--carousel .instagram-feed__item {
+    flex: 0 0 75%;
+  }
+}
+
+/* Inline Video */
+.instagram-feed__video-container {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: #000;
+}
+
+.instagram-feed__video-container iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.instagram-feed__card.is-playing .instagram-feed__overlay,
+.instagram-feed__card.is-playing .instagram-feed__badge,
+.instagram-feed__card.is-playing .instagram-feed__image,
+.instagram-feed__card.is-playing .instagram-feed__placeholder {
+  display: none;
+}
+
+.instagram-feed__card.is-playing {
+  cursor: default;
+}
+
+</style>
+
+<script>
+(function() {
+  'use strict';
+
+  const section = document.getElementById('insta-{{ section_id }}');
+  if (!section) return;
+
+  // Carousel Navigation
+  const wrapper = section.querySelector('[data-instagram-carousel]');
+  if (wrapper) {
+    const prevBtn = section.querySelector('[data-insta-prev]');
+    const nextBtn = section.querySelector('[data-insta-next]');
+    const items = wrapper.querySelectorAll('.instagram-feed__item');
+
+    if (items.length && prevBtn && nextBtn) {
+      const itemWidth = items[0].offsetWidth + parseInt(getComputedStyle(wrapper).gap);
+
+      function updateButtons() {
+        prevBtn.disabled = wrapper.scrollLeft <= 0;
+        nextBtn.disabled = wrapper.scrollLeft >= wrapper.scrollWidth - wrapper.clientWidth - 10;
+      }
+
+      function scrollCarousel(direction) {
+        const scrollAmount = direction === 'next' ? itemWidth : -itemWidth;
+        wrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      }
+
+      prevBtn.addEventListener('click', () => scrollCarousel('prev'));
+      nextBtn.addEventListener('click', () => scrollCarousel('next'));
+      wrapper.addEventListener('scroll', updateButtons);
+      updateButtons();
+    }
+  }
+
+  // Inline video playback
+  const cards = section.querySelectorAll('.instagram-feed__card');
+
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      // If already playing, do nothing
+      if (card.classList.contains('is-playing')) return;
+
+      const videoId = card.dataset.videoId;
+      const provider = card.dataset.videoProvider;
+      const videoUrl = card.dataset.videoUrl;
+      const videoContainer = card.querySelector('[data-video-container]');
+
+      if (!videoContainer) return;
+
+      let embedHtml = '';
+
+      if (provider === 'youtube' && videoId) {
+        embedHtml = `
+          <iframe
+            src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          ></iframe>
+        `;
+      } else if (provider === 'vimeo' && videoId) {
+        embedHtml = `
+          <iframe
+            src="https://player.vimeo.com/video/${videoId}?autoplay=1"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowfullscreen
+          ></iframe>
+        `;
+      } else if (videoUrl) {
+        // Fallback: open in new tab
+        window.open(videoUrl, '_blank');
+        return;
+      } else {
+        return;
+      }
+
+      videoContainer.innerHTML = embedHtml;
+      videoContainer.style.display = 'block';
+      card.classList.add('is-playing');
+    });
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Reels / Stories",
+  "tag": "section",
+  "class": "section-instagram-stories",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre",
+      "default": "Nos Reels"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Sous-titre"
+    },
+    {
+      "type": "text",
+      "id": "instagram_handle",
+      "label": "Pseudo Instagram",
+      "info": "Sans le @"
+    },
+    {
+      "type": "header",
+      "content": "Disposition"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Type d'affichage",
+      "options": [
+        { "value": "grid", "label": "Grille" },
+        { "value": "carousel", "label": "Carrousel" }
+      ],
+      "default": "grid"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Colonnes (bureau)",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#E1306C"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "story",
+      "name": "Vidéo / Story",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Titre (optionnel)"
+        },
+        {
+          "type": "header",
+          "content": "Média"
+        },
+        {
+          "type": "url",
+          "id": "video_url",
+          "label": "URL de la vidéo / post",
+          "info": "Lien vers YouTube, YouTube Shorts, Instagram, etc. La miniature sera extraite automatiquement pour YouTube. Le clic redirige vers cette URL."
+        },
+        {
+          "type": "image_picker",
+          "id": "thumbnail",
+          "label": "Miniature personnalisée",
+          "info": "Optionnel. Si vide, utilise la miniature YouTube automatique."
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image de fond (si pas de vidéo)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Reels / Stories",
+      "blocks": [
+        { "type": "story", "settings": { "title": "Nouveautés" } },
+        { "type": "story", "settings": { "title": "Coulisses" } },
+        { "type": "story", "settings": { "title": "Tutoriel" } },
+        { "type": "story", "settings": { "title": "Avis clients" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,936 @@
+{%- comment -%}
+  Collection Promo Banner Section
+  Modern horizontal layout with text left, image right
+{%- endcomment -%}
+
+{%- if section.settings.show_banner -%}
+  {%- liquid
+    assign bg_style = ''
+    assign height_style = ' min-height: ' | append: section.settings.banner_height | append: 'px;'
+    assign content_padding = section.settings.content_padding | append: 'px'
+    assign content_width = section.settings.content_width | default: 90 | append: '%'
+    assign title_width = section.settings.title_width | default: 100 | append: '%'
+    assign text_width = section.settings.text_width | default: 100 | append: '%'
+    assign title_margin = section.settings.title_margin | append: 'px'
+    assign image_height = section.settings.image_height | append: '%'
+    assign image_width = section.settings.image_width | append: 'px'
+    assign overflow_right = section.settings.overflow_right | append: 'px'
+    assign top_spacing = section.settings.top_spacing | default: 0 | append: 'px'
+
+    if section.settings.background_type == 'image' and section.settings.background_image
+      assign bg_style = 'background-image: url(' | append: section.settings.background_image | image_url: width: 1400 | append: '); background-size: cover; background-position: center;'
+    elsif section.settings.background_type == 'gradient'
+      assign gradient = section.settings.gradient_style
+      if gradient == 'custom'
+        assign angle = section.settings.gradient_angle | append: 'deg'
+        assign type = section.settings.gradient_type
+
+        if type == 'radial'
+          assign position = section.settings.gradient_position
+          if section.settings.use_third_color
+            assign bg_style = 'background: radial-gradient(' | append: position | append: ', ' | append: section.settings.gradient_color_1 | append: ' 0%, ' | append: section.settings.gradient_color_2 | append: ' 50%, ' | append: section.settings.gradient_color_3 | append: ' 100%);'
+          else
+            assign bg_style = 'background: radial-gradient(' | append: position | append: ', ' | append: section.settings.gradient_color_1 | append: ' 0%, ' | append: section.settings.gradient_color_2 | append: ' 100%);'
+          endif
+        else
+          if section.settings.use_third_color
+            assign bg_style = 'background: linear-gradient(' | append: angle | append: ', ' | append: section.settings.gradient_color_1 | append: ' 0%, ' | append: section.settings.gradient_color_2 | append: ' 50%, ' | append: section.settings.gradient_color_3 | append: ' 100%);'
+          else
+            assign bg_style = 'background: linear-gradient(' | append: angle | append: ', ' | append: section.settings.gradient_color_1 | append: ' 0%, ' | append: section.settings.gradient_color_2 | append: ' 100%);'
+          endif
+        endif
+      elsif gradient == 'sunset'
+        assign bg_style = 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);'
+      elsif gradient == 'ocean'
+        assign bg_style = 'background: linear-gradient(135deg, #2E3192 0%, #1BFFFF 100%);'
+      elsif gradient == 'peach'
+        assign bg_style = 'background: linear-gradient(135deg, #FFDEE9 0%, #B5FFFC 100%);'
+      elsif gradient == 'mint'
+        assign bg_style = 'background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);'
+      elsif gradient == 'fire'
+        assign bg_style = 'background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);'
+      elsif gradient == 'luxury'
+        assign bg_style = 'background: linear-gradient(135deg, #1f1c2c 0%, #928dab 100%);'
+      elsif gradient == 'tropical'
+        assign bg_style = 'background: linear-gradient(135deg, #FA8BFF 0%, #2BD2FF 90%, #2BFF88 100%);'
+      endif
+    elsif section.settings.background_type == 'color'
+      assign bg_style = 'background-color: ' | append: section.settings.background_color | append: ';'
+    else
+      assign bg_style = 'background: #D4CFC9;'
+    endif
+  -%}
+
+  {%- liquid
+    assign heading_tag = section.settings.heading_tag | default: 'h2'
+  -%}
+
+  <div class="collection-promo-banner-wrapper" style="--extra-spacing: {{ top_spacing }}; background-color: #FAFAFA;">
+    <div class="container">
+      <div class="collection-promo-banner"
+           data-image-style="{{ section.settings.image_style }}"
+           data-background-type="{{ section.settings.background_type }}"
+           data-pattern="{{ section.settings.pattern_overlay }}"
+           style="{{ bg_style }}{{ height_style }}">
+        <div class="collection-promo-banner__content" style="padding: {{ content_padding }}; max-width: {{ content_width }};">
+          {%- liquid
+            if section.settings.use_collection_title and collection.title != blank
+              assign banner_title = collection.title
+            else
+              assign banner_title = section.settings.title
+            endif
+
+            if section.settings.use_collection_description and collection.description != blank
+              assign banner_text = collection.description | strip_html
+            else
+              assign banner_text = section.settings.text
+            endif
+          -%}
+          {%- if section.settings.enable_heading_style -%}
+            {%- render 'heading-styles',
+              text: banner_title,
+              tag: 'h2',
+              style: section.settings.heading_style,
+              color: section.settings.heading_style_color,
+              align: 'center',
+              size: 'xl',
+              typing_texts: section.settings.typing_texts
+            -%}
+          {%- else -%}
+            <{{ heading_tag }} class="collection-promo-banner__title" style="margin-bottom: {{ title_margin }}; max-width: {{ title_width }};">{{ banner_title }}</{{ heading_tag }}>
+          {%- endif -%}
+          {%- if banner_text != blank -%}
+            <div class="collection-promo-banner__text-wrapper" style="max-width: {{ text_width }};">
+              <p class="collection-promo-banner__text">{{ banner_text }}</p>
+              <button type="button" class="collection-promo-banner__toggle" data-promo-toggle aria-expanded="false" hidden>
+                <span class="collection-promo-banner__toggle-more">Voir plus</span>
+                <span class="collection-promo-banner__toggle-less">Voir moins</span>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                  <polyline points="2,4 6,8 10,4"/>
+                </svg>
+              </button>
+            </div>
+          {%- endif -%}
+        </div>
+        {%- if section.settings.image_style == 'overflow' and section.settings.image -%}
+          <div class="collection-promo-banner__image--overflow" style="height: {{ image_height }}; width: {{ image_width }}; right: -{{ overflow_right }};">
+            <img
+              src="{{ section.settings.image | image_url: width: 800 }}"
+              alt="{{ section.settings.title }}"
+            >
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+<style>
+/* ===== SECTION - No padding for first section ===== */
+.section-collection-promo-banner {
+  padding: 0 !important;
+}
+
+/* ===== WRAPPER ===== */
+.collection-promo-banner-wrapper {
+  padding: var(--spacing-lg) 0;
+  padding-top: calc(var(--header-height, 80px) + var(--spacing-lg) + var(--extra-spacing, 0px));
+  background: #FAFAFA;
+  overflow: visible;
+}
+
+.collection-promo-banner-wrapper .container {
+  overflow: visible;
+}
+
+/* ===== PROMO BANNER ===== */
+.collection-promo-banner {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  align-items: center;
+  gap: var(--spacing-2xl);
+  border-radius: 20px;
+  padding: var(--spacing-xl) var(--spacing-2xl);
+  padding-bottom: var(--spacing-xl);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: visible;
+  position: relative;
+  transition: min-height 0.4s ease;
+  /* height controlled by banner_height setting inline */
+}
+
+.collection-promo-banner.is-expanded {
+  min-height: auto;
+}
+
+/* Background avec image/gradient - overlay semi-transparent */
+.collection-promo-banner[data-background-type="image"]::before,
+.collection-promo-banner[data-background-type="gradient"]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 0;
+  border-radius: 20px;
+}
+
+/* Pattern Overlays */
+.collection-promo-banner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 20px;
+  opacity: 0.08;
+}
+
+.collection-promo-banner[data-pattern="dots"]::after {
+  background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.collection-promo-banner[data-pattern="grid"]::after {
+  background-image:
+    linear-gradient(currentColor 1px, transparent 1px),
+    linear-gradient(90deg, currentColor 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.collection-promo-banner[data-pattern="diagonal"]::after {
+  background-image: repeating-linear-gradient(
+    45deg,
+    currentColor 0,
+    currentColor 1px,
+    transparent 0,
+    transparent 50%
+  );
+  background-size: 10px 10px;
+}
+
+.collection-promo-banner[data-pattern="waves"]::after {
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 Q 25 0, 50 10 T 100 10' stroke='%23000' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+  background-size: 100px 20px;
+}
+
+.collection-promo-banner[data-pattern="circles"]::after {
+  background-image: radial-gradient(circle, transparent 20%, currentColor 20%, currentColor 25%, transparent 25%);
+  background-size: 30px 30px;
+}
+
+.collection-promo-banner[data-pattern="zigzag"]::after {
+  background-image: linear-gradient(135deg, currentColor 25%, transparent 25%),
+                    linear-gradient(225deg, currentColor 25%, transparent 25%),
+                    linear-gradient(45deg, currentColor 25%, transparent 25%),
+                    linear-gradient(315deg, currentColor 25%, transparent 25%);
+  background-position: 10px 0, 10px 0, 0 0, 0 0;
+  background-size: 20px 20px;
+  background-repeat: repeat;
+}
+
+.collection-promo-banner[data-background-type="image"] .collection-promo-banner__title,
+.collection-promo-banner[data-background-type="gradient"] .collection-promo-banner__title {
+  color: #FFFFFF;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.collection-promo-banner[data-background-type="image"] .collection-promo-banner__text,
+.collection-promo-banner[data-background-type="gradient"] .collection-promo-banner__text {
+  color: #FFFFFF;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.collection-promo-banner[data-background-type="image"] .collection-promo-banner__toggle,
+.collection-promo-banner[data-background-type="gradient"] .collection-promo-banner__toggle {
+  color: #FFFFFF;
+}
+
+/* Overflow Image Style */
+.collection-promo-banner[data-image-style="overflow"] {
+  overflow: visible;
+}
+
+.collection-promo-banner__content {
+  /* padding and max-width controlled by inline style */
+  z-index: 2;
+  position: relative;
+  width: 100%;
+  overflow: visible; /* Allow title and text to overflow */
+}
+
+.collection-promo-banner__title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 800;
+  /* margin-bottom and max-width controlled by inline style */
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: #1A1A1A;
+  letter-spacing: -0.02em;
+  white-space: nowrap; /* Prevent title wrapping to multiple lines */
+  overflow: visible; /* Allow overflow beyond max-width */
+}
+
+.collection-promo-banner__text-wrapper {
+  position: relative;
+  overflow: visible;
+}
+
+.collection-promo-banner__text {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: #4A4A4A;
+  margin: 0;
+  max-height: 4.8em; /* ~3 lines */
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+}
+
+.collection-promo-banner__text-wrapper.is-expanded .collection-promo-banner__text {
+  max-height: 1000px;
+}
+
+.collection-promo-banner__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  margin-bottom: 4px;
+  padding: 4px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: inherit;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.collection-promo-banner__toggle[hidden] {
+  display: none;
+}
+
+.collection-promo-banner__toggle:hover {
+  opacity: 1;
+}
+
+.collection-promo-banner__toggle svg {
+  transition: transform 0.3s ease;
+}
+
+.collection-promo-banner__text-wrapper.is-expanded .collection-promo-banner__toggle svg {
+  transform: rotate(180deg);
+}
+
+.collection-promo-banner__toggle-less {
+  display: none;
+}
+
+.collection-promo-banner__text-wrapper.is-expanded .collection-promo-banner__toggle-more {
+  display: none;
+}
+
+.collection-promo-banner__text-wrapper.is-expanded .collection-promo-banner__toggle-less {
+  display: inline;
+}
+
+.collection-promo-banner__image {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+/* Overflow Image - Déborde vers le haut et la droite */
+.collection-promo-banner__image--overflow {
+  position: absolute;
+  bottom: 0;
+  display: block;
+  z-index: 999;
+  /* height, width, right controlled by inline styles */
+}
+
+.collection-promo-banner__image--overflow img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  display: block;
+}
+
+.collection-promo-banner__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+  border-radius: 12px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .collection-promo-banner {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    min-height: auto !important;
+    overflow: hidden;
+  }
+
+  .collection-promo-banner__content {
+    padding: var(--spacing-sm);
+    text-align: center;
+  }
+
+  .collection-promo-banner__title {
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .collection-promo-banner__text {
+    max-height: 3.2em; /* ~2 lines on mobile */
+    font-size: 0.875rem;
+  }
+
+  /* Overflow style on mobile */
+  .collection-promo-banner[data-image-style="overflow"] {
+    grid-template-columns: 1fr;
+  }
+
+  .collection-promo-banner__image--overflow {
+    position: static;
+    height: 140px !important;
+    width: 100% !important;
+    right: 0 !important;
+    display: flex;
+    align-items: flex-end;
+    order: -1;
+  }
+
+  .collection-promo-banner__image--overflow img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: bottom center;
+  }
+
+  .collection-promo-banner-wrapper {
+    padding-top: calc(var(--header-height, 80px) + var(--spacing-sm) + var(--extra-spacing, 0px));
+    padding-bottom: var(--spacing-sm);
+  }
+
+  /* Background style on mobile */
+  .collection-promo-banner[data-image-style="background"] .collection-promo-banner__content {
+    text-align: center;
+  }
+
+  .collection-promo-banner__image {
+    height: 200px;
+  }
+}
+</style>
+
+<script>
+  (function() {
+    var wrappers = document.querySelectorAll('.collection-promo-banner__text-wrapper');
+    wrappers.forEach(function(wrapper) {
+      var text = wrapper.querySelector('.collection-promo-banner__text');
+      var toggle = wrapper.querySelector('[data-promo-toggle]');
+      var banner = wrapper.closest('.collection-promo-banner');
+      if (!text || !toggle || !banner) return;
+
+      function checkOverflow() {
+        if (wrapper.classList.contains('is-expanded')) return;
+        var lineHeight = parseFloat(getComputedStyle(text).lineHeight) || 24;
+        var isOverflowing = text.scrollHeight > text.clientHeight + (lineHeight * 0.5);
+        if (isOverflowing) {
+          toggle.removeAttribute('hidden');
+        } else {
+          toggle.setAttribute('hidden', '');
+        }
+      }
+
+      toggle.addEventListener('click', function() {
+        var expanded = wrapper.classList.toggle('is-expanded');
+        banner.classList.toggle('is-expanded', expanded);
+        toggle.setAttribute('aria-expanded', String(expanded));
+        if (!expanded) {
+          banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      });
+
+      checkOverflow();
+      window.addEventListener('resize', checkOverflow);
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Bannière promo collection",
+  "class": "section-collection-promo-banner",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_banner",
+      "label": "Afficher la bannière promo",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Contenu"
+    },
+    {
+      "type": "checkbox",
+      "id": "use_collection_title",
+      "label": "Utiliser le titre de la collection",
+      "default": false,
+      "info": "Si activé, affiche automatiquement le titre de la collection"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre de la bannière",
+      "default": "20% OFF ONLY TODAY AND GET SPECIAL GIFT!",
+      "info": "Utilisé uniquement si 'Utiliser le titre de la collection' est désactivé"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "SEO : Niveau de titre",
+      "options": [
+        {"value": "h1", "label": "H1"},
+        {"value": "h2", "label": "H2 (Recommandé)"},
+        {"value": "h3", "label": "H3"},
+        {"value": "h4", "label": "H4"}
+      ],
+      "default": "h2",
+      "info": "Choisissez le niveau de titre pour cette section."
+    },
+    {
+      "type": "checkbox",
+      "id": "use_collection_description",
+      "label": "Utiliser la description de la collection",
+      "default": false,
+      "info": "Si activé, affiche automatiquement la description de la collection"
+    },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "Texte de la bannière",
+      "info": "Utilisé uniquement si 'Utiliser la description de la collection' est désactivé. Tronqué si trop long avec bouton 'Voir plus'.",
+      "default": "Today only, enjoy a stylish 20% off and receive an exclusive gift. Elevate your wardrobe now!"
+    },
+    {
+      "type": "header",
+      "content": "Espacement et mise en page"
+    },
+    {
+      "type": "range",
+      "id": "top_spacing",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "label": "Espacement haut",
+      "default": 0,
+      "info": "Espace entre l'en-tête et la bannière"
+    },
+    {
+      "type": "range",
+      "id": "content_padding",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding du contenu",
+      "default": 24,
+      "info": "Padding autour de la zone de texte"
+    },
+    {
+      "type": "range",
+      "id": "content_width",
+      "min": 30,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Largeur du contenu texte",
+      "default": 90,
+      "info": "Largeur maximale de la zone de texte (en pourcentage de la largeur de la bannière)"
+    },
+    {
+      "type": "range",
+      "id": "title_width",
+      "min": 30,
+      "max": 200,
+      "step": 5,
+      "unit": "%",
+      "label": "Largeur du titre",
+      "default": 100,
+      "info": "Largeur du titre (en pourcentage de la zone de contenu). 100% = pleine largeur, >100% = déborde pour un effet dramatique"
+    },
+    {
+      "type": "range",
+      "id": "text_width",
+      "min": 30,
+      "max": 200,
+      "step": 5,
+      "unit": "%",
+      "label": "Largeur du texte descriptif",
+      "default": 100,
+      "info": "Largeur du texte descriptif (en pourcentage de la zone de contenu). 100% = pleine largeur, >100% = déborde pour un effet dramatique"
+    },
+    {
+      "type": "range",
+      "id": "title_margin",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "Marge basse du titre",
+      "default": 24,
+      "info": "Espace entre le titre et le texte descriptif"
+    },
+    {
+      "type": "header",
+      "content": "Style de fond"
+    },
+    {
+      "type": "select",
+      "id": "background_type",
+      "label": "Type de fond",
+      "options": [
+        {
+          "value": "color",
+          "label": "Couleur unie"
+        },
+        {
+          "value": "gradient",
+          "label": "Dégradé"
+        },
+        {
+          "value": "image",
+          "label": "Image"
+        }
+      ],
+      "default": "color",
+      "info": "Choisissez le style de fond de la bannière"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Couleur de fond",
+      "default": "#D4CFC9",
+      "info": "Pour le type de fond 'Couleur unie'"
+    },
+    {
+      "type": "select",
+      "id": "gradient_style",
+      "label": "Style de dégradé",
+      "options": [
+        {
+          "value": "custom",
+          "label": "Personnalisé (Choisissez vos couleurs)"
+        },
+        {
+          "value": "sunset",
+          "label": "Prédéfini : Coucher de soleil (Violet et Bleu)"
+        },
+        {
+          "value": "ocean",
+          "label": "Prédéfini : Océan (Bleu foncé et Cyan)"
+        },
+        {
+          "value": "peach",
+          "label": "Prédéfini : Pêche (Rose et Menthe)"
+        },
+        {
+          "value": "mint",
+          "label": "Prédéfini : Menthe (Aqua et Rose)"
+        },
+        {
+          "value": "fire",
+          "label": "Prédéfini : Feu (Rose et Rouge)"
+        },
+        {
+          "value": "luxury",
+          "label": "Prédéfini : Luxe (Violet foncé)"
+        },
+        {
+          "value": "tropical",
+          "label": "Prédéfini : Tropical (Arc-en-ciel)"
+        }
+      ],
+      "default": "custom",
+      "info": "Pour le type de fond 'Dégradé'. Choisissez 'Personnalisé' pour utiliser vos propres couleurs ci-dessous."
+    },
+    {
+      "type": "select",
+      "id": "gradient_type",
+      "label": "Type de dégradé",
+      "options": [
+        {
+          "value": "linear",
+          "label": "Linéaire (Directionnel)"
+        },
+        {
+          "value": "radial",
+          "label": "Radial (Depuis le centre)"
+        }
+      ],
+      "default": "linear",
+      "info": "Pour le dégradé personnalisé uniquement"
+    },
+    {
+      "type": "range",
+      "id": "gradient_angle",
+      "min": 0,
+      "max": 360,
+      "step": 15,
+      "unit": "deg",
+      "label": "Angle du dégradé",
+      "default": 135,
+      "info": "Direction du dégradé linéaire (0° = haut, 90° = droite, 180° = bas, 270° = gauche)"
+    },
+    {
+      "type": "select",
+      "id": "gradient_position",
+      "label": "Position du dégradé radial",
+      "options": [
+        {
+          "value": "circle at center",
+          "label": "Centre"
+        },
+        {
+          "value": "circle at top left",
+          "label": "Haut gauche"
+        },
+        {
+          "value": "circle at top",
+          "label": "Haut"
+        },
+        {
+          "value": "circle at top right",
+          "label": "Haut droite"
+        },
+        {
+          "value": "circle at right",
+          "label": "Droite"
+        },
+        {
+          "value": "circle at bottom right",
+          "label": "Bas droite"
+        },
+        {
+          "value": "circle at bottom",
+          "label": "Bas"
+        },
+        {
+          "value": "circle at bottom left",
+          "label": "Bas gauche"
+        },
+        {
+          "value": "circle at left",
+          "label": "Gauche"
+        }
+      ],
+      "default": "circle at center",
+      "info": "Position de départ du dégradé radial"
+    },
+    {
+      "type": "color",
+      "id": "gradient_color_1",
+      "label": "Couleur de début du dégradé",
+      "default": "#667eea",
+      "info": "Première couleur pour le dégradé personnalisé"
+    },
+    {
+      "type": "color",
+      "id": "gradient_color_2",
+      "label": "Couleur milieu/fin du dégradé",
+      "default": "#764ba2",
+      "info": "Deuxième couleur pour le dégradé personnalisé"
+    },
+    {
+      "type": "checkbox",
+      "id": "use_third_color",
+      "label": "Utiliser un dégradé à 3 couleurs",
+      "default": false,
+      "info": "Ajouter une troisième couleur pour des dégradés plus complexes"
+    },
+    {
+      "type": "color",
+      "id": "gradient_color_3",
+      "label": "Couleur de fin du dégradé (3e)",
+      "default": "#f5576c",
+      "info": "Troisième couleur (uniquement si le dégradé à 3 couleurs est activé)"
+    },
+    {
+      "type": "select",
+      "id": "pattern_overlay",
+      "label": "Motif superposé",
+      "options": [
+        {
+          "value": "none",
+          "label": "Aucun"
+        },
+        {
+          "value": "dots",
+          "label": "Points"
+        },
+        {
+          "value": "grid",
+          "label": "Grille"
+        },
+        {
+          "value": "diagonal",
+          "label": "Lignes diagonales"
+        },
+        {
+          "value": "waves",
+          "label": "Vagues"
+        },
+        {
+          "value": "circles",
+          "label": "Cercles"
+        },
+        {
+          "value": "zigzag",
+          "label": "Zigzag"
+        }
+      ],
+      "default": "none",
+      "info": "Ajouter une texture de motif subtile sur le fond (8% d'opacité)"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Image de fond",
+      "info": "Pour le type de fond 'Image'. Taille recommandée : 1400x300px. Les photos en paysage fonctionnent mieux."
+    },
+    {
+      "type": "range",
+      "id": "banner_height",
+      "min": 150,
+      "max": 400,
+      "step": 10,
+      "unit": "px",
+      "label": "Hauteur de la bannière",
+      "default": 200,
+      "info": "Hauteur minimale de la bannière (s'agrandit si le contenu dépasse)"
+    },
+    {
+      "type": "header",
+      "content": "Image produit (Débordement)"
+    },
+    {
+      "type": "select",
+      "id": "image_style",
+      "label": "Afficher l'image produit",
+      "options": [
+        {
+          "value": "overflow",
+          "label": "Oui - Image déborde à droite"
+        },
+        {
+          "value": "none",
+          "label": "Non - Texte uniquement"
+        }
+      ],
+      "default": "overflow",
+      "info": "Afficher une image produit/personne qui déborde à droite"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image produit/personne",
+      "info": "Recommandé : PNG 800x800px avec fond transparent. Orientation portrait (personne/produit debout). L'image débordera sur le côté droit."
+    },
+    {
+      "type": "range",
+      "id": "image_height",
+      "min": 100,
+      "max": 200,
+      "step": 1,
+      "unit": "%",
+      "label": "Hauteur de l'image",
+      "default": 130,
+      "info": "Hauteur de l'image par rapport à la bannière (130% = déborde de 30% au-dessus)"
+    },
+    {
+      "type": "range",
+      "id": "image_width",
+      "min": 200,
+      "max": 500,
+      "step": 20,
+      "unit": "px",
+      "label": "Largeur de l'image",
+      "default": 320,
+      "info": "Largeur du conteneur de l'image"
+    },
+    {
+      "type": "range",
+      "id": "overflow_right",
+      "min": 0,
+      "max": 150,
+      "step": 10,
+      "unit": "px",
+      "label": "Débordement à droite",
+      "default": 80,
+      "info": "Quantité de débordement de l'image au-delà du bord droit"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Bannière promo collection"
+    }
+  ]
+}
+{% endschema %}

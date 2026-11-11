@@ -1,0 +1,73 @@
+{%- comment -%}
+  Schema.org FAQPage JSON-LD
+  Shows expandable Q&A in search results - increases visibility
+  Usage: {% render 'seo-schema-faq', faq_data: section.settings.faq_items %}
+         or {% render 'seo-schema-faq', faq_json: product.metafields.custom.faq.value %}
+         or {% render 'seo-schema-faq' %} to use section blocks
+{%- endcomment -%}
+
+{%- liquid
+  # Check if faq_data is provided as parameter or use section blocks
+  assign has_faq_data = false
+  if faq_json and faq_json != blank and faq_json.size > 0
+    assign has_faq_data = true
+  elsif faq_data and faq_data != blank
+    assign has_faq_data = true
+  elsif section.blocks.size > 0
+    assign has_faq_data = true
+  endif
+-%}
+
+{%- if has_faq_data -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {%- if faq_json and faq_json != blank and faq_json.size > 0 -%}
+      {%- comment -%} Use JSON array format from metafield: [{"question":"...", "answer":"..."}] {%- endcomment -%}
+      {%- for item in faq_json -%}
+        {
+          "@type": "Question",
+          "name": {{ item.question | json }},
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": {{ item.answer | strip_html | json }}
+          }
+        }{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    {%- elsif faq_data and faq_data != blank -%}
+      {%- comment -%} Parse FAQ data from string format: "Question?|Answer||Question2?|Answer2" {%- endcomment -%}
+      {%- assign faq_pairs = faq_data | split: '||' -%}
+      {%- for faq_pair in faq_pairs -%}
+        {%- assign faq_parts = faq_pair | split: '|' -%}
+        {%- if faq_parts.size >= 2 -%}
+          {
+            "@type": "Question",
+            "name": {{ faq_parts[0] | strip | json }},
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": {{ faq_parts[1] | strip | json }}
+            }
+          }{% unless forloop.last %},{% endunless %}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- elsif section.blocks.size > 0 -%}
+      {%- comment -%} Use section blocks for FAQ items {%- endcomment -%}
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'faq_item' or block.type == 'question' -%}
+          {
+            "@type": "Question",
+            "name": {{ block.settings.question | json }},
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": {{ block.settings.answer | strip_html | json }}
+            }
+          }{% unless forloop.last %},{% endunless %}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
+  ]
+}
+</script>
+{%- endif -%}

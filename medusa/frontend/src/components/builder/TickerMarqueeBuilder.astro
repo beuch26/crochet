@@ -1,0 +1,48 @@
+---
+interface Props {
+  items?: Array<string | { text?: string; label?: string }>
+  speed?: 'slow' | 'normal' | 'fast'
+  background_color?: string
+  text_color?: string
+}
+
+const {
+  items = [],
+  speed = 'normal',
+  background_color = '#1a1a2e',
+  text_color = '#ffffff',
+} = Astro.props
+
+const speedClass = {
+  slow: '60s',
+  normal: '40s',
+  fast: '20s',
+}[speed]
+
+const normalized = items
+  .map((i) => (typeof i === 'string' ? i : i?.text || i?.label || ''))
+  .filter((t) => t && t.trim().length > 0)
+
+// Repeat items 4x for seamless loop
+const allItems = [...normalized, ...normalized, ...normalized, ...normalized]
+---
+
+{normalized.length > 0 && (
+  <section class="overflow-hidden py-3" style={`background-color:${background_color};color:${text_color}`}>
+    <div class="flex whitespace-nowrap" style={`animation: marquee ${speedClass} linear infinite;`}>
+      {allItems.map((text) => (
+        <div class="flex items-center gap-3 mx-6">
+          <span class="text-sm font-medium tracking-wide">{text}</span>
+          <span class="opacity-40">•</span>
+        </div>
+      ))}
+    </div>
+  </section>
+)}
+
+<style>
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-25%); }
+  }
+</style>

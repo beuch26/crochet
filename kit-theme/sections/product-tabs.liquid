@@ -1,0 +1,955 @@
+{%- comment -%}
+  Product Tabs Section - Flexible Block System
+  Supports: Description, Q&A (metafields), Judge.me Reviews, Custom tabs
+{%- endcomment -%}
+
+{%- liquid
+  assign visible_blocks = section.blocks | where: 'type', 'description'
+  assign tab_count = visible_blocks.size
+
+  for block in section.blocks
+    if block.type == 'description' and product.description == blank
+      assign tab_count = tab_count | minus: 1
+    endif
+  endfor
+-%}
+
+{%- if section.blocks.size > 0 -%}
+<div class="product-tabs section">
+  <div class="container">
+    <div class="product-tabs__nav" role="tablist">
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign is_first = forloop.first
+          assign tab_id = block.id
+          assign show_tab = true
+
+          if block.type == 'description' and product.description == blank
+            assign show_tab = false
+          endif
+        -%}
+
+        {%- if show_tab -%}
+          <button
+            class="product-tabs__tab {% if is_first %}active{% endif %}"
+            role="tab"
+            aria-selected="{% if is_first %}true{% else %}false{% endif %}"
+            aria-controls="tab-{{ tab_id }}"
+            data-tab="{{ tab_id }}"
+            {{ block.shopify_attributes }}
+          >
+            {{ block.settings.tab_title }}
+            {%- if block.type == 'judgeme_reviews' and product.metafields.judgeme.reviews_count -%}
+              <span class="product-tabs__count">({{ product.metafields.judgeme.reviews_count }})</span>
+            {%- endif -%}
+          </button>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    <div class="product-tabs__content">
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign is_first = forloop.first
+          assign tab_id = block.id
+          assign show_panel = true
+
+          if block.type == 'description' and product.description == blank
+            assign show_panel = false
+          endif
+        -%}
+
+        {%- if show_panel -%}
+          <div
+            class="product-tabs__panel {% if is_first %}active{% endif %}"
+            id="tab-{{ tab_id }}"
+            role="tabpanel"
+            data-panel="{{ tab_id }}"
+            {{ block.shopify_attributes }}
+          >
+            {%- case block.type -%}
+
+              {%- comment -%} DESCRIPTION BLOCK {%- endcomment -%}
+              {%- when 'description' -%}
+                <div class="rte">
+                  {{ product.description }}
+                </div>
+
+                {%- if block.settings.show_specifications -%}
+                  <div class="product-specifications">
+                    <h3>{{ 'products.product.specifications' | t }}</h3>
+
+                    {%- if product.metafields.specifications -%}
+                      <div class="specifications-grid">
+                        {%- for field in product.metafields.specifications -%}
+                          <div class="specification-item">
+                            <span class="specification-label">{{ field.key | replace: '_', ' ' | capitalize }}:</span>
+                            <span class="specification-value">{{ field.value }}</span>
+                          </div>
+                        {%- endfor -%}
+                      </div>
+                    {%- else -%}
+                      <div class="specifications-grid">
+                        {%- if product.type != blank -%}
+                          <div class="specification-item">
+                            <span class="specification-label">{{ 'products.product.type' | t }}:</span>
+                            <span class="specification-value">{{ product.type }}</span>
+                          </div>
+                        {%- endif -%}
+                        {%- if product.vendor != blank -%}
+                          <div class="specification-item">
+                            <span class="specification-label">{{ 'products.product.vendor' | t }}:</span>
+                            <span class="specification-value">{{ product.vendor }}</span>
+                          </div>
+                        {%- endif -%}
+                      </div>
+                    {%- endif -%}
+                  </div>
+                {%- endif -%}
+
+              {%- comment -%} Q&A BLOCK (using product metafields) {%- endcomment -%}
+              {%- when 'qna' -%}
+                <div class="product-qna">
+                  {%- liquid
+                    assign faq_json = product.metafields.custom.faq.value | default: product.metafields.custom.qna.value | default: product.metafields.qna.questions.value
+                    assign has_faq = false
+                    if faq_json != blank and faq_json.size > 0
+                      assign has_faq = true
+                    endif
+                  -%}
+
+                  {%- if has_faq -%}
+                    <div class="qna-accordion">
+                      {%- for item in faq_json -%}
+                        <div class="qna-accordion-item">
+                          <button class="qna-accordion-trigger" type="button" aria-expanded="false">
+                            <span class="qna-accordion-question">{{ item.question }}</span>
+                            <svg class="qna-accordion-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                          </button>
+                          <div class="qna-accordion-content">
+                            <div class="qna-accordion-answer">
+                              {{ item.answer }}
+                            </div>
+                          </div>
+                        </div>
+                      {%- endfor -%}
+                    </div>
+
+                    {%- if block.settings.show_ask_button and block.settings.ask_question_url != blank -%}
+                      <div class="qna-ask-button-wrapper">
+                        <a href="{{ block.settings.ask_question_url }}" class="btn btn--secondary btn--ask-question">
+                          {{ block.settings.ask_button_text | default: 'Poser une question' }}
+                        </a>
+                      </div>
+                    {%- endif -%}
+                  {%- elsif block.settings.custom_content != blank -%}
+                    <div class="qna-list">
+                      {{ block.settings.custom_content }}
+                    </div>
+                  {%- else -%}
+                    <div class="qna-empty">
+                      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor">
+                        <circle cx="24" cy="24" r="20" stroke-width="2"/>
+                        <path d="M24 18v8M24 30h.01" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
+                      <p>{{ block.settings.empty_message | default: 'Aucune question pour le moment. Soyez le premier à poser une question !' }}</p>
+                      {%- if block.settings.show_ask_button -%}
+                        <a href="{{ block.settings.ask_question_url | default: '#' }}" class="btn btn--primary">
+                          {{ block.settings.ask_button_text | default: 'Poser une question' }}
+                        </a>
+                      {%- endif -%}
+                    </div>
+                  {%- endif -%}
+                </div>
+
+              {%- comment -%} JUDGE.ME REVIEWS BLOCK {%- endcomment -%}
+              {%- when 'judgeme_reviews' -%}
+                <div class="product-reviews">
+                  <div id='judgeme_product_reviews'
+                       class='jdgm-widget jdgm-review-widget'
+                       data-product-title='{{ product.title | escape }}'
+                       data-id='{{ product.id }}'
+                       data-auto-install='false'>
+                    {{ product.metafields.judgeme.widget }}
+                  </div>
+                </div>
+
+              {%- comment -%} CUSTOM HTML BLOCK {%- endcomment -%}
+              {%- when 'custom' -%}
+                <div class="custom-tab-content">
+                  {%- liquid
+                    assign has_metafield = false
+                    assign metafield_namespace = ''
+                    assign metafield_key = ''
+                    assign tab_image = null
+
+                    if block.settings.metafield_key != blank
+                      assign metafield_parts = block.settings.metafield_key | split: '.'
+                      if metafield_parts.size == 2
+                        assign metafield_namespace = metafield_parts[0]
+                        assign metafield_key = metafield_parts[1]
+                        assign has_metafield = true
+                      endif
+                    endif
+
+                    if block.settings.tab_image != blank
+                      assign tab_image_setting = block.settings.tab_image
+                      assign tab_image_url = null
+
+                      if tab_image_setting.value
+                        assign tab_image_url = tab_image_setting.value
+                      elsif tab_image_setting contains '.' and tab_image_setting.size < 50
+                        assign img_metafield_parts = tab_image_setting | split: '.'
+                        if img_metafield_parts.size == 2
+                          assign img_namespace = img_metafield_parts[0]
+                          assign img_key = img_metafield_parts[1]
+
+                          case img_namespace
+                            when 'custom'
+                              assign tab_image_url = product.metafields.custom[img_key]
+                            when 'specifications'
+                              assign tab_image_url = product.metafields.specifications[img_key]
+                            when 'details'
+                              assign tab_image_url = product.metafields.details[img_key]
+                          endcase
+                        endif
+                      elsif tab_image_setting contains 'http'
+                        assign tab_image_url = tab_image_setting
+                      endif
+                    endif
+                  -%}
+
+                  <div class="custom-tab-layout {% if tab_image_url != blank %}custom-tab-layout--with-image{% endif %}">
+                    <div class="custom-tab-text">
+                      {%- if has_metafield -%}
+                        {%- comment -%} Récupérer le metafield selon le namespace {%- endcomment -%}
+                        {%- liquid
+                          assign metafield_obj = null
+                          case metafield_namespace
+                            when 'custom'
+                              assign metafield_obj = product.metafields.custom[metafield_key]
+                            when 'specifications'
+                              assign metafield_obj = product.metafields.specifications[metafield_key]
+                            when 'details'
+                              assign metafield_obj = product.metafields.details[metafield_key]
+                          endcase
+                        -%}
+
+                        {%- if metafield_obj != blank -%}
+                          <div class="rte">
+                            {{ metafield_obj | metafield_tag }}
+                          </div>
+                        {%- endif -%}
+                      {%- elsif block.settings.content != blank -%}
+                        {%- comment -%} Afficher le contenu HTML manuel {%- endcomment -%}
+                        {{ block.settings.content }}
+                      {%- else -%}
+                        <p style="text-align: center; color: var(--color-text-light); padding: 2rem;">
+                          {{ 'products.tabs.custom_empty' | t | default: 'Ajoutez du contenu personnalisé dans les paramètres de cet onglet.' }}
+                        </p>
+                      {%- endif -%}
+                    </div>
+
+                    {%- if tab_image_url != blank -%}
+                      <div class="custom-tab-image">
+                        {%- liquid
+                          assign img_src = null
+
+                          if tab_image_url.url
+                            assign img_src = tab_image_url | image_url: width: 600
+                          elsif tab_image_url contains 'http'
+                            assign img_src = tab_image_url
+                          elsif tab_image_url contains '//'
+                            assign img_src = 'https:' | append: tab_image_url
+                          else
+                            assign img_src = tab_image_url | image_url: width: 600
+                          endif
+                        -%}
+
+                        {%- if img_src != blank -%}
+                          <img src="{{ img_src }}" alt="{{ block.settings.tab_title }}" loading="lazy">
+                        {%- endif -%}
+                      </div>
+                    {%- endif -%}
+                  </div>
+                </div>
+
+            {%- endcase -%}
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+{%- comment -%} SEO: FAQ Structured Data for Search Engines {%- endcomment -%}
+{%- liquid
+  assign faq_json = product.metafields.custom.faq.value | default: product.metafields.custom.qna.value | default: product.metafields.qna.questions.value
+  if faq_json != blank and faq_json.size > 0
+    render 'seo-schema-faq', faq_json: faq_json
+  endif
+-%}
+{%- endif -%}
+
+<style>
+.product-tabs {
+  padding: var(--spacing-xl) 0;
+  background-color: var(--color-background);
+}
+
+.product-tabs__nav {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--color-border);
+  margin-bottom: var(--spacing-xl);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.product-tabs__nav::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Opera */
+}
+
+.product-tabs__tab {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  cursor: pointer;
+  transition: all var(--transition-speed);
+  white-space: nowrap;
+  position: relative;
+  bottom: -2px;
+}
+
+.product-tabs__tab:hover {
+  color: var(--color-primary);
+}
+
+.product-tabs__tab.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.product-tabs__count {
+  font-size: 0.875rem;
+  opacity: 0.7;
+  margin-left: 0.25rem;
+}
+
+.product-tabs__panel {
+  display: none;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.product-tabs__panel.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Description */
+.rte {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--color-text);
+}
+
+.rte h1, .rte h2, .rte h3 {
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+}
+
+.rte h1 { font-size: 1.875rem; }
+.rte h2 { font-size: 1.5rem; }
+.rte h3 { font-size: 1.25rem; }
+
+.rte p {
+  margin-bottom: var(--spacing-md);
+}
+
+.rte ul, .rte ol {
+  margin-left: 1.5rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.rte li {
+  margin-bottom: 0.5rem;
+}
+
+/* Custom Tab Layout with Image */
+.custom-tab-layout {
+  display: block;
+}
+
+.custom-tab-layout--with-image {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.custom-tab-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.custom-tab-image {
+  flex: 0 0 300px;
+  width: 300px;
+}
+
+.custom-tab-image img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 767px) {
+  .custom-tab-layout--with-image {
+    flex-direction: column;
+  }
+
+  .custom-tab-image {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+}
+
+/* Specifications */
+.product-specifications {
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.product-specifications h3 {
+  font-size: 1.25rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.specifications-grid {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.specification-item {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.specification-label {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.specification-value {
+  color: var(--color-text-light);
+}
+
+/* Q&A */
+.product-qna {
+  max-width: 800px;
+}
+
+.qna-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.qna-header h3 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+/* Q&A Accordion */
+.qna-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.qna-accordion-item {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.qna-accordion-item:first-child {
+  border-top: 1px solid #e5e7eb;
+}
+
+.qna-accordion-trigger {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.qna-accordion-trigger:hover {
+  color: var(--color-primary);
+}
+
+.qna-accordion-trigger:hover .qna-accordion-icon {
+  color: var(--color-primary);
+}
+
+.qna-accordion-question {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.5;
+  padding-right: 1rem;
+  transition: color 0.2s ease;
+}
+
+.qna-accordion-trigger:hover .qna-accordion-question {
+  color: var(--color-primary);
+}
+
+.qna-accordion-icon {
+  flex-shrink: 0;
+  color: #6b7280;
+  transition: transform 0.3s ease, color 0.2s ease;
+}
+
+.qna-accordion-trigger[aria-expanded="true"] .qna-accordion-icon {
+  transform: rotate(180deg);
+  color: var(--color-primary);
+}
+
+.qna-accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.qna-accordion-trigger[aria-expanded="true"] + .qna-accordion-content {
+  max-height: 1000px;
+}
+
+.qna-accordion-answer {
+  padding: 0 0 1.25rem 0;
+  color: #6b7280;
+  line-height: 1.7;
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 767px) {
+  .qna-accordion-trigger {
+    padding: 1rem 0;
+  }
+
+  .qna-accordion-question {
+    font-size: 0.9375rem;
+  }
+
+  .qna-accordion-answer {
+    padding: 0 0 1rem 0;
+    font-size: 0.875rem;
+  }
+}
+
+/* Q&A Ask Button */
+.qna-ask-button-wrapper {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.btn--ask-question {
+  min-width: 200px;
+}
+
+/* Q&A List (legacy fallback) */
+.qna-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.qna-item {
+  background: var(--color-background-light);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--color-primary);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.qna-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.qna-question {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  color: var(--color-primary);
+}
+
+.qna-question svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-primary);
+}
+
+.qna-question strong {
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.qna-answer {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding-left: var(--spacing-md);
+  color: var(--color-text);
+}
+
+.qna-answer svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-secondary);
+  opacity: 0.6;
+}
+
+.qna-answer p {
+  margin: 0;
+  line-height: 1.7;
+  color: var(--color-text);
+}
+
+.qna-empty,
+.reviews-empty {
+  text-align: center;
+  padding: var(--spacing-2xl);
+  background: var(--color-background-light);
+  border-radius: var(--radius-lg);
+}
+
+.qna-empty svg,
+.reviews-empty svg {
+  color: var(--color-text-light);
+  margin-bottom: var(--spacing-md);
+}
+
+.qna-empty p,
+.reviews-empty p {
+  font-size: 1.125rem;
+  color: var(--color-text-light);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Reviews */
+.product-reviews {
+  max-width: 800px;
+}
+
+.reviews-summary {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  background: var(--color-background-light);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.reviews-summary__rating {
+  text-align: center;
+}
+
+.rating-number {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.rating-stars {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.rating-stars .star {
+  color: #ddd;
+}
+
+.rating-stars .star.filled {
+  color: #fbbf24;
+}
+
+.rating-count {
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .product-tabs__tab {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.9375rem;
+  }
+
+  .qna-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+
+  .qna-header h3 {
+    font-size: 1.25rem;
+  }
+
+  .qna-item {
+    padding: var(--spacing-md);
+  }
+
+  .qna-question strong {
+    font-size: 1rem;
+  }
+
+  .qna-answer {
+    padding-left: 0;
+  }
+
+  .rating-number {
+    font-size: 2.5rem;
+  }
+}
+</style>
+
+<script>
+(function() {
+  const tabs = document.querySelectorAll('[data-tab]');
+  const panels = document.querySelectorAll('[data-panel]');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetPanel = tab.dataset.tab;
+
+      // Remove active from all tabs and panels
+      tabs.forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      panels.forEach(p => p.classList.remove('active'));
+
+      // Add active to clicked tab and corresponding panel
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+      document.querySelector(`[data-panel="${targetPanel}"]`).classList.add('active');
+    });
+  });
+
+  // Ask question button handler
+  const askQuestionButtons = document.querySelectorAll('[data-ask-question]');
+  askQuestionButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      // Replace with your Q&A app integration
+      alert('Cette fonctionnalité nécessite l\'intégration d\'une app de Q&A. Consultez le Shopify App Store pour des apps comme "Product Q&A" ou "Judge.me".');
+    });
+  });
+
+  // Q&A Accordion handler
+  const accordionTriggers = document.querySelectorAll('.qna-accordion-trigger');
+  accordionTriggers.forEach(trigger => {
+    trigger.addEventListener('click', () => {
+      const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+
+      // Toggle current accordion item
+      trigger.setAttribute('aria-expanded', !isExpanded);
+    });
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Onglets Produit",
+  "class": "section-product-tabs",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Ajoutez des onglets en cliquant sur 'Ajouter un block' ci-dessous. Vous pouvez les réorganiser en glissant-déposant."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "description",
+      "name": "Description",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "tab_title",
+          "label": "Titre de l'onglet",
+          "default": "Description"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_specifications",
+          "label": "Afficher les spécifications",
+          "info": "Affiche le type de produit, le vendeur et les metafields de spécifications",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "qna",
+      "name": "Questions & Réponses",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "tab_title",
+          "label": "Titre de l'onglet",
+          "default": "Questions & Réponses"
+        },
+        {
+          "type": "text",
+          "id": "qna_heading",
+          "label": "Titre de la section",
+          "default": "Questions & Réponses"
+        },
+        {
+          "type": "paragraph",
+          "content": "Les Q&A sont chargées depuis product.metafields.custom.faq (type JSON). Format attendu : [{\"question\":\"...\", \"answer\":\"...\"}]"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_ask_button",
+          "label": "Afficher le bouton 'Poser une question'",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "ask_button_text",
+          "label": "Texte du bouton",
+          "default": "Poser une question"
+        },
+        {
+          "type": "url",
+          "id": "ask_question_url",
+          "label": "Lien du bouton",
+          "info": "Lien vers un formulaire de question (peut être # si vous utilisez une app)"
+        },
+        {
+          "type": "html",
+          "id": "custom_content",
+          "label": "Contenu personnalisé (optionnel)",
+          "info": "Utilisé si aucun metafield Q&A n'est trouvé. Vous pouvez ajouter du HTML ou le code d'une app ici."
+        },
+        {
+          "type": "text",
+          "id": "empty_message",
+          "label": "Message si vide",
+          "default": "Aucune question pour le moment. Soyez le premier à poser une question !"
+        }
+      ]
+    },
+    {
+      "type": "judgeme_reviews",
+      "name": "Avis Judge.me",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "tab_title",
+          "label": "Titre de l'onglet",
+          "default": "Avis"
+        },
+        {
+          "type": "paragraph",
+          "content": "Affiche automatiquement le widget Judge.me pour ce produit. Assurez-vous que Judge.me est installé et configuré."
+        }
+      ]
+    },
+    {
+      "type": "custom",
+      "name": "Onglet personnalisé",
+      "settings": [
+        {
+          "type": "text",
+          "id": "tab_title",
+          "label": "Titre de l'onglet",
+          "default": "Informations"
+        },
+        {
+          "type": "paragraph",
+          "content": "Choisissez soit un metafield (recommandé pour du contenu par produit), soit du HTML manuel (même contenu pour tous les produits)."
+        },
+        {
+          "type": "text",
+          "id": "metafield_key",
+          "label": "Clé du metafield (optionnel)",
+          "info": "Format : custom.box_content ou custom.nom_du_champ. Prioritaire sur le contenu HTML.",
+          "placeholder": "custom.box_content"
+        },
+        {
+          "type": "text",
+          "id": "tab_image",
+          "label": "Image à droite (optionnel)",
+          "info": "Cliquez sur l'icône à droite pour sélectionner une image metafield (ex: custom.box_image) OU collez une URL d'image"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_debug",
+          "label": "Afficher les infos de debug",
+          "info": "Activez pour voir le type du metafield et diagnostiquer les problèmes",
+          "default": false
+        },
+        {
+          "type": "html",
+          "id": "content",
+          "label": "Contenu HTML (fallback)",
+          "info": "Utilisé uniquement si aucun metafield n'est défini ou trouvé"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Onglets Produit",
+      "blocks": [
+        {
+          "type": "description"
+        },
+        {
+          "type": "judgeme_reviews"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,738 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero_banner": {
+      "type": "hero-banner",
+      "settings": {
+        "height": "large",
+        "text_alignment": "center",
+        "top_offset": 0,
+        "image": "shopify://shop_images/freepik__une-version-plus-raliste-et-plus-naturelle-de-cett__82358.webp",
+        "video_url": "https://cdn.shopify.com/videos/c/o/v/b0b33fd1160f48d3a4d8cf9388bcaffc.mp4",
+        "overlay_opacity": 35,
+        "enable_parallax": false,
+        "subtitle": "Kits tout-en-un pour débutants",
+        "subtitle_color": "#ffffff",
+        "title": "Magic Crochet Kit",
+        "heading_tag": "h1",
+        "title_color": "#ffffff",
+        "text": "<p>Apprenez le crochet facilement avec nos kits complets.<br/>Tout le matériel + un guide pas à pas pour créer vos premières pièces.</p>",
+        "text_color": "#ffffff",
+        "button_alignment": "center",
+        "button_label_1": "Découvrir nos kits",
+        "button_link_1": "",
+        "button_1_bg_color": "#1e3a5f",
+        "button_1_text_color": "#ffffff",
+        "button_label_2": "Comment ça marche ?",
+        "button_link_2": "",
+        "button_2_bg_color": "#ffffff",
+        "button_2_text_color": "#1e3a5f",
+        "reviews_count": "124",
+        "reviews_rating": "4.7",
+        "reviews_label": "avis",
+        "reviews_icon": "google",
+        "reviews_stars_color": "#ffffff",
+        "reviews_text_color": "#ffffff",
+        "enable_heading_style": false,
+        "heading_style": "signature-1",
+        "heading_style_color": "#dc2626",
+        "typing_texts": "",
+        "section_margin_top": 0,
+        "section_margin_bottom": 0
+      }
+    },
+    "ticker_marquee": {
+      "type": "ticker-marquee",
+      "blocks": {
+        "reassurance_1": {
+          "type": "text",
+          "settings": {
+            "text": "Livraison gratuite dès 45€",
+            "icon": "🚚"
+          }
+        },
+        "reassurance_2": {
+          "type": "text",
+          "settings": {
+            "text": "Kit complet tout inclus",
+            "icon": "📦"
+          }
+        },
+        "reassurance_3": {
+          "type": "text",
+          "settings": {
+            "text": "Vidéos tutos pas à pas",
+            "icon": "🎬"
+          }
+        },
+        "reassurance_4": {
+          "type": "text",
+          "settings": {
+            "text": "100% adapté aux débutants",
+            "icon": "🧶"
+          }
+        },
+        "reassurance_5": {
+          "type": "text",
+          "settings": {
+            "text": "Satisfait ou remboursé",
+            "icon": "💝"
+          }
+        },
+        "reassurance_6": {
+          "type": "text",
+          "settings": {
+            "text": "Paiement sécurisé",
+            "icon": "🔒"
+          }
+        }
+      },
+      "block_order": [
+        "reassurance_1",
+        "reassurance_2",
+        "reassurance_3",
+        "reassurance_4",
+        "reassurance_5",
+        "reassurance_6"
+      ],
+      "settings": {
+        "speed": 30,
+        "direction": "left",
+        "pause_on_hover": true,
+        "font_size": "small",
+        "separator": "•",
+        "background_color": "#1e3a5f",
+        "text_color": "#ffffff",
+        "section_margin_top": 0,
+        "section_margin_bottom": 0
+      }
+    },
+    "featured_collection": {
+      "type": "featured-collection",
+      "settings": {
+        "collection": "kits-debutants-faciles",
+        "title": "Nos kits les plus vendues",
+        "heading_tag": "h2",
+        "subtitle": "Choisissez votre premier projet et lancez-vous ! Chaque kit contient tout le nécessaire pour réussir.",
+        "products_to_show": 4,
+        "columns_desktop": "4",
+        "show_vendor": false,
+        "show_view_all": true,
+        "background_color": "default",
+        "enable_heading_style": true,
+        "heading_style": "signature-1",
+        "heading_style_color": "#1e3a5f",
+        "typing_texts": "populaires !",
+        "section_margin_top": 0,
+        "section_margin_bottom": 0
+      }
+    },
+    "comparison_table": {
+      "type": "comparison-table",
+      "blocks": {
+        "row_1": {
+          "type": "row",
+          "settings": {
+            "feature": "Matériel complet inclus",
+            "other_value": "no",
+            "other_text": "",
+            "us_value": "yes",
+            "us_text": ""
+          }
+        },
+        "row_2": {
+          "type": "row",
+          "settings": {
+            "feature": "Instructions pas à pas",
+            "other_value": "no",
+            "other_text": "",
+            "us_value": "yes",
+            "us_text": ""
+          }
+        },
+        "row_3": {
+          "type": "row",
+          "settings": {
+            "feature": "Vidéos tutoriels",
+            "other_value": "no",
+            "other_text": "",
+            "us_value": "yes",
+            "us_text": ""
+          }
+        },
+        "row_4": {
+          "type": "row",
+          "settings": {
+            "feature": "Support client dédié",
+            "other_value": "no",
+            "other_text": "",
+            "us_value": "yes",
+            "us_text": ""
+          }
+        },
+        "row_5": {
+          "type": "row",
+          "settings": {
+            "feature": "Résultat garanti",
+            "other_value": "no",
+            "other_text": "",
+            "us_value": "yes",
+            "us_text": ""
+          }
+        }
+      },
+      "block_order": [
+        "row_1",
+        "row_2",
+        "row_3",
+        "row_4",
+        "row_5"
+      ],
+      "settings": {
+        "subtitle": "Pourquoi nous choisir",
+        "title": "La différence Magic Crochet",
+        "image": "shopify://shop_images/amigurumi.webp",
+        "image_badge": "",
+        "column_1_icon": "😕",
+        "column_1_title": "Apprendre seul",
+        "column_2_icon": "🧶",
+        "column_2_title": "Magic Crochet Kit",
+        "button_label": "Découvrir nos kits",
+        "button_link": "",
+        "accent_color": "#1e3a5f",
+        "background_color": "#fdf8f3",
+        "enable_heading_style": false,
+        "heading_style": "signature-1",
+        "heading_style_color": "#dc2626",
+        "typing_texts": "",
+        "section_margin_top": 0,
+        "section_margin_bottom": 0
+      }
+    },
+    "image_with_text": {
+      "type": "image-with-text",
+      "settings": {
+        "image": "shopify://shop_images/6_21574b86-f23a-42a2-9b53-5df0ace95579.png",
+        "layout": "image-left",
+        "subtitle": "",
+        "title": "Comment ça marche ?",
+        "heading_tag": "h2",
+        "text": "<p><strong>1. Choisissez votre kit</strong><br/>Lapin, ours, chat... Choisissez l'amigurumi qui vous fait craquer.</p><p><strong>2. Recevez tout le matériel</strong><br/>Laine, crochet ergonomique, rembourrage, yeux sécurisés, aiguille, patron illustré.</p><p><strong>3. Suivez le guide</strong><br/>Instructions pas à pas + accès aux vidéos tutos. Impossible de se tromper !</p><p><strong>4. Admirez votre création</strong><br/>En quelques heures, vous aurez créé votre premier amigurumi de vos propres mains.</p>",
+        "button_label": "Voir les kits débutants",
+        "button_link": "",
+        "button_style": "primary",
+        "enable_heading_style": true,
+        "heading_style": "reflection",
+        "heading_style_color": "#1e3a5f",
+        "typing_texts": "",
+        "section_margin_top": 25,
+        "section_margin_bottom": 25
+      }
+    },
+    "social_proof_wall_zWMLJ9": {
+      "type": "social-proof-wall",
+      "blocks": {
+        "testimonial_cq3X6D": {
+          "type": "testimonial",
+          "settings": {
+            "author": "Sophie Martin",
+            "handle": "@sophie_creates",
+            "avatar": "shopify://shop_images/1_c7eab5c4-2d05-419a-87dd-788fb66d569a.png",
+            "platform": "twitter",
+            "content": "J'ai terminé mon premier amigurumi en seulement 2 jours ! Les instructions sont tellement claires. Je recommande à 100% !",
+            "tag": "Premier projet"
+          }
+        },
+        "testimonial_6T6j94": {
+          "type": "testimonial",
+          "settings": {
+            "author": "Julie Petit",
+            "handle": "@juliecrochet",
+            "platform": "instagram",
+            "content": "La qualité du fil est incroyable et les couleurs sont magnifiques. J'ai déjà commandé 3 autres kits !",
+            "tag": ""
+          }
+        },
+        "testimonial_pGR3mi": {
+          "type": "testimonial",
+          "settings": {
+            "author": "Emma Laurent",
+            "handle": "@emma.diy",
+            "platform": "twitter",
+            "content": "Parfait pour débuter ! J'avais jamais touché un crochet avant et maintenant je suis accro. Merci pour ce super kit !",
+            "tag": ""
+          }
+        },
+        "testimonial_GtxHG3": {
+          "type": "testimonial",
+          "settings": {
+            "author": "Camille Dubois",
+            "handle": "@camille_handmade",
+            "platform": "facebook",
+            "content": "Le service client est au top ! Ils m'ont aidée quand j'étais bloquée sur une étape. Vraiment impressionnée.",
+            "tag": "Client fidèle"
+          }
+        },
+        "testimonial_D7FUie": {
+          "type": "testimonial",
+          "settings": {
+            "author": "Léa Bernard",
+            "handle": "@lea.crochet.addict",
+            "platform": "instagram",
+            "content": "Mon fils adore le petit dinosaure que j'ai fait avec ce kit ! Le tutoriel vidéo est super bien fait.",
+            "tag": ""
+          }
+        },
+        "testimonial_bVfQtt": {
+          "type": "testimonial",
+          "settings": {
+            "author": "Marine Roux",
+            "handle": "@marine_crafts",
+            "platform": "twitter",
+            "content": "Livraison rapide, emballage soigné, et le résultat est trop mignon ! Je suis fan !",
+            "tag": ""
+          }
+        },
+        "testimonial_mBaWNX": {
+          "type": "testimonial",
+          "settings": {
+            "author": "Chloé Moreau",
+            "handle": "@chloe.m.creates",
+            "platform": "tiktok",
+            "content": "J'ai posté mon premier projet sur TikTok et j'ai eu plein de compliments ! Merci pour ce super kit débutant.",
+            "tag": "Viral TikTok"
+          }
+        },
+        "testimonial_JYyeT8": {
+          "type": "testimonial",
+          "settings": {
+            "author": "Pauline Garcia",
+            "handle": "@pauline.yarn",
+            "platform": "instagram",
+            "content": "Le kit contient tout ce qu'il faut, pas besoin d'acheter quoi que ce soit en plus. Vraiment pratique !",
+            "tag": ""
+          }
+        },
+        "testimonial_eH9dAj": {
+          "type": "testimonial",
+          "settings": {
+            "author": "Manon Leroy",
+            "handle": "@manon_makes",
+            "platform": "twitter",
+            "content": "J'ai offert un kit à ma mère et elle a adoré ! On fait maintenant du crochet ensemble le dimanche.",
+            "tag": ""
+          }
+        },
+        "testimonial_itJcck": {
+          "type": "testimonial",
+          "settings": {
+            "author": "Sarah Dumont",
+            "handle": "@sarahcraftlife",
+            "platform": "facebook",
+            "content": "Après 3 essais ratés avec d'autres marques, j'ai ENFIN réussi grâce à leurs explications détaillées !",
+            "tag": "Succès !"
+          }
+        },
+        "testimonial_FJM9Ek": {
+          "type": "testimonial",
+          "settings": {
+            "author": "Clara Fontaine",
+            "handle": "@clara.hooks",
+            "platform": "instagram",
+            "content": "Je suis devenue accro au crochet grâce à eux. J'ai déjà fait 5 amigurumis différents !",
+            "tag": ""
+          }
+        },
+        "testimonial_WW9yJw": {
+          "type": "testimonial",
+          "settings": {
+            "author": "Anaïs Mercier",
+            "handle": "@anais_creates",
+            "platform": "twitter",
+            "content": "Le rapport qualité-prix est excellent. Bien meilleur que les kits que j'avais achetés en magasin.",
+            "tag": ""
+          }
+        }
+      },
+      "block_order": [
+        "testimonial_cq3X6D",
+        "testimonial_6T6j94",
+        "testimonial_pGR3mi",
+        "testimonial_GtxHG3",
+        "testimonial_D7FUie",
+        "testimonial_bVfQtt",
+        "testimonial_mBaWNX",
+        "testimonial_JYyeT8",
+        "testimonial_eH9dAj",
+        "testimonial_itJcck",
+        "testimonial_FJM9Ek",
+        "testimonial_WW9yJw"
+      ],
+      "name": "Mur d'avis social",
+      "settings": {
+        "stat_number": "124",
+        "stat_label": "clients satisfaits",
+        "stat_prefix": "",
+        "stat_suffix": "",
+        "enable_counter": true,
+        "counter_duration": 2000,
+        "stat_color_type": "primary",
+        "stat_color_start": "#103166",
+        "stat_color_end": "#103166",
+        "heading": "Ils ont créé leurs premiers projets crochet",
+        "subheading": "Découvrez ce que nos clients disent de leur expérience",
+        "columns": 4,
+        "max_height": 600,
+        "enable_animation": true,
+        "animation_speed": 30,
+        "reviews_count": "124",
+        "reviews_rating": "4.7",
+        "reviews_label": "avis Google",
+        "reviews_icon": "none",
+        "reviews_stars_color": "#103166",
+        "reviews_text_color": "",
+        "color_scheme": "light",
+        "section_margin_top": 0,
+        "section_margin_bottom": 0
+      }
+    },
+    "comparison_slider": {
+      "type": "comparison-slider",
+      "settings": {
+        "heading": "Voyez la différence",
+        "subheading": "",
+        "before_image": "shopify://shop_images/freepik__a-minimalist-flatlay-photo-of-a-diy-crochet-kit-on__82357.webp",
+        "after_image": "shopify://shop_images/freepik__une-version-plus-raliste-et-plus-naturelle-de-cett__82358.webp",
+        "before_label": "Le kit",
+        "after_label": "Votre création",
+        "initial_position": 50,
+        "slider_color": "#ffffff",
+        "show_instructions": true,
+        "background_color": "",
+        "enable_heading_style": true,
+        "heading_style": "signature-1",
+        "heading_style_color": "#1e3a5f",
+        "typing_texts": "",
+        "show_top_divider": false,
+        "top_divider_shape": "wave-1",
+        "top_divider_color": "#f3f4f6",
+        "top_divider_height": 80,
+        "top_divider_flip_h": false,
+        "top_divider_flip_v": false,
+        "show_bottom_divider": false,
+        "bottom_divider_shape": "wave-1",
+        "bottom_divider_color": "#f3f4f6",
+        "bottom_divider_height": 80,
+        "bottom_divider_flip_h": false,
+        "bottom_divider_flip_v": false,
+        "section_margin_top": 0,
+        "section_margin_bottom": 0
+      }
+    },
+    "video_section": {
+      "type": "video",
+      "settings": {
+        "subtitle": "Apprenez les bases du crochet avec nos vidéos guidées, incluses avec chaque kit.",
+        "title": "Découvrez les tutos en vidéo",
+        "video_url": "https://www.youtube.com/watch?v=oJtFRE6V0I8",
+        "width": "medium",
+        "description": "",
+        "enable_heading_style": true,
+        "heading_style": "signature-1",
+        "heading_style_color": "#1e3a5f",
+        "typing_texts": "",
+        "background_color": "",
+        "show_top_divider": false,
+        "top_divider_shape": "wave-1",
+        "top_divider_color": "#f3f4f6",
+        "top_divider_height": 80,
+        "top_divider_flip_h": false,
+        "top_divider_flip_v": false,
+        "show_bottom_divider": false,
+        "bottom_divider_shape": "wave-1",
+        "bottom_divider_color": "#f3f4f6",
+        "bottom_divider_height": 80,
+        "bottom_divider_flip_h": false,
+        "bottom_divider_flip_v": false,
+        "section_margin_top": 0,
+        "section_margin_bottom": 0
+      }
+    },
+    "timeline": {
+      "type": "timeline",
+      "blocks": {
+        "milestone_1": {
+          "type": "milestone",
+          "settings": {
+            "icon": "🌱",
+            "date": "",
+            "title": "Débutant",
+            "description": "Vous n'avez jamais crocheté ? Commencez ici ! Nos kits premiers pas vous apprennent les bases : maille serrée, cercle magique, augmentations."
+          }
+        },
+        "milestone_2": {
+          "type": "milestone",
+          "settings": {
+            "icon": "🌿",
+            "date": "",
+            "title": "Intermédiaire",
+            "description": "Vous maîtrisez les bases ? Passez aux modèles plus élaborés : assemblages multiples, broderie, vêtements pour amigurumis."
+          }
+        },
+        "milestone_3": {
+          "type": "milestone",
+          "settings": {
+            "icon": "🌳",
+            "date": "",
+            "title": "Confirmé",
+            "description": "Le crochet n'a plus de secrets pour vous ! Découvrez nos kits créatifs avec techniques avancées et designs exclusifs."
+          }
+        }
+      },
+      "block_order": [
+        "milestone_1",
+        "milestone_2",
+        "milestone_3"
+      ],
+      "settings": {
+        "heading": "Votre parcours crochet",
+        "subheading": "Progressez à votre rythme avec des kits adaptés à chaque niveau.",
+        "enable_heading_style": true,
+        "heading_style": "signature-1",
+        "heading_style_color": "#1e3a5f",
+        "typing_texts": "",
+        "card_bg_color": "",
+        "card_border_color": "",
+        "title_color": "",
+        "description_color": "",
+        "label_color": "",
+        "badge_color_start": "",
+        "badge_color_end": "#38bdf8",
+        "badge_text_color": "#ffffff",
+        "connector_color": "",
+        "background_type": "gradient",
+        "section_margin_top": 0,
+        "section_margin_bottom": 0
+      }
+    },
+    "collection_bubbles": {
+      "type": "collection-bubbles",
+      "blocks": {
+        "collection_1": {
+          "type": "collection",
+          "settings": {
+            "collection": "box-par-theme-personnages-1"
+          }
+        },
+        "collection_2": {
+          "type": "collection",
+          "settings": {
+            "collection": "kits-debutants-faciles"
+          }
+        },
+        "collection_3": {
+          "type": "collection",
+          "settings": {
+            "collection": "kits-intermediaires"
+          }
+        },
+        "collection_4": {
+          "type": "collection",
+          "settings": {
+            "collection": ""
+          }
+        },
+        "collection_b34qw4": {
+          "type": "collection",
+          "settings": {
+            "collection": "kits-avances"
+          }
+        }
+      },
+      "block_order": [
+        "collection_1",
+        "collection_2",
+        "collection_3",
+        "collection_4",
+        "collection_b34qw4"
+      ],
+      "settings": {
+        "subtitle": "Parcourir",
+        "title": "Nos Collections",
+        "heading_tag": "h2",
+        "show_product_count": false,
+        "section_margin_top": 0,
+        "section_margin_bottom": 0
+      }
+    },
+    "faq": {
+      "type": "faq",
+      "blocks": {
+        "faq_1": {
+          "type": "question",
+          "settings": {
+            "question": "Je n'ai jamais fait de crochet, est-ce vraiment adapté aux débutants ?",
+            "answer": "<p>Absolument ! Nos kits sont spécialement conçus pour les personnes qui n'ont jamais tenu un crochet. Le patron illustré détaille chaque étape avec des photos, et les vidéos tutos vous montrent exactement comment faire. Vous apprendrez les points de base tout en créant votre premier amigurumi.</p>"
+          }
+        },
+        "faq_2": {
+          "type": "question",
+          "settings": {
+            "question": "Que contient un kit Magic Crochet ?",
+            "answer": "<p>Chaque kit contient : la laine de qualité premium en quantité suffisante, un crochet ergonomique adapté, du rembourrage, des yeux sécurisés, une aiguille à laine, le patron imprimé illustré pas à pas, et l'accès aux vidéos tutos en ligne. Vous n'avez besoin de rien d'autre !</p>"
+          }
+        },
+        "faq_3": {
+          "type": "question",
+          "settings": {
+            "question": "Combien de temps faut-il pour réaliser un amigurumi ?",
+            "answer": "<p>Pour un débutant complet, comptez environ 8 à 12 heures réparties sur plusieurs sessions. La plupart de nos clients terminent leur premier projet en un week-end. Plus vous pratiquez, plus vous irez vite !</p>"
+          }
+        },
+        "faq_4": {
+          "type": "question",
+          "settings": {
+            "question": "À partir de quel âge peut-on utiliser vos kits ?",
+            "answer": "<p>Nos kits débutants sont adaptés dès 10 ans avec l'aide d'un adulte, et dès 12-14 ans en autonomie. C'est une activité parfaite à partager en famille !</p>"
+          }
+        },
+        "faq_5": {
+          "type": "question",
+          "settings": {
+            "question": "Que faire si je suis bloqué(e) sur une étape ?",
+            "answer": "<p>Pas de panique ! Vous pouvez revoir les vidéos tutos autant de fois que nécessaire. Si vous êtes vraiment bloqué(e), notre support client est là pour vous aider par email. Envoyez-nous une photo de votre avancement et on vous guide !</p>"
+          }
+        }
+      },
+      "block_order": [
+        "faq_1",
+        "faq_2",
+        "faq_3",
+        "faq_4",
+        "faq_5"
+      ],
+      "settings": {
+        "subtitle": "Tout ce que vous devez savoir avant de vous lancer.",
+        "title": "Questions Fréquentes",
+        "heading_tag": "h2",
+        "open_first": true,
+        "enable_heading_style": true,
+        "heading_style": "signature-1",
+        "heading_style_color": "#1e3a5f",
+        "typing_texts": "",
+        "section_margin_top": 0,
+        "section_margin_bottom": 0
+      }
+    },
+    "newsletter_inline": {
+      "type": "newsletter-inline",
+      "settings": {
+        "show_icon": true,
+        "title": "Recevez un patron GRATUIT !",
+        "subtitle": "Inscrivez-vous et recevez immédiatement un patron débutant offert + nos conseils crochet chaque semaine.",
+        "placeholder": "Votre adresse email",
+        "button_label": "Je m'inscris",
+        "color_scheme": "accent",
+        "show_privacy_text": true,
+        "privacy_text": "Nous respectons votre vie privée. Désabonnement en un clic.",
+        "success_message": "Bienvenue dans la communauté ! Vérifiez vos emails pour votre patron gratuit.",
+        "section_margin_top": 0,
+        "section_margin_bottom": 0
+      }
+    },
+    "cta_split": {
+      "type": "cta-split",
+      "blocks": {
+        "txt_1": {
+          "type": "text",
+          "settings": {
+            "text": "Kit complet tout inclus"
+          }
+        },
+        "txt_2": {
+          "type": "text",
+          "settings": {
+            "text": "Tutos video pas a pas"
+          }
+        },
+        "txt_3": {
+          "type": "text",
+          "settings": {
+            "text": "Resultat garanti"
+          }
+        },
+        "txt_4": {
+          "type": "text",
+          "settings": {
+            "text": "Ideal debutant"
+          }
+        },
+        "txt_5": {
+          "type": "text",
+          "settings": {
+            "text": "Support disponible"
+          }
+        },
+        "txt_6": {
+          "type": "text",
+          "settings": {
+            "text": "Qualite premium"
+          }
+        }
+      },
+      "block_order": [
+        "txt_1",
+        "txt_2",
+        "txt_3",
+        "txt_4",
+        "txt_5",
+        "txt_6"
+      ],
+      "settings": {
+        "image": "shopify://shop_images/2_639499c3-ff84-44fb-83b5-7780384e0eb0.png",
+        "show_overlay_content": true,
+        "title": "Pret a commencer ?",
+        "subtitle": "Creez votre premier amigurumi",
+        "button_label": "Choisir mon kit",
+        "button_link": "",
+        "ticker_bg_color": "#1e3a5f",
+        "ticker_text_color": "#ffffff",
+        "text_size": 2,
+        "speed": 2,
+        "section_margin_top": 0,
+        "section_margin_bottom": 0
+      }
+    },
+    "spacer_footer": {
+      "type": "spacer",
+      "settings": {
+        "height_desktop": 105,
+        "height_mobile": 50
+      }
+    }
+  },
+  "order": [
+    "hero_banner",
+    "ticker_marquee",
+    "featured_collection",
+    "comparison_table",
+    "image_with_text",
+    "social_proof_wall_zWMLJ9",
+    "comparison_slider",
+    "video_section",
+    "timeline",
+    "collection_bubbles",
+    "faq",
+    "newsletter_inline",
+    "cta_split",
+    "spacer_footer"
+  ]
+}

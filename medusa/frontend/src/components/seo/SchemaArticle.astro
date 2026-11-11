@@ -1,0 +1,32 @@
+---
+interface Props {
+  title: string
+  description: string
+  image?: string
+  url: string
+  datePublished?: string
+  author?: string
+}
+
+const { title, description, image, url, datePublished, author = 'Magic Crochet Kit' } = Astro.props
+
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": title,
+  "description": description.substring(0, 300),
+  ...(image && { "image": image }),
+  "url": `https://magic-crochet-kit.com${url}`,
+  ...(datePublished && { "datePublished": datePublished }),
+  "author": {
+    "@type": "Person",
+    "name": author
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Magic Crochet Kit",
+    "logo": { "@type": "ImageObject", "url": "https://magic-crochet-kit.com/logo.png" }
+  }
+}
+---
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />

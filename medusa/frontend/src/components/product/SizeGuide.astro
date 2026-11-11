@@ -1,0 +1,173 @@
+---
+/**
+ * Size Guide Modal — context-aware by category.
+ * Props:
+ *   - type: 'vetement' | 'soutien-gorge' | 'bout-de-sein' | 'casque'
+ *   - productTitle: displayed in the modal header
+ */
+interface Props {
+  type: 'vetement' | 'soutien-gorge' | 'bout-de-sein' | 'casque'
+  productTitle?: string
+}
+
+const { type, productTitle = '' } = Astro.props
+---
+
+<button
+  type="button"
+  id="size-guide-btn"
+  class="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary-hover transition-colors"
+>
+  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+  </svg>
+  Guide des tailles
+</button>
+
+<div id="size-guide-modal" class="fixed inset-0 z-[200] hidden" role="dialog" aria-modal="true" aria-label="Guide des tailles">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" id="size-guide-overlay"></div>
+  <div class="absolute inset-0 flex items-center justify-center p-4">
+    <div class="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto animate-fade-up">
+      <div class="sticky top-0 bg-white z-10 flex items-center justify-between px-6 py-4 border-b border-border-light rounded-t-2xl">
+        <p class="text-lg font-semibold font-['DM_Sans']">Guide des tailles</p>
+        <button type="button" id="size-guide-close" class="p-2 text-text-muted hover:text-text rounded-lg hover:bg-bg-light transition-all" aria-label="Fermer">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-6">
+
+        {type === 'vetement' && (
+          <div>
+            <p class="font-semibold text-text mb-3">Correspondance des tailles — Vêtements de maternité / allaitement</p>
+            <p class="text-sm text-text-light mb-4">Les vêtements d'allaitement sont pensés pour accompagner votre grossesse et l'après-grossesse. Prenez votre taille habituelle avant grossesse.</p>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm border-collapse">
+                <thead>
+                  <tr class="bg-bg-light">
+                    <th class="px-4 py-2.5 text-left font-semibold text-text border border-border-light">Taille</th>
+                    <th class="px-4 py-2.5 text-center font-semibold text-text border border-border-light">Tour de poitrine</th>
+                    <th class="px-4 py-2.5 text-center font-semibold text-text border border-border-light">Tour de taille</th>
+                    <th class="px-4 py-2.5 text-center font-semibold text-text border border-border-light">Tour de hanches</th>
+                    <th class="px-4 py-2.5 text-center font-semibold text-text border border-border-light">Équivalence</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td class="px-4 py-2 border border-border-light font-medium">34</td><td class="px-4 py-2 border border-border-light text-center">80-84 cm</td><td class="px-4 py-2 border border-border-light text-center">63-67 cm</td><td class="px-4 py-2 border border-border-light text-center">88-92 cm</td><td class="px-4 py-2 border border-border-light text-center">XS</td></tr>
+                  <tr class="bg-bg-light/50"><td class="px-4 py-2 border border-border-light font-medium">36</td><td class="px-4 py-2 border border-border-light text-center">84-88 cm</td><td class="px-4 py-2 border border-border-light text-center">67-71 cm</td><td class="px-4 py-2 border border-border-light text-center">92-96 cm</td><td class="px-4 py-2 border border-border-light text-center">S</td></tr>
+                  <tr><td class="px-4 py-2 border border-border-light font-medium">38</td><td class="px-4 py-2 border border-border-light text-center">88-92 cm</td><td class="px-4 py-2 border border-border-light text-center">71-75 cm</td><td class="px-4 py-2 border border-border-light text-center">96-100 cm</td><td class="px-4 py-2 border border-border-light text-center">M</td></tr>
+                  <tr class="bg-bg-light/50"><td class="px-4 py-2 border border-border-light font-medium">40</td><td class="px-4 py-2 border border-border-light text-center">92-96 cm</td><td class="px-4 py-2 border border-border-light text-center">75-79 cm</td><td class="px-4 py-2 border border-border-light text-center">100-104 cm</td><td class="px-4 py-2 border border-border-light text-center">M</td></tr>
+                  <tr><td class="px-4 py-2 border border-border-light font-medium">42</td><td class="px-4 py-2 border border-border-light text-center">96-100 cm</td><td class="px-4 py-2 border border-border-light text-center">79-83 cm</td><td class="px-4 py-2 border border-border-light text-center">104-108 cm</td><td class="px-4 py-2 border border-border-light text-center">L</td></tr>
+                  <tr class="bg-bg-light/50"><td class="px-4 py-2 border border-border-light font-medium">44</td><td class="px-4 py-2 border border-border-light text-center">100-104 cm</td><td class="px-4 py-2 border border-border-light text-center">83-87 cm</td><td class="px-4 py-2 border border-border-light text-center">108-112 cm</td><td class="px-4 py-2 border border-border-light text-center">L</td></tr>
+                  <tr><td class="px-4 py-2 border border-border-light font-medium">46</td><td class="px-4 py-2 border border-border-light text-center">104-108 cm</td><td class="px-4 py-2 border border-border-light text-center">87-91 cm</td><td class="px-4 py-2 border border-border-light text-center">112-116 cm</td><td class="px-4 py-2 border border-border-light text-center">XL</td></tr>
+                  <tr class="bg-bg-light/50"><td class="px-4 py-2 border border-border-light font-medium">48</td><td class="px-4 py-2 border border-border-light text-center">108-112 cm</td><td class="px-4 py-2 border border-border-light text-center">91-95 cm</td><td class="px-4 py-2 border border-border-light text-center">116-120 cm</td><td class="px-4 py-2 border border-border-light text-center">XL / 2XL</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="text-xs text-text-muted mt-3">Certains modèles sont proposés en tailles doubles (ex. 38/40) : prenez votre taille principale. Les combinaisons XS/S, S/M, M/L, L/XL suivent la même logique.</p>
+          </div>
+        )}
+
+        {type === 'soutien-gorge' && (
+          <div>
+            <p class="font-semibold text-text mb-3">Soutiens-gorge d'allaitement</p>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm border-collapse">
+                <thead>
+                  <tr class="bg-bg-light">
+                    <th class="px-4 py-2.5 text-left font-semibold text-text border border-border-light">Taille</th>
+                    <th class="px-4 py-2.5 text-center font-semibold text-text border border-border-light">Tour de poitrine</th>
+                    <th class="px-4 py-2.5 text-center font-semibold text-text border border-border-light">Tour sous poitrine</th>
+                    <th class="px-4 py-2.5 text-center font-semibold text-text border border-border-light">Bonnet</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td class="px-4 py-2 border border-border-light font-medium">S</td><td class="px-4 py-2 border border-border-light text-center">83-88 cm</td><td class="px-4 py-2 border border-border-light text-center">68-73 cm</td><td class="px-4 py-2 border border-border-light text-center">A-B</td></tr>
+                  <tr class="bg-bg-light/50"><td class="px-4 py-2 border border-border-light font-medium">M</td><td class="px-4 py-2 border border-border-light text-center">88-93 cm</td><td class="px-4 py-2 border border-border-light text-center">73-78 cm</td><td class="px-4 py-2 border border-border-light text-center">B-C</td></tr>
+                  <tr><td class="px-4 py-2 border border-border-light font-medium">L</td><td class="px-4 py-2 border border-border-light text-center">93-100 cm</td><td class="px-4 py-2 border border-border-light text-center">78-85 cm</td><td class="px-4 py-2 border border-border-light text-center">C-D</td></tr>
+                  <tr class="bg-bg-light/50"><td class="px-4 py-2 border border-border-light font-medium">XL</td><td class="px-4 py-2 border border-border-light text-center">100-108 cm</td><td class="px-4 py-2 border border-border-light text-center">85-93 cm</td><td class="px-4 py-2 border border-border-light text-center">D-E</td></tr>
+                  <tr><td class="px-4 py-2 border border-border-light font-medium">XXL</td><td class="px-4 py-2 border border-border-light text-center">108-118 cm</td><td class="px-4 py-2 border border-border-light text-center">93-103 cm</td><td class="px-4 py-2 border border-border-light text-center">E-F</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {type === 'bout-de-sein' && (
+          <div>
+            <p class="font-semibold text-text mb-3">Bouts de sein / Téterelles</p>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm border-collapse">
+                <thead>
+                  <tr class="bg-bg-light">
+                    <th class="px-4 py-2.5 text-left font-semibold text-text border border-border-light">Taille</th>
+                    <th class="px-4 py-2.5 text-center font-semibold text-text border border-border-light">Diamètre mamelon</th>
+                    <th class="px-4 py-2.5 text-center font-semibold text-text border border-border-light">Usage</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td class="px-4 py-2 border border-border-light font-medium">S (16-20 mm)</td><td class="px-4 py-2 border border-border-light text-center">&lt; 17 mm</td><td class="px-4 py-2 border border-border-light text-center">Petit mamelon</td></tr>
+                  <tr class="bg-bg-light/50"><td class="px-4 py-2 border border-border-light font-medium">M (20-24 mm)</td><td class="px-4 py-2 border border-border-light text-center">17-20 mm</td><td class="px-4 py-2 border border-border-light text-center">Taille standard</td></tr>
+                  <tr><td class="px-4 py-2 border border-border-light font-medium">L (24-28 mm)</td><td class="px-4 py-2 border border-border-light text-center">20-23 mm</td><td class="px-4 py-2 border border-border-light text-center">Grand mamelon</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {type === 'casque' && (
+          <div>
+            <p class="font-semibold text-text mb-3">Casques anti-bruit bébé et enfant</p>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm border-collapse">
+                <thead>
+                  <tr class="bg-bg-light">
+                    <th class="px-4 py-2.5 text-left font-semibold text-text border border-border-light">Âge</th>
+                    <th class="px-4 py-2.5 text-center font-semibold text-text border border-border-light">Tour de tête</th>
+                    <th class="px-4 py-2.5 text-center font-semibold text-text border border-border-light">Modèle adapté</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td class="px-4 py-2 border border-border-light font-medium">0-18 mois</td><td class="px-4 py-2 border border-border-light text-center">38-48 cm</td><td class="px-4 py-2 border border-border-light text-center">Alpine Muffy Baby, Dooky Bébé, Alecto Bébés</td></tr>
+                  <tr class="bg-bg-light/50"><td class="px-4 py-2 border border-border-light font-medium">18 mois - 3 ans</td><td class="px-4 py-2 border border-border-light text-center">45-52 cm</td><td class="px-4 py-2 border border-border-light text-center">Muffy Baby, Dooky Évolutif, Alecto Éducatif</td></tr>
+                  <tr><td class="px-4 py-2 border border-border-light font-medium">3-10 ans</td><td class="px-4 py-2 border border-border-light text-center">48-55 cm</td><td class="px-4 py-2 border border-border-light text-center">Kidywolf Kidynoise, Alecto Éducatif, Dooky Évolutif</td></tr>
+                  <tr class="bg-bg-light/50"><td class="px-4 py-2 border border-border-light font-medium">5-16 ans</td><td class="px-4 py-2 border border-border-light text-center">50-58 cm</td><td class="px-4 py-2 border border-border-light text-center">Alpine Muffy Kids</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        <div class="bg-primary/5 rounded-xl p-5">
+          <p class="font-semibold text-text mb-2 text-sm">Comment prendre vos mesures ?</p>
+          <ul class="text-sm text-text-light space-y-1.5">
+            <li class="flex items-start gap-2"><span class="text-primary mt-0.5">•</span>Utilisez un mètre ruban souple</li>
+            <li class="flex items-start gap-2"><span class="text-primary mt-0.5">•</span>Mesurez directement sur la peau, sans vêtements serrés</li>
+            <li class="flex items-start gap-2"><span class="text-primary mt-0.5">•</span>En cas de doute entre deux tailles, prenez la taille supérieure</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const modal = document.getElementById('size-guide-modal')
+  // Portal the modal to <body> to escape any transformed ancestor (animate-fade-up
+  // on the product info column creates a containing block that breaks position:fixed).
+  if (modal && modal.parentElement !== document.body) document.body.appendChild(modal)
+
+  document.getElementById('size-guide-btn')?.addEventListener('click', () => {
+    modal?.classList.remove('hidden')
+    document.body.style.overflow = 'hidden'
+  })
+  function closeSizeGuide() {
+    modal?.classList.add('hidden')
+    document.body.style.overflow = ''
+  }
+  document.getElementById('size-guide-close')?.addEventListener('click', closeSizeGuide)
+  document.getElementById('size-guide-overlay')?.addEventListener('click', closeSizeGuide)
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal?.classList.contains('hidden')) closeSizeGuide()
+  })
+</script>

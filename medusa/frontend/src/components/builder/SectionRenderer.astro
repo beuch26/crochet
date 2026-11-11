@@ -1,0 +1,72 @@
+---
+/**
+ * SectionRenderer — dispatches each section to the right Builder component
+ * based on its `type` field.
+ *
+ * To register a new section type:
+ *   1. Create the Builder component in /components/builder/
+ *   2. Import it below
+ *   3. Add it to the COMPONENT_MAP
+ *
+ * Sections marked visible: false are skipped silently.
+ * Unknown section types are skipped silently in production (logged in dev).
+ */
+import HeroBuilder from './HeroBuilder.astro'
+import TrustBarBuilder from './TrustBarBuilder.astro'
+import FeaturedProductsBuilder from './FeaturedProductsBuilder.astro'
+import CollectionBubblesBuilder from './CollectionBubblesBuilder.astro'
+import TickerMarqueeBuilder from './TickerMarqueeBuilder.astro'
+import TestimonialsBuilder from './TestimonialsBuilder.astro'
+import VideoTestimonialsBuilder from './VideoTestimonialsBuilder.astro'
+import ImageWithTextBuilder from './ImageWithTextBuilder.astro'
+import FAQBuilder from './FAQBuilder.astro'
+import NewsletterBuilder from './NewsletterBuilder.astro'
+import RichTextBuilder from './RichTextBuilder.astro'
+import GuaranteeBanner from '../sections/GuaranteeBanner.astro'
+import Features from '../sections/Features.astro'
+
+import type { SectionInstance } from '../../lib/medusa'
+
+interface Props {
+  sections: SectionInstance[]
+}
+
+const { sections = [] } = Astro.props
+
+// Filter out invisible sections
+const visibleSections = sections.filter((s) => s.visible !== false)
+---
+
+{visibleSections.map((section) => {
+  const props = section.props || {}
+  switch (section.type) {
+    case 'hero':
+      return <HeroBuilder {...props} />
+    case 'trust_bar':
+      return <TrustBarBuilder {...props} />
+    case 'featured_products':
+      return <FeaturedProductsBuilder {...props} />
+    case 'collection_bubbles':
+      return <CollectionBubblesBuilder {...props} />
+    case 'ticker_marquee':
+      return <TickerMarqueeBuilder {...props} />
+    case 'testimonials':
+      return <TestimonialsBuilder {...props} />
+    case 'video_testimonials':
+      return <VideoTestimonialsBuilder {...props} />
+    case 'image_with_text':
+      return <ImageWithTextBuilder {...props} />
+    case 'faq':
+      return <FAQBuilder {...props} />
+    case 'newsletter':
+      return <NewsletterBuilder {...props} />
+    case 'rich_text':
+      return <RichTextBuilder {...props} />
+    case 'guarantee_banner':
+      return <GuaranteeBanner {...props} />
+    case 'features':
+      return <Features {...props} />
+    default:
+      return null
+  }
+})}

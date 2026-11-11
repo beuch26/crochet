@@ -1,0 +1,125 @@
+{%- comment -%}
+  Trustpilot Widget Component
+  Displays Trustpilot rating badge
+
+  Parameters:
+  - business_unit_id: Trustpilot business unit ID (required via settings)
+  - style: 'mini', 'micro', 'badge' (default: 'mini')
+  - theme: 'light' or 'dark' (default: 'light')
+
+  Usage:
+  {%- render 'trustpilot-widget', style: 'mini' -%}
+{%- endcomment -%}
+
+{%- liquid
+  assign business_unit_id = settings.trustpilot_business_unit_id | default: business_unit_id
+  assign style = style | default: 'mini'
+  assign theme = theme | default: 'light'
+-%}
+
+{%- if business_unit_id != blank -%}
+  <div class="trustpilot-widget"
+       data-locale="{{ request.locale.iso_code | default: 'en-US' }}"
+       data-template-id="{% case style %}{% when 'micro' %}5419b6ffb0d04a076446a9af{% when 'badge' %}5613c9cde69ddc09340c6beb{% else %}5419b732fbfb950b10de65e5{% endcase %}"
+       data-businessunit-id="{{ business_unit_id }}"
+       data-style-height="{{ style | default: 'mini' | replace: 'mini', '24px' | replace: 'micro', '20px' | replace: 'badge', '150px' }}"
+       data-style-width="100%"
+       data-theme="{{ theme }}">
+    <a href="https://www.trustpilot.com/review/{{ shop.domain }}" target="_blank" rel="noopener">Trustpilot</a>
+  </div>
+{%- else -%}
+  {%- comment -%} Fallback custom Trustpilot-style widget {%- endcomment -%}
+  <div class="trustpilot-custom {% if theme == 'dark' %}trustpilot-custom--dark{% endif %}">
+    <div class="trustpilot-custom__stars">
+      {%- assign rating = settings.trustpilot_rating | default: 4.5 -%}
+      {%- assign full_stars = rating | floor -%}
+      {%- assign decimal = rating | modulo: 1 -%}
+
+      {%- for i in (1..5) -%}
+        {%- if i <= full_stars -%}
+          <svg class="trustpilot-star trustpilot-star--full" width="20" height="20" viewBox="0 0 20 20">
+            <polygon points="10,1 12.5,7.5 19,7.5 14,12 16,19 10,15 4,19 6,12 1,7.5 7.5,7.5" fill="#00b67a"/>
+          </svg>
+        {%- elsif i == full_stars | plus: 1 and decimal >= 0.5 -%}
+          <svg class="trustpilot-star trustpilot-star--half" width="20" height="20" viewBox="0 0 20 20">
+            <defs>
+              <linearGradient id="half-{{ i }}">
+                <stop offset="50%" stop-color="#00b67a"/>
+                <stop offset="50%" stop-color="#dcdce6"/>
+              </linearGradient>
+            </defs>
+            <polygon points="10,1 12.5,7.5 19,7.5 14,12 16,19 10,15 4,19 6,12 1,7.5 7.5,7.5" fill="url(#half-{{ i }})"/>
+          </svg>
+        {%- else -%}
+          <svg class="trustpilot-star trustpilot-star--empty" width="20" height="20" viewBox="0 0 20 20">
+            <polygon points="10,1 12.5,7.5 19,7.5 14,12 16,19 10,15 4,19 6,12 1,7.5 7.5,7.5" fill="#dcdce6"/>
+          </svg>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    <div class="trustpilot-custom__info">
+      <span class="trustpilot-custom__score">{{ settings.trustpilot_rating | default: '4.5' }}</span>
+      <span class="trustpilot-custom__reviews">{{ settings.trustpilot_reviews_count | default: '1,234' }} {{ 'general.reviews' | t | default: 'avis' }}</span>
+    </div>
+
+    <div class="trustpilot-custom__logo">
+      <svg width="90" height="22" viewBox="0 0 90 22" fill="none">
+        <path d="M22.5 0h-7.3l-2.3 7-2.3-7H3.3L8.5 5l-2 6.5L12.9 7l6.4 4.5-2-6.5 5.2-5z" fill="#00b67a"/>
+        <text x="28" y="15" fill="{% if theme == 'dark' %}#fff{% else %}#191919{% endif %}" font-size="12" font-weight="bold" font-family="system-ui, sans-serif">Trustpilot</text>
+      </svg>
+    </div>
+  </div>
+{%- endif -%}
+
+<style>
+  .trustpilot-custom {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: var(--spacing-sm);
+    background-color: var(--color-background-light);
+    border-radius: var(--radius-md);
+  }
+
+  .trustpilot-custom--dark {
+    background-color: #191919;
+  }
+
+  .trustpilot-custom__stars {
+    display: flex;
+    gap: 2px;
+  }
+
+  .trustpilot-star {
+    display: block;
+  }
+
+  .trustpilot-custom__info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .trustpilot-custom__score {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  .trustpilot-custom--dark .trustpilot-custom__score {
+    color: #fff;
+  }
+
+  .trustpilot-custom__reviews {
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+  }
+
+  .trustpilot-custom--dark .trustpilot-custom__reviews {
+    color: #999;
+  }
+
+  .trustpilot-custom__logo {
+    margin-left: auto;
+  }
+</style>

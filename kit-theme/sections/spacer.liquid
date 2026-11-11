@@ -1,0 +1,48 @@
+{%- comment -%}
+  Spacer Section
+  Adds configurable vertical space between sections
+{%- endcomment -%}
+
+<div class="spacer" style="height: {{ section.settings.height_mobile }}px;" aria-hidden="true"></div>
+
+<style>
+  @media (min-width: 768px) {
+    #shopify-section-{{ section.id }} .spacer {
+      height: {{ section.settings.height_desktop }}px !important;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Espaceur",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "range",
+      "id": "height_desktop",
+      "label": "Hauteur sur PC (px)",
+      "min": 0,
+      "max": 200,
+      "step": 5,
+      "default": 60,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "height_mobile",
+      "label": "Hauteur sur mobile (px)",
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "default": 40,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Espaceur"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,55 @@
+---
+/**
+ * Ticker Marquee - infinite scrolling text banner
+ * Like Shopify Olympus theme's ticker-marquee section
+ */
+interface Props {
+  texts?: string[]
+  speed?: number
+  bgColor?: string
+  textColor?: string
+  separator?: string
+}
+
+const {
+  texts = [
+    'Livraison gratuite dès 50€',
+    'Retours gratuits 30 jours',
+    'Paiement 100% sécurisé',
+    'Expédition sous 24-48h',
+    'Satisfait ou remboursé',
+    'Service client réactif',
+  ],
+  speed = 30,
+  bgColor = '',
+  textColor = '',
+  separator = '✦',
+} = Astro.props
+
+// Repeat texts enough times for seamless loop
+const repeated = [...texts, ...texts, ...texts, ...texts]
+---
+
+<div
+  class="overflow-hidden py-3 lg:py-4 bg-gradient-to-r from-primary to-secondary text-white"
+  style={`${bgColor ? `background: ${bgColor};` : ''}${textColor ? `color: ${textColor};` : ''}`}
+>
+  <div class="ticker-track flex items-center whitespace-nowrap" style={`animation: ticker ${speed}s linear infinite`}>
+    {repeated.map((text, i) => (
+      <span class="flex items-center gap-4 px-4 text-sm font-medium tracking-wide">
+        <span class="opacity-40 text-xs">{separator}</span>
+        <span>{text}</span>
+      </span>
+    ))}
+  </div>
+</div>
+
+<style>
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .ticker-track:hover {
+    animation-play-state: paused;
+  }
+</style>

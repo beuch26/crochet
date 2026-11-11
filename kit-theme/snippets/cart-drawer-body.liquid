@@ -1,0 +1,111 @@
+{%- comment -%}
+  Cart Drawer Body Content
+  Reusable content for the cart drawer body
+{%- endcomment -%}
+
+<div class="cart-drawer-content" data-cart-drawer-content>
+<div class="cart-items" data-cart-items>
+  {%- for item in cart.items -%}
+    <div class="cart-item" data-line-item="{{ forloop.index }}" data-variant-id="{{ item.variant.id }}">
+      <a href="{{ item.url }}" class="cart-item__image-wrapper">
+        <img src="{{ item.image | image_url: width: 100 }}" alt="{{ item.title }}" width="80" height="80" loading="lazy">
+      </a>
+      <div class="cart-item__details">
+        <div class="cart-item__title">
+          <a href="{{ item.url }}">{{ item.product.title }}</a>
+        </div>
+        {%- unless item.variant.title contains 'Default' -%}
+          <p class="cart-item__variant">{{ item.variant.title }}</p>
+        {%- endunless -%}
+
+        {%- comment -%} Price {%- endcomment -%}
+        <div class="cart-item__price-wrapper">
+          {%- if item.original_price > item.final_price -%}
+            <span class="cart-item__price--compare">{{ item.original_price | money }}</span>
+          {%- endif -%}
+          <span class="cart-item__price">
+            {%- if item.final_price == 0 -%}
+              <span class="price-free-badge">{{ 'products.product.free' | t | default: 'Gratuit' }}</span>
+            {%- else -%}
+              {{ item.final_price | money }}
+            {%- endif -%}
+          </span>
+          {%- if item.quantity > 1 -%}
+            <span class="cart-item__price--total">
+              {%- if item.final_line_price == 0 -%}
+                <span class="price-free-badge">{{ 'products.product.free' | t | default: 'Gratuit' }}</span>
+              {%- else -%}
+                {{ item.final_line_price | money }}
+              {%- endif -%}
+            </span>
+          {%- endif -%}
+        </div>
+
+        {%- comment -%} Quantity Controls {%- endcomment -%}
+        <div class="cart-item__quantity">
+          <button type="button" class="cart-item__qty-btn" data-cart-quantity-minus data-line="{{ forloop.index }}" aria-label="{{ 'cart.label.decrease' | t | default: 'Decrease quantity' }}">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 8H12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <label for="cart-item-quantity-{{ item.key }}" class="visually-hidden">{{ 'cart.item.quantity' | t }}</label>
+          <input
+            type="number"
+            id="cart-item-quantity-{{ item.key }}"
+            name="updates[{{ item.key }}]"
+            value="{{ item.quantity }}"
+            min="0"
+            data-cart-quantity
+            data-line="{{ forloop.index }}"
+            aria-label="{{ 'cart.item.quantity' | t }}"
+            autocomplete="off"
+            readonly
+          >
+          <button type="button" class="cart-item__qty-btn" data-cart-quantity-plus data-line="{{ forloop.index }}" aria-label="{{ 'cart.label.increase' | t | default: 'Increase quantity' }}">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 4V12M4 8H12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button class="cart-item__remove" data-cart-remove data-line="{{ forloop.index }}" aria-label="{{ 'cart.label.remove' | t | default: 'Remove item' }}">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M1 1L13 13M1 13L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  {%- endfor -%}
+</div>
+
+{%- comment -%} Shipping Progress with Checkpoints {%- endcomment -%}
+{%- if settings.shipping_checkpoint_1 > 0 -%}
+  <div class="cart-drawer__shipping-progress">
+    {%- render 'shipping-checkpoints', current_total: cart.total_price, style: 'bar' -%}
+  </div>
+{%- endif -%}
+
+{%- comment -%} Upsell Products {%- endcomment -%}
+{%- render 'cart-upsells', max_products: 3, layout: 'slider' -%}
+
+<div class="cart-footer">
+  {%- comment -%} Subtotal {%- endcomment -%}
+  <div class="cart-subtotal">
+    <span>{{ 'cart.general.subtotal' | t }}</span>
+    <strong data-cart-total>{{ cart.total_price | money }}</strong>
+  </div>
+
+  {%- comment -%} Shipping Note {%- endcomment -%}
+  <p class="cart-footer__note">
+    {{ 'cart.general.taxes_shipping' | t | default: 'Taxes and shipping calculated at checkout' }}
+  </p>
+
+  {%- comment -%} Checkout Buttons {%- endcomment -%}
+  <button type="submit" name="checkout" class="btn btn--primary btn--full btn--large" onclick="window.location='{{ routes.cart_url }}/checkout'">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <path d="M5 10h10M10 5l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    {{ 'cart.general.checkout' | t }}
+  </button>
+  <a href="{{ routes.cart_url }}" class="cart-footer__view-cart">{{ 'cart.general.view' | t | default: 'View Cart' }}</a>
+</div>
+</div>

@@ -1,0 +1,433 @@
+{%- comment -%}
+  Video Section
+  Embed YouTube or Vimeo videos
+{%- endcomment -%}
+
+{%- render 'section-spacing', id: section.id, margin_top: section.settings.section_margin_top, margin_bottom: section.settings.section_margin_bottom -%}
+
+{%- comment -%} Top Divider {%- endcomment -%}
+{%- if section.settings.show_top_divider -%}
+  {%- render 'section-divider',
+    shape: section.settings.top_divider_shape,
+    color: section.settings.top_divider_color,
+    height: section.settings.top_divider_height,
+    flip_horizontal: section.settings.top_divider_flip_h,
+    flip_vertical: section.settings.top_divider_flip_v,
+    position: 'top'
+  -%}
+{%- endif -%}
+
+<div class="video-section section" style="{% if section.settings.background_color != blank and section.settings.background_color != 'rgba(0,0,0,0)' %}background-color: {{ section.settings.background_color }};{% endif %}">
+  <div class="container">
+
+    {%- if section.settings.title != blank -%}
+      <header class="section-header text-center">
+        {%- if section.settings.subtitle != blank -%}
+          <p class="section-subtitle">{{ section.settings.subtitle }}</p>
+        {%- endif -%}
+        {%- if section.settings.enable_heading_style -%}
+          {%- render 'heading-styles',
+            text: section.settings.title,
+            tag: 'h2',
+            style: section.settings.heading_style,
+            color: section.settings.heading_style_color,
+            align: 'center',
+            size: 'xl',
+            typing_texts: section.settings.typing_texts
+          -%}
+        {%- else -%}
+          <h2 class="section-title">{{ section.settings.title }}</h2>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    <div class="video-section__wrapper video-section__wrapper--{{ section.settings.width }}">
+      {%- if section.settings.video_url != blank -%}
+        <div class="video-section__container">
+          {%- liquid
+            assign video_url = section.settings.video_url
+            assign video_id = ''
+            assign video_type = ''
+
+            if video_url contains 'youtube.com' or video_url contains 'youtu.be'
+              assign video_type = 'youtube'
+              if video_url contains 'youtube.com/watch?v='
+                assign video_id = video_url | split: 'v=' | last | split: '&' | first
+              elsif video_url contains 'youtu.be/'
+                assign video_id = video_url | split: 'youtu.be/' | last | split: '?' | first
+              endif
+            elsif video_url contains 'vimeo.com'
+              assign video_type = 'vimeo'
+              assign video_id = video_url | split: 'vimeo.com/' | last | split: '/' | first
+            endif
+          -%}
+
+          {%- if video_type == 'youtube' and video_id != '' -%}
+            <iframe
+              src="https://www.youtube-nocookie.com/embed/{{ video_id }}?rel=0&modestbranding=1"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+              title="{{ section.settings.title | default: 'Video' }}"
+            ></iframe>
+          {%- elsif video_type == 'vimeo' and video_id != '' -%}
+            <iframe
+              src="https://player.vimeo.com/video/{{ video_id }}?title=0&byline=0&portrait=0"
+              frameborder="0"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowfullscreen
+              title="{{ section.settings.title | default: 'Video' }}"
+            ></iframe>
+          {%- else -%}
+            <div class="video-section__error">
+              <p>{{ 'sections.video.invalid_url' | t | default: 'Please enter a valid YouTube or Vimeo URL' }}</p>
+            </div>
+          {%- endif -%}
+        </div>
+      {%- else -%}
+        <div class="video-section__placeholder">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+            <circle cx="40" cy="40" r="38" stroke="currentColor" stroke-width="2"/>
+            <path d="M32 28L54 40L32 52V28Z" fill="currentColor"/>
+          </svg>
+          <p>{{ 'sections.video.add_url' | t | default: 'Add a video URL to get started' }}</p>
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- if section.settings.description != blank -%}
+      <div class="video-section__description">
+        {{ section.settings.description }}
+      </div>
+    {%- endif -%}
+
+  </div>
+</div>
+
+{%- comment -%} Bottom Divider {%- endcomment -%}
+{%- if section.settings.show_bottom_divider -%}
+  {%- render 'section-divider',
+    shape: section.settings.bottom_divider_shape,
+    color: section.settings.bottom_divider_color,
+    height: section.settings.bottom_divider_height,
+    flip_horizontal: section.settings.bottom_divider_flip_h,
+    flip_vertical: section.settings.bottom_divider_flip_v,
+    position: 'bottom'
+  -%}
+{%- endif -%}
+
+<style>
+.video-section {
+  padding: var(--spacing-3xl) 0;
+  margin-bottom: var(--spacing-xl);
+}
+
+.video-section__wrapper {
+  margin: 0 auto;
+}
+
+.video-section__wrapper--small {
+  max-width: 700px;
+}
+
+.video-section__wrapper--medium {
+  max-width: 900px;
+}
+
+.video-section__wrapper--large {
+  max-width: 1200px;
+}
+
+.video-section__container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  height: 0;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-background-light);
+}
+
+.video-section__container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.video-section__error,
+.video-section__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  background-color: var(--color-background-light);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text);
+  text-align: center;
+  padding: var(--spacing-lg);
+}
+
+.video-section__placeholder svg {
+  margin-bottom: var(--spacing-md);
+  opacity: 0.5;
+}
+
+.video-section__description {
+  max-width: 700px;
+  margin: var(--spacing-lg) auto 0;
+  text-align: center;
+  color: var(--color-text-light);
+  line-height: 1.6;
+}
+</style>
+
+{% schema %}
+{
+  "name": "Video",
+  "class": "section-video",
+  "settings": [
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Sous-titre"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre",
+      "default": "Video"
+    },
+    {
+      "type": "text",
+      "id": "video_url",
+      "label": "URL de la video",
+      "info": "URL YouTube ou Vimeo",
+      "default": "https://www.youtube.com/watch?v=_9VUPq3SxOc"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "Largeur de la video",
+      "options": [
+        {
+          "value": "small",
+          "label": "Petite"
+        },
+        {
+          "value": "medium",
+          "label": "Moyenne"
+        },
+        {
+          "value": "large",
+          "label": "Grande"
+        }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "header",
+      "content": "Couleur de fond"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Couleur de fond de la section"
+    },
+    {
+      "type": "header",
+      "content": "Séparateur en haut"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_top_divider",
+      "label": "Afficher le séparateur en haut",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "top_divider_shape",
+      "label": "Forme",
+      "options": [
+        { "value": "wave-1", "label": "Vague 1 (multicouche)" },
+        { "value": "wave-2", "label": "Vague 2 (simple)" },
+        { "value": "wave-3", "label": "Vague 3 (inversée)" },
+        { "value": "wave-animated", "label": "Vague animée" },
+        { "value": "curve", "label": "Courbe" },
+        { "value": "curve-asymmetric", "label": "Courbe asymétrique" },
+        { "value": "diagonal", "label": "Diagonale" },
+        { "value": "diagonal-reverse", "label": "Diagonale inversée" },
+        { "value": "triangle", "label": "Triangle" },
+        { "value": "arrow", "label": "Flèche" },
+        { "value": "zigzag", "label": "Zigzag" },
+        { "value": "clouds", "label": "Nuages" }
+      ],
+      "default": "wave-1"
+    },
+    {
+      "type": "color",
+      "id": "top_divider_color",
+      "label": "Couleur du séparateur",
+      "default": "#f3f4f6"
+    },
+    {
+      "type": "range",
+      "id": "top_divider_height",
+      "label": "Hauteur",
+      "min": 50,
+      "max": 200,
+      "step": 10,
+      "default": 80,
+      "unit": "px"
+    },
+    {
+      "type": "checkbox",
+      "id": "top_divider_flip_h",
+      "label": "Retourner horizontalement",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "top_divider_flip_v",
+      "label": "Retourner verticalement",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Séparateur en bas"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_bottom_divider",
+      "label": "Afficher le séparateur en bas",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "bottom_divider_shape",
+      "label": "Forme",
+      "options": [
+        { "value": "wave-1", "label": "Vague 1 (multicouche)" },
+        { "value": "wave-2", "label": "Vague 2 (simple)" },
+        { "value": "wave-3", "label": "Vague 3 (inversée)" },
+        { "value": "wave-animated", "label": "Vague animée" },
+        { "value": "curve", "label": "Courbe" },
+        { "value": "curve-asymmetric", "label": "Courbe asymétrique" },
+        { "value": "diagonal", "label": "Diagonale" },
+        { "value": "diagonal-reverse", "label": "Diagonale inversée" },
+        { "value": "triangle", "label": "Triangle" },
+        { "value": "arrow", "label": "Flèche" },
+        { "value": "zigzag", "label": "Zigzag" },
+        { "value": "clouds", "label": "Nuages" }
+      ],
+      "default": "wave-1"
+    },
+    {
+      "type": "color",
+      "id": "bottom_divider_color",
+      "label": "Couleur du séparateur",
+      "default": "#f3f4f6"
+    },
+    {
+      "type": "range",
+      "id": "bottom_divider_height",
+      "label": "Hauteur",
+      "min": 50,
+      "max": 200,
+      "step": 10,
+      "default": 80,
+      "unit": "px"
+    },
+    {
+      "type": "checkbox",
+      "id": "bottom_divider_flip_h",
+      "label": "Retourner horizontalement",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "bottom_divider_flip_v",
+      "label": "Retourner verticalement",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Espacement de la section"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_top",
+      "label": "Marge en haut (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_bottom",
+      "label": "Marge en bas (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Video"
+    }
+  ]
+}
+{% endschema %}

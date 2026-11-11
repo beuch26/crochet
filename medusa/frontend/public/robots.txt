@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /cart
+Disallow: /account
+Disallow: /search
+Disallow: /checkout
+Disallow: /mot-de-passe-oublie
+
+Sitemap: https://magic-crochet-kit.com/sitemap.xml

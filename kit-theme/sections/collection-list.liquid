@@ -1,0 +1,382 @@
+{%- comment -%}
+  Collection List Section
+  Display multiple collections
+{%- endcomment -%}
+
+{%- render 'section-spacing', id: section.id, margin_top: section.settings.section_margin_top, margin_bottom: section.settings.section_margin_bottom -%}
+
+<div class="collection-list section">
+  <div class="container">
+
+    {%- if section.settings.title != blank -%}
+      {%- liquid
+        assign heading_tag = section.settings.heading_tag | default: 'h2'
+      -%}
+      <header class="section-header text-center">
+        {%- if section.settings.subtitle != blank -%}
+          <p class="section-subtitle">{{ section.settings.subtitle }}</p>
+        {%- endif -%}
+        {%- if section.settings.enable_heading_style -%}
+          {%- render 'heading-styles',
+            text: section.settings.title,
+            tag: heading_tag,
+            style: section.settings.heading_style,
+            color: section.settings.heading_style_color,
+            align: 'center',
+            size: 'xl',
+            typing_texts: section.settings.typing_texts
+          -%}
+        {%- else -%}
+          <{{ heading_tag }} class="section-title">{{ section.settings.title }}</{{ heading_tag }}>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <div class="collection-list__grid collection-list__grid--{{ section.settings.columns_desktop }}">
+        {%- for block in section.blocks -%}
+          {%- assign collection = collections[block.settings.collection] -%}
+          {%- if collection != blank -%}
+            <div class="collection-card" {{ block.shopify_attributes }}>
+              <a href="{{ collection.url }}" class="collection-card__link">
+                <div class="collection-card__image">
+                  {%- if collection.image -%}
+                    <img
+                      src="{{ collection.image | image_url: width: 600 }}"
+                      srcset="{{ collection.image | image_url: width: 300 }} 300w,
+                              {{ collection.image | image_url: width: 600 }} 600w"
+                      sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                      alt="{{ collection.image.alt | default: collection.title }}"
+                      width="600"
+                      height="400"
+                      loading="lazy"
+                    >
+                  {%- elsif collection.products.first and collection.products.first.featured_image -%}
+                    <img
+                      src="{{ collection.products.first.featured_image | image_url: width: 600 }}"
+                      alt="{{ collection.title }}"
+                      width="600"
+                      height="400"
+                      loading="lazy"
+                    >
+                  {%- else -%}
+                    <div class="collection-card__placeholder">
+                      {{ 'collection-1' | placeholder_svg_tag }}
+                    </div>
+                  {%- endif -%}
+                </div>
+
+                <div class="collection-card__content">
+                  <h3 class="collection-card__title">{{ collection.title }}</h3>
+                  {%- if section.settings.show_product_count -%}
+                    <p class="collection-card__count">
+                      {{ collection.products_count }}
+                      {%- if collection.products_count == 1 -%}
+                        {{ 'collections.general.product' | t | default: 'product' }}
+                      {%- else -%}
+                        {{ 'collections.general.products' | t | default: 'products' }}
+                      {%- endif -%}
+                    </p>
+                  {%- endif -%}
+                  {%- if section.settings.show_description and collection.description != blank -%}
+                    <p class="collection-card__description">
+                      {{ collection.description | strip_html | truncatewords: 20 }}
+                    </p>
+                  {%- endif -%}
+                </div>
+              </a>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.button_label != blank -%}
+      <div class="collection-list__footer">
+        <a href="{{ section.settings.button_link | default: routes.collections_url }}" class="btn btn--primary">
+          {{ section.settings.button_label }}
+        </a>
+      </div>
+    {%- endif -%}
+
+  </div>
+</div>
+
+<style>
+.collection-list {
+  padding: var(--spacing-3xl) 0;
+}
+
+.collection-list__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-xl);
+}
+
+@media (min-width: 768px) {
+  .collection-list__grid--2,
+  .collection-list__grid--3,
+  .collection-list__grid--4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .collection-list__grid--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .collection-list__grid--4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.collection-card {
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all var(--transition-speed);
+}
+
+.collection-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  transform: translateY(-4px);
+}
+
+.collection-card__link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.collection-card__image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3/2;
+  overflow: hidden;
+  background-color: var(--color-background-light);
+}
+
+.collection-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.collection-card:hover .collection-card__image img {
+  transform: scale(1.05);
+}
+
+.collection-card__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.collection-card__placeholder svg {
+  width: 100%;
+  height: 100%;
+  opacity: 0.3;
+}
+
+.collection-card__content {
+  padding: var(--spacing-lg);
+}
+
+.collection-card__title {
+  font-size: 1.5rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.collection-card__count {
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+  margin: 0 0 0.5rem 0;
+}
+
+.collection-card__description {
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.collection-list__footer {
+  text-align: center;
+  margin-top: var(--spacing-2xl);
+}
+</style>
+
+{% schema %}
+{
+  "name": "Liste de collections",
+  "class": "section-collection-list",
+  "settings": [
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Sous-titre"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre",
+      "default": "Parcourir par catégorie"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "SEO : Niveau de titre",
+      "options": [
+        {"value": "h1", "label": "H1"},
+        {"value": "h2", "label": "H2 (Recommandé)"},
+        {"value": "h3", "label": "H3"},
+        {"value": "h4", "label": "H4"}
+      ],
+      "default": "h2",
+      "info": "Choisissez le niveau de titre pour cette section."
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "Colonnes (Bureau)",
+      "options": [
+        {
+          "value": "2",
+          "label": "2 colonnes"
+        },
+        {
+          "value": "3",
+          "label": "3 colonnes"
+        },
+        {
+          "value": "4",
+          "label": "4 colonnes"
+        }
+      ],
+      "default": "3"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_count",
+      "label": "Afficher le nombre de produits",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_description",
+      "label": "Afficher la description",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Libellé du bouton"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Lien du bouton"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "header",
+      "content": "Espacement de la section"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_top",
+      "label": "Marge en haut (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_bottom",
+      "label": "Marge en bas (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "Collection",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Liste de collections",
+      "blocks": [
+        {
+          "type": "collection"
+        },
+        {
+          "type": "collection"
+        },
+        {
+          "type": "collection"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

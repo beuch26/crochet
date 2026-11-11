@@ -1,0 +1,43 @@
+---
+import Layout from '../layouts/Layout.astro'
+import SectionRenderer from '../components/builder/SectionRenderer.astro'
+import { getPageLayout } from '../lib/medusa'
+
+// Allow ?preview=draft for the admin preview iframe
+const isPreview = Astro.url.searchParams.get('preview') === 'draft'
+
+const layout = await getPageLayout('homepage', isPreview)
+
+// Default fallback if no layout is configured (shouldn't happen after seed)
+const sections = layout?.sections || []
+
+const pageTitle = layout?.meta_title || 'Kits de Crochet pour Débutants'
+const pageDescription = layout?.meta_description || 'Magic Crochet Kit — Apprenez le crochet facilement avec nos kits tout-en-un pour débutants. Matériel complet + guide pas à pas.'
+---
+
+<Layout title={pageTitle} description={pageDescription}>
+  {layout?.custom_css && (
+    <style slot="head" set:html={layout.custom_css} />
+  )}
+
+  {sections.length > 0 ? (
+    <SectionRenderer sections={sections} />
+  ) : (
+    <section class="py-32 text-center">
+      <div class="max-w-2xl mx-auto px-4">
+        <h1>Bienvenue chez Magic Crochet Kit</h1>
+        <p class="mt-4 text-text-light">
+          La page d'accueil n'est pas encore configurée.
+          <br />
+          Configurez vos sections depuis l'admin.
+        </p>
+      </div>
+    </section>
+  )}
+
+  {isPreview && (
+    <div class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-yellow-400 text-black text-sm font-semibold rounded-full shadow-lg">
+      Mode Preview (Draft)
+    </div>
+  )}
+</Layout>

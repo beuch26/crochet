@@ -1,0 +1,30 @@
+---
+/**
+ * Rich Text - flexible content block with optional background
+ * Like Olympus theme's rich-text section
+ */
+interface Props {
+  content: string
+  align?: 'left' | 'center' | 'right'
+  maxWidth?: 'sm' | 'md' | 'lg' | 'full'
+  bgColor?: string
+  paddingY?: string
+}
+
+const {
+  content,
+  align = 'center',
+  maxWidth = 'md',
+  bgColor = '',
+  paddingY = 'py-16 lg:py-20',
+} = Astro.props
+
+const widthMap = { sm: 'max-w-2xl', md: 'max-w-4xl', lg: 'max-w-6xl', full: 'max-w-7xl' }
+const alignMap = { left: 'text-left', center: 'text-center mx-auto', right: 'text-right ml-auto' }
+---
+
+<section class={`${paddingY} reveal`} style={bgColor ? `background-color: ${bgColor}` : ''}>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class={`${widthMap[maxWidth]} ${alignMap[align]} prose prose-lg max-w-none`} set:html={content} />
+  </div>
+</section>

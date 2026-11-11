@@ -1,0 +1,405 @@
+{%- comment -%}
+  Trust Guarantees - Premium Unified Component
+  Combines trust badges and guarantees in one cohesive design
+
+  Parameters:
+  - layout: 'horizontal', 'vertical', or 'marquee' (default: 'horizontal')
+  - style: 'cards', 'minimal', 'glass' (default: 'glass')
+  - show_shipping_threshold: Show free shipping amount (default: true)
+  - free_shipping_threshold: Amount in euros (default: 50)
+{%- endcomment -%}
+
+{%- liquid
+  assign layout = layout | default: 'horizontal'
+  assign style = style | default: 'glass'
+  assign show_shipping_threshold = show_shipping_threshold | default: true
+  assign shipping_threshold = free_shipping_threshold | default: 50
+-%}
+
+<div class="trust-unified trust-unified--{{ layout }} trust-unified--{{ style }}">
+
+  {%- if layout == 'marquee' -%}
+    {%- comment -%} Marquee/Ticker Style {%- endcomment -%}
+    <div class="trust-marquee">
+      <div class="trust-marquee__track">
+        <div class="trust-marquee__content">
+          {%- for i in (1..2) -%}
+            <div class="trust-marquee__item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <rect x="4" y="8" width="16" height="13" rx="1" stroke="currentColor" stroke-width="2"/>
+                <path d="M4 8l8-4 8 4" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              <span>Livraison gratuite dès {{ shipping_threshold }}€</span>
+            </div>
+            <span class="trust-marquee__sep">✦</span>
+            <div class="trust-marquee__item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <span>Retours 30 jours</span>
+            </div>
+            <span class="trust-marquee__sep">✦</span>
+            <div class="trust-marquee__item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2"/>
+                <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <span>Paiement sécurisé</span>
+            </div>
+            <span class="trust-marquee__sep">✦</span>
+            <div class="trust-marquee__item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              <span>Support 7j/7</span>
+            </div>
+            <span class="trust-marquee__sep">✦</span>
+          {%- endfor -%}
+        </div>
+      </div>
+    </div>
+
+  {%- else -%}
+    {%- comment -%} Cards/Glass Style {%- endcomment -%}
+    <div class="trust-unified__grid">
+
+      <div class="trust-card">
+        <div class="trust-card__icon trust-card__icon--shipping">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <rect x="1" y="6" width="15" height="10" rx="1" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M16 9h3l3 3v4h-6V9z" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="6" cy="18" r="2" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="18" cy="18" r="2" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <div class="trust-card__content">
+          <strong class="trust-card__title">Livraison Express</strong>
+          <span class="trust-card__desc">Gratuite dès {{ shipping_threshold }}€</span>
+        </div>
+        <div class="trust-card__badge">24-48h</div>
+      </div>
+
+      <div class="trust-card">
+        <div class="trust-card__icon trust-card__icon--returns">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M3 12a9 9 0 109-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M3 3v6h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="trust-card__content">
+          <strong class="trust-card__title">Satisfait ou Remboursé</strong>
+          <span class="trust-card__desc">Retour gratuit</span>
+        </div>
+        <div class="trust-card__badge">30 jours</div>
+      </div>
+
+      <div class="trust-card">
+        <div class="trust-card__icon trust-card__icon--secure">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="trust-card__content">
+          <strong class="trust-card__title">Paiement Sécurisé</strong>
+          <span class="trust-card__desc">Cryptage SSL 256-bit</span>
+        </div>
+        <div class="trust-card__badge trust-card__badge--secure">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="5"/></svg>
+        </div>
+      </div>
+
+      <div class="trust-card">
+        <div class="trust-card__icon trust-card__icon--support">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="8" cy="12" r="1" fill="currentColor"/>
+            <circle cx="12" cy="12" r="1" fill="currentColor"/>
+            <circle cx="16" cy="12" r="1" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="trust-card__content">
+          <strong class="trust-card__title">Support Client</strong>
+          <span class="trust-card__desc">Réponse sous 24h</span>
+        </div>
+        <div class="trust-card__badge">7j/7</div>
+      </div>
+
+    </div>
+  {%- endif -%}
+</div>
+
+<style>
+  /* ═══════════════════════════════════════════════════════════
+     TRUST UNIFIED - Premium Design System
+     ═══════════════════════════════════════════════════════════ */
+
+  .trust-unified {
+    --trust-radius: 12px;
+    --trust-gap: 0.625rem;
+    margin: 1rem 0;
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     GRID LAYOUT (Cards / Glass)
+     ───────────────────────────────────────────────────────────── */
+
+  .trust-unified__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--trust-gap);
+  }
+
+  .trust-unified--vertical .trust-unified__grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     TRUST CARDS
+     ───────────────────────────────────────────────────────────── */
+
+  .trust-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.9) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: var(--trust-radius);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+  }
+
+  .trust-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(var(--card-accent-rgb, 0,0,0), 0.03) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .trust-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .trust-card:hover::before {
+    opacity: 1;
+  }
+
+  /* Card Icons */
+  .trust-card__icon {
+    --card-accent-rgb: 16, 185, 129;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+  }
+
+  .trust-card__icon--shipping {
+    --card-accent-rgb: 59, 130, 246;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    color: #3b82f6;
+  }
+
+  .trust-card__icon--returns {
+    --card-accent-rgb: 168, 85, 247;
+    background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+    color: #a855f7;
+  }
+
+  .trust-card__icon--secure {
+    --card-accent-rgb: 16, 185, 129;
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    color: #10b981;
+  }
+
+  .trust-card__icon--support {
+    --card-accent-rgb: 245, 158, 11;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    color: #f59e0b;
+  }
+
+  .trust-card:hover .trust-card__icon {
+    transform: scale(1.05);
+  }
+
+  /* Card Content */
+  .trust-card__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .trust-card__title {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1.2;
+    margin-bottom: 0.125rem;
+  }
+
+  .trust-card__desc {
+    display: block;
+    font-size: 0.6875rem;
+    color: #6b7280;
+    line-height: 1.3;
+  }
+
+  /* Card Badge */
+  .trust-card__badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.125rem 0.375rem;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    font-size: 0.5625rem;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .trust-card__badge--secure {
+    background: #10b981;
+    color: white;
+    padding: 0.25rem;
+    border-radius: 50%;
+    animation: trust-pulse 2s infinite;
+  }
+
+  @keyframes trust-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.1); }
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     MARQUEE STYLE
+     ───────────────────────────────────────────────────────────── */
+
+  .trust-marquee {
+    background: linear-gradient(90deg, #1f2937 0%, #111827 100%);
+    border-radius: var(--trust-radius);
+    overflow: hidden;
+    padding: 0.75rem 0;
+  }
+
+  .trust-marquee__track {
+    display: flex;
+    width: max-content;
+    animation: trust-marquee-scroll 25s linear infinite;
+  }
+
+  .trust-marquee:hover .trust-marquee__track {
+    animation-play-state: paused;
+  }
+
+  @keyframes trust-marquee-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .trust-marquee__content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .trust-marquee__item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    color: white;
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .trust-marquee__item svg {
+    color: #fbbf24;
+  }
+
+  .trust-marquee__sep {
+    color: #fbbf24;
+    font-size: 0.75rem;
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     GLASS STYLE ENHANCEMENT
+     ───────────────────────────────────────────────────────────── */
+
+  .trust-unified--glass .trust-card {
+    background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.7) 0%,
+      rgba(255, 255, 255, 0.4) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow:
+      0 4px 15px rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     RESPONSIVE
+     ───────────────────────────────────────────────────────────── */
+
+  @media (max-width: 767px) {
+    .trust-unified__grid {
+      gap: 0.5rem;
+    }
+
+    .trust-card {
+      padding: 0.625rem;
+    }
+
+    .trust-card__icon {
+      width: 34px;
+      height: 34px;
+    }
+
+    .trust-card__icon svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .trust-card__title {
+      font-size: 0.75rem;
+    }
+
+    .trust-card__desc {
+      font-size: 0.625rem;
+    }
+
+    .trust-card__badge {
+      font-size: 0.5rem;
+      padding: 0.1rem 0.25rem;
+    }
+
+    .trust-marquee__item {
+      font-size: 0.75rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .trust-unified__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .trust-card {
+      padding: 0.75rem;
+    }
+  }
+</style>

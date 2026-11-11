@@ -1,0 +1,1744 @@
+{%- comment -%}
+  Shoppable Image Section - Enhanced
+  Image with interactive hotspots linking to products
+
+  Features:
+  - Hover/Click toggle interaction
+  - Multiple animation styles (pulse, ripple, glow, bounce, scale)
+  - Configurable popup position & width
+  - Custom hotspot icons
+  - Desktop/mobile visibility controls
+  - Image zoom on hover
+  - Overlay effect when popup active
+  - Quick view modal option
+  - Full accessibility (ARIA, keyboard nav)
+{%- endcomment -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign heading = section.settings.heading
+  assign subheading = section.settings.subheading
+  assign heading_tag = section.settings.heading_tag | default: 'h2'
+  assign image = section.settings.image
+  assign mobile_image = section.settings.mobile_image
+  assign image_ratio = section.settings.image_ratio | default: 'natural'
+  assign interaction_mode = section.settings.interaction_mode | default: 'click'
+  assign enable_zoom = section.settings.enable_zoom
+  assign enable_overlay = section.settings.enable_overlay
+  assign show_product_list = section.settings.show_product_list
+  assign popup_width = section.settings.popup_width | default: 'medium'
+  assign default_popup_position = section.settings.default_popup_position | default: 'top'
+  assign hotspot_color = section.settings.hotspot_color | default: 'primary'
+  assign hotspot_size = section.settings.hotspot_size | default: 'medium'
+-%}
+
+<section
+  class="si section section--{{ section_id }}"
+  id="shoppable-{{ section_id }}"
+  data-shoppable-image
+  data-interaction="{{ interaction_mode }}"
+>
+  <div class="container">
+    {%- if heading != blank or subheading != blank -%}
+      <div class="section-header">
+        {%- if heading != blank -%}
+          {%- if section.settings.enable_heading_style -%}
+            {%- render 'heading-styles',
+              text: heading,
+              tag: heading_tag,
+              style: section.settings.heading_style,
+              color: section.settings.heading_style_color,
+              align: 'center',
+              size: 'xl',
+              typing_texts: section.settings.typing_texts
+            -%}
+          {%- else -%}
+            <{{ heading_tag }} class="section-header__title">{{ heading }}</{{ heading_tag }}>
+          {%- endif -%}
+        {%- endif -%}
+        {%- if subheading != blank -%}
+          <p class="section-header__subtitle">{{ subheading }}</p>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <div class="si__wrapper">
+      <div class="si__container si__container--{{ image_ratio }}{% if enable_zoom %} si__container--zoom{% endif %}{% if enable_overlay %} si__container--overlay{% endif %}">
+
+        {%- comment -%} Background Image {%- endcomment -%}
+        {%- if image != blank -%}
+          <picture class="si__picture">
+            {%- if mobile_image != blank -%}
+              <source
+                media="(max-width: 767px)"
+                srcset="{{ mobile_image | image_url: width: 600 }} 600w,
+                        {{ mobile_image | image_url: width: 800 }} 800w,
+                        {{ mobile_image | image_url: width: 1000 }} 1000w"
+                sizes="100vw"
+              >
+            {%- endif -%}
+            <img
+              class="si__img"
+              src="{{ image | image_url: width: 1400 }}"
+              srcset="{{ image | image_url: width: 800 }} 800w,
+                      {{ image | image_url: width: 1100 }} 1100w,
+                      {{ image | image_url: width: 1400 }} 1400w,
+                      {{ image | image_url: width: 1800 }} 1800w"
+              sizes="(max-width: 767px) 100vw, 90vw"
+              alt="{{ image.alt | default: heading | default: 'Shoppable image' }}"
+              width="{{ image.width }}"
+              height="{{ image.height }}"
+              loading="lazy"
+              decoding="async"
+            >
+          </picture>
+        {%- else -%}
+          <div class="si__placeholder">
+            {{ 'lifestyle-1' | placeholder_svg_tag: 'si__placeholder-svg' }}
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} Overlay (shown when popup active) {%- endcomment -%}
+        {%- if enable_overlay -%}
+          <div class="si__overlay" data-si-overlay aria-hidden="true"></div>
+        {%- endif -%}
+
+        {%- comment -%} Hotspots {%- endcomment -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'hotspot' -%}
+            {%- liquid
+              assign product = block.settings.product
+              assign pos_x = block.settings.position_x | default: 50
+              assign pos_y = block.settings.position_y | default: 50
+              assign mobile_pos_x = block.settings.mobile_position_x | default: pos_x
+              assign mobile_pos_y = block.settings.mobile_position_y | default: pos_y
+              assign animation = block.settings.animation | default: 'pulse'
+              assign icon_style = block.settings.icon_style | default: 'plus'
+              assign popup_position = block.settings.popup_position | default: default_popup_position
+              assign show_desktop = block.settings.show_desktop | default: true
+              assign show_mobile = block.settings.show_mobile | default: true
+              assign custom_label = block.settings.custom_label
+              assign block_popup_width = block.settings.popup_width | default: popup_width
+            -%}
+
+            <div
+              class="si__hotspot si__hotspot--{{ animation }} si__hotspot--{{ hotspot_color }} si__hotspot--{{ hotspot_size }}{% unless show_desktop %} si__hotspot--hide-desktop{% endunless %}{% unless show_mobile %} si__hotspot--hide-mobile{% endunless %}"
+              style="--hs-x: {{ pos_x }}%; --hs-y: {{ pos_y }}%; --hs-mx: {{ mobile_pos_x }}%; --hs-my: {{ mobile_pos_y }}%;"
+              data-hotspot
+              data-popup-position="{{ popup_position }}"
+              {{ block.shopify_attributes }}
+            >
+              {%- comment -%} Hotspot Trigger Button {%- endcomment -%}
+              <button
+                type="button"
+                class="si__trigger"
+                aria-expanded="false"
+                aria-controls="si-popup-{{ block.id }}"
+                aria-label="{{ 'sections.shoppable.view_product' | t | default: 'Voir le produit' }}{% if product != blank %}: {{ product.title }}{% endif %}"
+                data-hotspot-trigger
+              >
+                <span class="si__icon" aria-hidden="true">
+                  {%- case icon_style -%}
+                    {%- when 'plus' -%}
+                      <svg viewBox="0 0 20 20" fill="none"><path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+                    {%- when 'dot' -%}
+                      <svg viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="4"/></svg>
+                    {%- when 'eye' -%}
+                      <svg viewBox="0 0 20 20" fill="none"><path d="M10 4C5.5 4 2 10 2 10s3.5 6 8 6 8-6 8-6-3.5-6-8-6z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+                    {%- when 'bag' -%}
+                      <svg viewBox="0 0 20 20" fill="none"><path d="M4 6h12l-1 10H5L4 6zM7 6V5a3 3 0 116 0v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    {%- when 'tag' -%}
+                      <svg viewBox="0 0 20 20" fill="none"><path d="M2 2h6l8 8-6 6-8-8V2zm4 4a1 1 0 100-2 1 1 0 000 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    {%- when 'number' -%}
+                      <span class="si__number">{{ forloop.index }}</span>
+                    {%- else -%}
+                      <svg viewBox="0 0 20 20" fill="none"><path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+                  {%- endcase -%}
+                </span>
+                {%- if custom_label != blank -%}
+                  <span class="si__label">{{ custom_label }}</span>
+                {%- endif -%}
+              </button>
+
+              {%- comment -%} Product Popup {%- endcomment -%}
+              {%- if product != blank -%}
+                <div
+                  class="si__popup si__popup--{{ popup_position }} si__popup--{{ block_popup_width }}"
+                  id="si-popup-{{ block.id }}"
+                  role="dialog"
+                  aria-labelledby="si-popup-title-{{ block.id }}"
+                  aria-modal="false"
+                  data-hotspot-popup
+                >
+                  <button
+                    type="button"
+                    class="si__popup-close"
+                    aria-label="{{ 'general.close' | t | default: 'Fermer' }}"
+                    data-hotspot-close
+                  >
+                    <svg viewBox="0 0 20 20" fill="none"><path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  </button>
+
+                  <div class="si__popup-inner">
+                    {%- comment -%} Product Image {%- endcomment -%}
+                    <a href="{{ product.url }}" class="si__popup-image" tabindex="-1">
+                      {%- if product.featured_image != blank -%}
+                        <img
+                          src="{{ product.featured_image | image_url: width: 200 }}"
+                          srcset="{{ product.featured_image | image_url: width: 100 }} 100w,
+                                  {{ product.featured_image | image_url: width: 200 }} 200w"
+                          sizes="100px"
+                          alt="{{ product.featured_image.alt | default: product.title }}"
+                          width="100"
+                          height="100"
+                          loading="lazy"
+                        >
+                      {%- else -%}
+                        {{ 'product-1' | placeholder_svg_tag }}
+                      {%- endif -%}
+                    </a>
+
+                    {%- comment -%} Product Info {%- endcomment -%}
+                    <div class="si__popup-info">
+                      <a href="{{ product.url }}" class="si__popup-title" id="si-popup-title-{{ block.id }}">
+                        {{ product.title }}
+                      </a>
+
+                      {%- if product.vendor != blank and block.settings.show_vendor -%}
+                        <span class="si__popup-vendor">{{ product.vendor }}</span>
+                      {%- endif -%}
+
+                      <div class="si__popup-price">
+                        {%- if product.compare_at_price > product.price -%}
+                          <span class="si__popup-price--compare" aria-label="{{ 'products.price.regular' | t }}">
+                            {{ product.compare_at_price | money }}
+                          </span>
+                          <span class="si__popup-price--sale" aria-label="{{ 'products.price.sale' | t }}">
+                            {{ product.price | money }}
+                          </span>
+                          {%- assign savings = product.compare_at_price | minus: product.price | times: 100 | divided_by: product.compare_at_price -%}
+                          <span class="si__popup-badge">-{{ savings }}%</span>
+                        {%- else -%}
+                          <span class="si__popup-price--current">{{ product.price | money }}</span>
+                        {%- endif -%}
+                      </div>
+
+                      {%- comment -%} Variant Selector (if multiple variants) {%- endcomment -%}
+                      {%- if product.has_only_default_variant == false and block.settings.show_variants -%}
+                        <div class="si__popup-variants">
+                          <select
+                            class="si__popup-select"
+                            data-variant-select
+                            aria-label="{{ 'products.variants.select' | t | default: 'Sélectionner une variante' }}"
+                          >
+                            {%- for variant in product.variants -%}
+                              <option
+                                value="{{ variant.id }}"
+                                data-price="{{ variant.price }}"
+                                data-available="{{ variant.available }}"
+                                {% unless variant.available %}disabled{% endunless %}
+                              >
+                                {{ variant.title }}{% unless variant.available %} - {{ 'products.sold_out' | t | default: 'Épuisé' }}{% endunless %}
+                              </option>
+                            {%- endfor -%}
+                          </select>
+                        </div>
+                      {%- endif -%}
+                    </div>
+                  </div>
+
+                  {%- comment -%} Actions {%- endcomment -%}
+                  <div class="si__popup-actions">
+                    {%- if product.available -%}
+                      <button
+                        type="button"
+                        class="si__popup-atc btn btn--primary btn--small"
+                        data-hotspot-atc
+                        data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+                        data-product-title="{{ product.title | escape }}"
+                      >
+                        <span class="si__popup-atc-text">
+                          <svg class="si__popup-atc-icon" viewBox="0 0 20 20" fill="none"><path d="M4 4h2l1 9h8l1-6H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="16" r="1" fill="currentColor"/><circle cx="14" cy="16" r="1" fill="currentColor"/></svg>
+                          {{ 'products.add_to_cart' | t | default: 'Ajouter' }}
+                        </span>
+                        <span class="si__popup-atc-loading" aria-hidden="true">
+                          <svg class="si__spinner" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="40" stroke-dashoffset="10"/></svg>
+                        </span>
+                        <span class="si__popup-atc-success" aria-hidden="true">
+                          <svg viewBox="0 0 20 20" fill="none"><path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                          {{ 'products.added' | t | default: 'Ajouté!' }}
+                        </span>
+                      </button>
+                    {%- else -%}
+                      <span class="si__popup-sold-out">
+                        {{ 'products.sold_out' | t | default: 'Épuisé' }}
+                      </span>
+                    {%- endif -%}
+
+                    <a href="{{ product.url }}" class="si__popup-link">
+                      {{ 'products.view_details' | t | default: 'Voir détails' }}
+                      <svg viewBox="0 0 20 20" fill="none"><path d="M7 5L12 10L7 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </a>
+                  </div>
+                </div>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+
+      {%- comment -%} Product List Below Image {%- endcomment -%}
+      {%- if show_product_list -%}
+        {%- assign has_products = false -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'hotspot' and block.settings.product != blank -%}
+            {%- assign has_products = true -%}
+            {%- break -%}
+          {%- endif -%}
+        {%- endfor -%}
+
+        {%- if has_products -%}
+          <div class="si__products" data-si-products>
+            <h3 class="si__products-title">
+              {{ 'sections.shoppable.featured_products' | t | default: 'Produits en vedette' }}
+            </h3>
+            <div class="si__products-scroll">
+              <div class="si__products-grid">
+                {%- for block in section.blocks -%}
+                  {%- if block.type == 'hotspot' and block.settings.product != blank -%}
+                    {%- assign product = block.settings.product -%}
+                    <a
+                      href="{{ product.url }}"
+                      class="si__product-card"
+                      data-product-card="{{ forloop.index }}"
+                    >
+                      <div class="si__product-image">
+                        {%- if product.featured_image != blank -%}
+                          <img
+                            src="{{ product.featured_image | image_url: width: 150 }}"
+                            alt="{{ product.title }}"
+                            width="75"
+                            height="75"
+                            loading="lazy"
+                          >
+                        {%- endif -%}
+                        <span class="si__product-number">{{ forloop.index }}</span>
+                      </div>
+                      <div class="si__product-info">
+                        <span class="si__product-title">{{ product.title }}</span>
+                        <span class="si__product-price">
+                          {%- if product.compare_at_price > product.price -%}
+                            <span class="si__product-price--compare">{{ product.compare_at_price | money }}</span>
+                          {%- endif -%}
+                          {{ product.price | money }}
+                        </span>
+                      </div>
+                    </a>
+                  {%- endif -%}
+                {%- endfor -%}
+              </div>
+            </div>
+          </div>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+<style>
+/* ==========================================================================
+   Shoppable Image - Core Styles
+   ========================================================================== */
+
+.si {
+  padding: var(--spacing-2xl) 0;
+}
+
+.si__wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.si__container {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background-color: var(--color-background-light);
+}
+
+/* Image Ratios */
+.si__container--natural { /* Natural ratio from image */ }
+.si__container--square { aspect-ratio: 1 / 1; }
+.si__container--landscape { aspect-ratio: 16 / 9; }
+.si__container--wide { aspect-ratio: 21 / 9; }
+.si__container--portrait { aspect-ratio: 3 / 4; }
+
+.si__picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.si__img,
+.si__placeholder-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Zoom Effect */
+.si__container--zoom:hover .si__img {
+  transform: scale(1.03);
+}
+
+/* Overlay */
+.si__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  pointer-events: none;
+  transition: background 0.3s ease;
+  z-index: 5;
+}
+
+.si__container--overlay.si--popup-active .si__overlay {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.si__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: var(--color-background-light);
+}
+
+/* ==========================================================================
+   Hotspots
+   ========================================================================== */
+
+.si__hotspot {
+  position: absolute;
+  left: var(--hs-x);
+  top: var(--hs-y);
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+/* Hotspot Sizes */
+.si__hotspot--small .si__trigger { width: 32px; height: 32px; }
+.si__hotspot--medium .si__trigger { width: 40px; height: 40px; }
+.si__hotspot--large .si__trigger { width: 48px; height: 48px; }
+
+/* Hotspot Colors */
+.si__hotspot--primary .si__trigger { background: var(--color-primary); }
+.si__hotspot--secondary .si__trigger { background: var(--color-secondary); }
+.si__hotspot--dark .si__trigger { background: #1a1a1a; }
+.si__hotspot--light .si__trigger { background: #ffffff; color: #1a1a1a; }
+.si__hotspot--accent .si__trigger { background: var(--color-accent, #ff6b6b); }
+
+/* Visibility Controls */
+.si__hotspot--hide-desktop { display: none; }
+.si__hotspot--hide-mobile { display: block; }
+
+@media (max-width: 767px) {
+  .si__hotspot--hide-desktop { display: block; }
+  .si__hotspot--hide-mobile { display: none; }
+  .si__hotspot { left: var(--hs-mx); top: var(--hs-my); }
+}
+
+/* Trigger Button */
+.si__trigger {
+  position: relative;
+  border-radius: var(--radius-full);
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.si__trigger:hover,
+.si__trigger:focus-visible {
+  transform: scale(1.1);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+}
+
+.si__trigger:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.si__trigger[aria-expanded="true"] {
+  transform: scale(1.1);
+  z-index: 15;
+}
+
+.si__trigger[aria-expanded="true"] .si__icon svg {
+  transform: rotate(45deg);
+}
+
+.si__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50%;
+  height: 50%;
+}
+
+.si__icon svg {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.2s ease;
+}
+
+.si__number {
+  font-size: 0.75em;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.si__label {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.si__trigger:hover .si__label,
+.si__trigger:focus-visible .si__label {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   Hotspot Animations
+   ========================================================================== */
+
+/* Pulse Animation */
+.si__hotspot--pulse .si__trigger::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: var(--radius-full);
+  background: inherit;
+  opacity: 0.4;
+  animation: si-pulse 2s ease-out infinite;
+  z-index: -1;
+}
+
+@keyframes si-pulse {
+  0% { transform: scale(1); opacity: 0.4; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* Ripple Animation */
+.si__hotspot--ripple .si__trigger::before,
+.si__hotspot--ripple .si__trigger::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: var(--radius-full);
+  border: 2px solid currentColor;
+  opacity: 0;
+  animation: si-ripple 2s ease-out infinite;
+}
+
+.si__hotspot--ripple .si__trigger::after {
+  animation-delay: 1s;
+}
+
+@keyframes si-ripple {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* Glow Animation */
+.si__hotspot--glow .si__trigger {
+  animation: si-glow 2s ease-in-out infinite;
+}
+
+@keyframes si-glow {
+  0%, 100% { box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), 0 0 0 rgba(255, 255, 255, 0); }
+  50% { box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), 0 0 20px rgba(255, 255, 255, 0.5); }
+}
+
+/* Bounce Animation */
+.si__hotspot--bounce .si__trigger {
+  animation: si-bounce 2s ease-in-out infinite;
+}
+
+@keyframes si-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* Scale Animation */
+.si__hotspot--scale .si__trigger {
+  animation: si-scale 1.5s ease-in-out infinite;
+}
+
+@keyframes si-scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+/* None - Stop animations on expanded */
+.si__trigger[aria-expanded="true"]::before,
+.si__trigger[aria-expanded="true"]::after {
+  animation: none;
+  opacity: 0;
+}
+
+.si__hotspot--bounce .si__trigger[aria-expanded="true"],
+.si__hotspot--scale .si__trigger[aria-expanded="true"],
+.si__hotspot--glow .si__trigger[aria-expanded="true"] {
+  animation: none;
+}
+
+/* ==========================================================================
+   Product Popup
+   ========================================================================== */
+
+.si__popup {
+  position: absolute;
+  background: var(--color-background);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: var(--spacing-sm);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+  z-index: 20;
+}
+
+/* Popup Widths */
+.si__popup--small { width: 200px; }
+.si__popup--medium { width: 260px; }
+.si__popup--large { width: 320px; }
+
+/* Popup Positions */
+.si__popup--top {
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+}
+
+.si__popup--bottom {
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+}
+
+.si__popup--left {
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) translateX(8px);
+}
+
+.si__popup--right {
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-8px);
+}
+
+/* Active State */
+.si__trigger[aria-expanded="true"] + .si__popup {
+  opacity: 1;
+  visibility: visible;
+}
+
+.si__popup--top.si__trigger[aria-expanded="true"] + .si__popup,
+.si__trigger[aria-expanded="true"] + .si__popup--top {
+  transform: translateX(-50%) translateY(0);
+}
+
+.si__trigger[aria-expanded="true"] + .si__popup--bottom {
+  transform: translateX(-50%) translateY(0);
+}
+
+.si__trigger[aria-expanded="true"] + .si__popup--left,
+.si__trigger[aria-expanded="true"] + .si__popup--right {
+  transform: translateY(-50%) translateX(0);
+}
+
+/* Popup Close Button */
+.si__popup-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--color-text-light);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: color 0.2s, background 0.2s;
+}
+
+.si__popup-close:hover {
+  color: var(--color-text);
+  background: var(--color-background-light);
+}
+
+.si__popup-close svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Popup Inner */
+.si__popup-inner {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.si__popup-image {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-background-light);
+}
+
+.si__popup-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.si__popup-image:hover img {
+  transform: scale(1.05);
+}
+
+.si__popup-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.si__popup-title {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+  line-height: 1.3;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.si__popup-title:hover {
+  color: var(--color-primary);
+}
+
+.si__popup-vendor {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--color-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.si__popup-price {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.si__popup-price--compare {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  text-decoration: line-through;
+}
+
+.si__popup-price--current,
+.si__popup-price--sale {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.si__popup-price--sale {
+  color: var(--color-sale, #e53935);
+}
+
+.si__popup-badge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  background: var(--color-sale, #e53935);
+  color: white;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+}
+
+/* Variant Select */
+.si__popup-variants {
+  margin-top: 4px;
+}
+
+.si__popup-select {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+  cursor: pointer;
+}
+
+/* Popup Actions */
+.si__popup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: var(--spacing-xs);
+  border-top: 1px solid var(--color-border);
+}
+
+.si__popup-atc {
+  position: relative;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 0.8125rem;
+  overflow: hidden;
+}
+
+.si__popup-atc-text,
+.si__popup-atc-loading,
+.si__popup-atc-success {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.si__popup-atc-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.si__popup-atc-loading,
+.si__popup-atc-success {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateY(100%);
+}
+
+.si__popup-atc.is-loading .si__popup-atc-text { opacity: 0; transform: translateY(-100%); }
+.si__popup-atc.is-loading .si__popup-atc-loading { opacity: 1; transform: translateY(0); }
+
+.si__popup-atc.is-success .si__popup-atc-text { opacity: 0; transform: translateY(-100%); }
+.si__popup-atc.is-success .si__popup-atc-success { opacity: 1; transform: translateY(0); }
+
+.si__spinner {
+  width: 18px;
+  height: 18px;
+  animation: si-spin 0.8s linear infinite;
+}
+
+@keyframes si-spin {
+  to { transform: rotate(360deg); }
+}
+
+.si__popup-sold-out {
+  display: block;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--color-text-light);
+  padding: 8px;
+}
+
+.si__popup-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.si__popup-link:hover {
+  color: var(--color-primary);
+}
+
+.si__popup-link svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ==========================================================================
+   Product List
+   ========================================================================== */
+
+.si__products {
+  margin-top: var(--spacing-lg);
+}
+
+.si__products-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+}
+
+.si__products-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+  padding-bottom: var(--spacing-xs);
+}
+
+.si__products-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.si__products-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.si__products-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 2px;
+}
+
+.si__products-grid {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.si__product-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex: 0 0 auto;
+  padding: var(--spacing-xs);
+  background: var(--color-background-light);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: background 0.2s, transform 0.2s;
+  min-width: 180px;
+}
+
+.si__product-card:hover {
+  background: var(--color-border);
+  transform: translateY(-2px);
+}
+
+.si__product-image {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--color-background);
+}
+
+.si__product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.si__product-number {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 18px;
+  height: 18px;
+  background: var(--color-primary);
+  color: white;
+  font-size: 0.625rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.si__product-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.si__product-title {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.si__product-price {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.si__product-price--compare {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--color-text-light);
+  text-decoration: line-through;
+}
+
+/* ==========================================================================
+   Mobile Styles
+   ========================================================================== */
+
+@media (max-width: 767px) {
+  .si__hotspot--small .si__trigger { width: 28px; height: 28px; }
+  .si__hotspot--medium .si__trigger { width: 34px; height: 34px; }
+  .si__hotspot--large .si__trigger { width: 40px; height: 40px; }
+
+  .si__popup {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    width: 100% !important;
+    max-height: 70vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    transform: translateY(100%);
+    padding: var(--spacing-md);
+  }
+
+  .si__trigger[aria-expanded="true"] + .si__popup {
+    transform: translateY(0);
+  }
+
+  .si__popup-inner {
+    gap: var(--spacing-md);
+  }
+
+  .si__popup-image {
+    width: 100px;
+    height: 100px;
+  }
+
+  .si__popup-title {
+    font-size: 1rem;
+  }
+
+  .si__popup-actions {
+    flex-direction: row;
+  }
+
+  .si__popup-atc {
+    flex: 1;
+  }
+
+  .si__popup-link {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    background: var(--color-background-light);
+    border-radius: var(--radius-md);
+  }
+
+  .si__product-card {
+    min-width: 160px;
+  }
+}
+</style>
+
+<script>
+(function() {
+  'use strict';
+
+  /**
+   * Shoppable Image Component
+   * Handles hotspot interactions, popups, and add-to-cart functionality
+   */
+  function ShoppableImage(container) {
+    if (!container) return;
+
+    this.container = container;
+    this.interactionMode = container.dataset.interaction || 'click';
+    this.hotspots = container.querySelectorAll('[data-hotspot]');
+    this.overlay = container.querySelector('[data-si-overlay]');
+    this.activeHotspot = null;
+    this.hoverTimeout = null;
+
+    this.init();
+  }
+
+  ShoppableImage.prototype = {
+    init: function() {
+      this.bindEvents();
+      this.setupIntersectionObserver();
+    },
+
+    bindEvents: function() {
+      var self = this;
+
+      this.hotspots.forEach(function(hotspot) {
+        var trigger = hotspot.querySelector('[data-hotspot-trigger]');
+        var closeBtn = hotspot.querySelector('[data-hotspot-close]');
+        var atcBtn = hotspot.querySelector('[data-hotspot-atc]');
+        var variantSelect = hotspot.querySelector('[data-variant-select]');
+
+        if (!trigger) return;
+
+        // Click interaction
+        trigger.addEventListener('click', function(e) {
+          e.stopPropagation();
+          self.toggleHotspot(hotspot, trigger);
+        });
+
+        // Hover interaction
+        if (self.interactionMode === 'hover' || self.interactionMode === 'both') {
+          hotspot.addEventListener('mouseenter', function() {
+            clearTimeout(self.hoverTimeout);
+            self.openHotspot(hotspot, trigger);
+          });
+
+          hotspot.addEventListener('mouseleave', function() {
+            self.hoverTimeout = setTimeout(function() {
+              if (self.interactionMode === 'hover') {
+                self.closeHotspot(hotspot, trigger);
+              }
+            }, 300);
+          });
+        }
+
+        // Close button
+        if (closeBtn) {
+          closeBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            self.closeHotspot(hotspot, trigger);
+          });
+        }
+
+        // Add to cart
+        if (atcBtn) {
+          atcBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            self.addToCart(atcBtn);
+          });
+        }
+
+        // Variant select
+        if (variantSelect) {
+          variantSelect.addEventListener('change', function() {
+            var selectedOption = this.options[this.selectedIndex];
+            if (atcBtn) {
+              atcBtn.dataset.variantId = selectedOption.value;
+              atcBtn.disabled = selectedOption.dataset.available === 'false';
+            }
+          });
+        }
+
+        // Keyboard navigation
+        trigger.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            self.toggleHotspot(hotspot, trigger);
+          }
+        });
+      });
+
+      // Close on outside click
+      document.addEventListener('click', function(e) {
+        if (!self.container.contains(e.target) && self.activeHotspot) {
+          var trigger = self.activeHotspot.querySelector('[data-hotspot-trigger]');
+          self.closeHotspot(self.activeHotspot, trigger);
+        }
+      });
+
+      // Close on Escape
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && self.activeHotspot) {
+          var trigger = self.activeHotspot.querySelector('[data-hotspot-trigger]');
+          self.closeHotspot(self.activeHotspot, trigger);
+          trigger.focus();
+        }
+      });
+    },
+
+    toggleHotspot: function(hotspot, trigger) {
+      var isOpen = trigger.getAttribute('aria-expanded') === 'true';
+      if (isOpen) {
+        this.closeHotspot(hotspot, trigger);
+      } else {
+        this.openHotspot(hotspot, trigger);
+      }
+    },
+
+    openHotspot: function(hotspot, trigger) {
+      var self = this;
+
+      // Close any open hotspot first
+      if (this.activeHotspot && this.activeHotspot !== hotspot) {
+        var activeTrigger = this.activeHotspot.querySelector('[data-hotspot-trigger]');
+        this.closeHotspot(this.activeHotspot, activeTrigger);
+      }
+
+      trigger.setAttribute('aria-expanded', 'true');
+      this.activeHotspot = hotspot;
+
+      // Add overlay active class
+      var imageContainer = this.container.querySelector('.si__container');
+      if (imageContainer) {
+        imageContainer.classList.add('si--popup-active');
+      }
+
+      // Focus management for accessibility
+      var popup = hotspot.querySelector('[data-hotspot-popup]');
+      if (popup) {
+        var firstFocusable = popup.querySelector('button, a, input, select');
+        if (firstFocusable) {
+          setTimeout(function() {
+            firstFocusable.focus();
+          }, 100);
+        }
+      }
+    },
+
+    closeHotspot: function(hotspot, trigger) {
+      trigger.setAttribute('aria-expanded', 'false');
+      this.activeHotspot = null;
+
+      var imageContainer = this.container.querySelector('.si__container');
+      if (imageContainer) {
+        imageContainer.classList.remove('si--popup-active');
+      }
+    },
+
+    addToCart: function(button) {
+      var self = this;
+      var variantId = button.dataset.variantId;
+
+      if (!variantId || button.disabled) return;
+
+      button.disabled = true;
+      button.classList.add('is-loading');
+      button.classList.remove('is-success');
+
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          id: parseInt(variantId, 10),
+          quantity: 1
+        })
+      })
+      .then(function(response) {
+        if (!response.ok) {
+          throw new Error('Add to cart failed');
+        }
+        return response.json();
+      })
+      .then(function(data) {
+        button.classList.remove('is-loading');
+        button.classList.add('is-success');
+
+        // Dispatch cart updated event
+        document.dispatchEvent(new CustomEvent('cart:updated', {
+          detail: { item: data }
+        }));
+
+        // Reset button after delay
+        setTimeout(function() {
+          button.classList.remove('is-success');
+          button.disabled = false;
+        }, 2000);
+      })
+      .catch(function(error) {
+        console.error('Add to cart error:', error);
+        button.classList.remove('is-loading');
+        button.disabled = false;
+
+        // Show error feedback
+        var textEl = button.querySelector('.si__popup-atc-text');
+        if (textEl) {
+          var originalText = textEl.innerHTML;
+          textEl.innerHTML = '<svg viewBox="0 0 20 20" fill="none" style="width:16px;height:16px"><path d="M10 5V11M10 14V15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Erreur';
+          setTimeout(function() {
+            textEl.innerHTML = originalText;
+          }, 2000);
+        }
+      });
+    },
+
+    setupIntersectionObserver: function() {
+      var self = this;
+
+      // Pause animations when not in viewport
+      if ('IntersectionObserver' in window) {
+        var observer = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            var hotspots = self.container.querySelectorAll('.si__hotspot');
+            hotspots.forEach(function(hotspot) {
+              if (entry.isIntersecting) {
+                hotspot.style.animationPlayState = 'running';
+                var trigger = hotspot.querySelector('.si__trigger');
+                if (trigger) trigger.style.animationPlayState = 'running';
+              } else {
+                hotspot.style.animationPlayState = 'paused';
+                var trigger = hotspot.querySelector('.si__trigger');
+                if (trigger) trigger.style.animationPlayState = 'paused';
+              }
+            });
+          });
+        }, { threshold: 0.1 });
+
+        observer.observe(this.container);
+      }
+    }
+  };
+
+  // Initialize all shoppable images
+  function initAll() {
+    document.querySelectorAll('[data-shoppable-image]').forEach(function(el) {
+      new ShoppableImage(el);
+    });
+  }
+
+  // DOM Ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAll);
+  } else {
+    initAll();
+  }
+
+  // Shopify Theme Editor support
+  if (typeof Shopify !== 'undefined' && Shopify.designMode) {
+    document.addEventListener('shopify:section:load', function(e) {
+      var shoppable = e.target.querySelector('[data-shoppable-image]');
+      if (shoppable) {
+        new ShoppableImage(shoppable);
+      }
+    });
+
+    document.addEventListener('shopify:block:select', function(e) {
+      var hotspot = e.target.closest('[data-hotspot]');
+      if (hotspot) {
+        var trigger = hotspot.querySelector('[data-hotspot-trigger]');
+        if (trigger) {
+          trigger.setAttribute('aria-expanded', 'true');
+        }
+      }
+    });
+
+    document.addEventListener('shopify:block:deselect', function(e) {
+      var hotspot = e.target.closest('[data-hotspot]');
+      if (hotspot) {
+        var trigger = hotspot.querySelector('[data-hotspot-trigger]');
+        if (trigger) {
+          trigger.setAttribute('aria-expanded', 'false');
+        }
+      }
+    });
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Image Interactive",
+  "tag": "section",
+  "class": "section-shoppable",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Contenu"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre",
+      "default": "Achetez le look"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Sous-titre"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "SEO: Niveau du titre",
+      "options": [
+        { "value": "h2", "label": "H2 (recommandé)" },
+        { "value": "h3", "label": "H3" },
+        { "value": "h4", "label": "H4" },
+        { "value": "p", "label": "Paragraphe" }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image de fond"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image",
+      "label": "Image mobile (optionnel)",
+      "info": "Affichée sur mobile si définie"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Ratio de l'image",
+      "options": [
+        { "value": "natural", "label": "Naturel" },
+        { "value": "square", "label": "Carre (1:1)" },
+        { "value": "landscape", "label": "Paysage (16:9)" },
+        { "value": "wide", "label": "Panoramique (21:9)" },
+        { "value": "portrait", "label": "Portrait (3:4)" }
+      ],
+      "default": "natural"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_zoom",
+      "label": "Activer le zoom au survol",
+      "default": false,
+      "info": "Léger zoom sur l'image au survol"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_overlay",
+      "label": "Assombrir l'image quand popup actif",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Interaction"
+    },
+    {
+      "type": "select",
+      "id": "interaction_mode",
+      "label": "Mode d'interaction",
+      "options": [
+        { "value": "click", "label": "Clic seulement" },
+        { "value": "hover", "label": "Survol seulement" },
+        { "value": "both", "label": "Survol et clic" }
+      ],
+      "default": "click",
+      "info": "Comment les popups s'affichent"
+    },
+    {
+      "type": "header",
+      "content": "Style des points interactifs"
+    },
+    {
+      "type": "select",
+      "id": "hotspot_color",
+      "label": "Couleur des points",
+      "options": [
+        { "value": "primary", "label": "Primaire" },
+        { "value": "secondary", "label": "Secondaire" },
+        { "value": "dark", "label": "Noir" },
+        { "value": "light", "label": "Blanc" },
+        { "value": "accent", "label": "Accent" }
+      ],
+      "default": "primary"
+    },
+    {
+      "type": "select",
+      "id": "hotspot_size",
+      "label": "Taille des points",
+      "options": [
+        { "value": "small", "label": "Petit" },
+        { "value": "medium", "label": "Moyen" },
+        { "value": "large", "label": "Grand" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "header",
+      "content": "Popup produit"
+    },
+    {
+      "type": "select",
+      "id": "popup_width",
+      "label": "Largeur du popup (par défaut)",
+      "options": [
+        { "value": "small", "label": "Petit (200px)" },
+        { "value": "medium", "label": "Moyen (260px)" },
+        { "value": "large", "label": "Grand (320px)" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "select",
+      "id": "default_popup_position",
+      "label": "Position du popup (par défaut)",
+      "options": [
+        { "value": "top", "label": "Au-dessus" },
+        { "value": "bottom", "label": "En-dessous" },
+        { "value": "left", "label": "À gauche" },
+        { "value": "right", "label": "À droite" }
+      ],
+      "default": "top"
+    },
+    {
+      "type": "header",
+      "content": "Liste des produits"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_list",
+      "label": "Afficher la liste sous l'image",
+      "default": true,
+      "info": "Vue alternative avec tous les produits"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "hotspot",
+      "name": "Point d'intérêt",
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Produit"
+        },
+        {
+          "type": "header",
+          "content": "Position ordinateur"
+        },
+        {
+          "type": "range",
+          "id": "position_x",
+          "label": "Position horizontale",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "default": 50,
+          "unit": "%"
+        },
+        {
+          "type": "range",
+          "id": "position_y",
+          "label": "Position verticale",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "default": 50,
+          "unit": "%"
+        },
+        {
+          "type": "header",
+          "content": "Position mobile"
+        },
+        {
+          "type": "range",
+          "id": "mobile_position_x",
+          "label": "Position horizontale mobile",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "default": 50,
+          "unit": "%"
+        },
+        {
+          "type": "range",
+          "id": "mobile_position_y",
+          "label": "Position verticale mobile",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "default": 50,
+          "unit": "%"
+        },
+        {
+          "type": "header",
+          "content": "Style du point interactif"
+        },
+        {
+          "type": "select",
+          "id": "animation",
+          "label": "Animation",
+          "options": [
+            { "value": "pulse", "label": "Pulsation" },
+            { "value": "ripple", "label": "Ondulation" },
+            { "value": "glow", "label": "Lueur" },
+            { "value": "bounce", "label": "Rebond" },
+            { "value": "scale", "label": "Échelle" },
+            { "value": "none", "label": "Aucune" }
+          ],
+          "default": "pulse"
+        },
+        {
+          "type": "select",
+          "id": "icon_style",
+          "label": "Style d'icône",
+          "options": [
+            { "value": "plus", "label": "Plus (+)" },
+            { "value": "dot", "label": "Point" },
+            { "value": "eye", "label": "Œil" },
+            { "value": "bag", "label": "Panier" },
+            { "value": "tag", "label": "Étiquette" },
+            { "value": "number", "label": "Numéro" }
+          ],
+          "default": "plus"
+        },
+        {
+          "type": "text",
+          "id": "custom_label",
+          "label": "Libelle personnalise",
+          "info": "Texte affiche au survol du point"
+        },
+        {
+          "type": "header",
+          "content": "Fenetre popup"
+        },
+        {
+          "type": "select",
+          "id": "popup_position",
+          "label": "Position du popup",
+          "options": [
+            { "value": "top", "label": "Au-dessus" },
+            { "value": "bottom", "label": "En-dessous" },
+            { "value": "left", "label": "À gauche" },
+            { "value": "right", "label": "À droite" }
+          ],
+          "default": "top"
+        },
+        {
+          "type": "select",
+          "id": "popup_width",
+          "label": "Largeur du popup",
+          "options": [
+            { "value": "small", "label": "Petit" },
+            { "value": "medium", "label": "Moyen" },
+            { "value": "large", "label": "Grand" }
+          ],
+          "default": "medium"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_vendor",
+          "label": "Afficher le vendeur",
+          "default": false
+        },
+        {
+          "type": "checkbox",
+          "id": "show_variants",
+          "label": "Afficher le sélecteur de variantes",
+          "default": true
+        },
+        {
+          "type": "header",
+          "content": "Visibilité"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_desktop",
+          "label": "Afficher sur ordinateur",
+          "default": true
+        },
+        {
+          "type": "checkbox",
+          "id": "show_mobile",
+          "label": "Afficher sur mobile",
+          "default": true
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Image Interactive",
+      "blocks": [
+        { "type": "hotspot", "settings": { "position_x": 25, "position_y": 35, "animation": "pulse" } },
+        { "type": "hotspot", "settings": { "position_x": 65, "position_y": 55, "animation": "ripple" } },
+        { "type": "hotspot", "settings": { "position_x": 45, "position_y": 75, "animation": "glow" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,94 @@
+---
+interface Props {
+  title?: string
+  subtitle?: string
+  ctaText?: string
+  ctaLink?: string
+  endDate?: string
+  bgFrom?: string
+  bgTo?: string
+}
+
+const {
+  title = 'Vente Flash',
+  subtitle = 'Profitez de nos offres exceptionnelles',
+  ctaText = 'En profiter',
+  ctaLink = '/collections/',
+  endDate = '',
+  bgFrom = 'from-primary',
+  bgTo = 'to-secondary',
+} = Astro.props
+---
+
+{endDate && (
+  <section class={`py-10 lg:py-14 bg-gradient-to-r ${bgFrom} ${bgTo} text-white reveal`}>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col lg:flex-row items-center justify-between gap-8">
+        <div class="text-center lg:text-left">
+          <h2 class="text-white text-2xl lg:text-3xl">{title}</h2>
+          <p class="mt-2 text-white/80 text-lg">{subtitle}</p>
+        </div>
+
+        <!-- Countdown -->
+        <div class="flex items-center gap-3 sm:gap-4" id="promo-countdown" data-end={endDate}>
+          <div class="text-center">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-white/15 backdrop-blur rounded-2xl flex items-center justify-center border border-white/20">
+              <span id="cd-days" class="text-2xl sm:text-3xl font-bold">00</span>
+            </div>
+            <span class="text-xs text-white/60 mt-1.5 block">Jours</span>
+          </div>
+          <span class="text-2xl font-bold text-white/40 -mt-5">:</span>
+          <div class="text-center">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-white/15 backdrop-blur rounded-2xl flex items-center justify-center border border-white/20">
+              <span id="cd-hours" class="text-2xl sm:text-3xl font-bold">00</span>
+            </div>
+            <span class="text-xs text-white/60 mt-1.5 block">Heures</span>
+          </div>
+          <span class="text-2xl font-bold text-white/40 -mt-5">:</span>
+          <div class="text-center">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-white/15 backdrop-blur rounded-2xl flex items-center justify-center border border-white/20">
+              <span id="cd-mins" class="text-2xl sm:text-3xl font-bold">00</span>
+            </div>
+            <span class="text-xs text-white/60 mt-1.5 block">Minutes</span>
+          </div>
+          <span class="text-2xl font-bold text-white/40 -mt-5">:</span>
+          <div class="text-center">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-white/15 backdrop-blur rounded-2xl flex items-center justify-center border border-white/20">
+              <span id="cd-secs" class="text-2xl sm:text-3xl font-bold">00</span>
+            </div>
+            <span class="text-xs text-white/60 mt-1.5 block">Secondes</span>
+          </div>
+        </div>
+
+        <a href={ctaLink} class="btn btn-white shrink-0 px-8 py-3.5 font-semibold text-base">
+          {ctaText}
+        </a>
+      </div>
+    </div>
+  </section>
+)}
+
+<script>
+  const el = document.getElementById('promo-countdown')
+  if (el) {
+    const endDate = new Date(el.dataset.end || '').getTime()
+    if (!isNaN(endDate)) {
+      function update() {
+        const now = Date.now()
+        const diff = Math.max(0, endDate - now)
+        const d = Math.floor(diff / 86400000)
+        const h = Math.floor((diff % 86400000) / 3600000)
+        const m = Math.floor((diff % 3600000) / 60000)
+        const s = Math.floor((diff % 60000) / 1000)
+        const pad = (n: number) => String(n).padStart(2, '0')
+        document.getElementById('cd-days')!.textContent = pad(d)
+        document.getElementById('cd-hours')!.textContent = pad(h)
+        document.getElementById('cd-mins')!.textContent = pad(m)
+        document.getElementById('cd-secs')!.textContent = pad(s)
+        if (diff <= 0) el.closest('section')?.remove()
+      }
+      update()
+      setInterval(update, 1000)
+    }
+  }
+</script>

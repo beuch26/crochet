@@ -1,0 +1,623 @@
+{%- comment -%}
+  Search Results Section
+  Advanced search with configurable filters and display options
+{%- endcomment -%}
+
+<div class="search-page section">
+  <div class="container">
+
+    <header class="search-header">
+      {%- if section.settings.title != blank -%}
+        <h1>{{ section.settings.title }}</h1>
+      {%- else -%}
+        <h1>Recherche</h1>
+      {%- endif -%}
+
+      {%- comment -%} Search Form {%- endcomment -%}
+      <form action="{{ routes.search_url }}" method="get" class="search-form search-form--large" role="search">
+        <div class="search-form__wrapper">
+          <input
+            type="search"
+            name="q"
+            value="{{ search.terms | escape }}"
+            placeholder="{{ section.settings.search_placeholder | default: 'Rechercher...' }}"
+            class="search-form__input"
+            autocomplete="off"
+            aria-label="Recherche"
+          >
+          <button type="submit" class="search-form__button" aria-label="Rechercher">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="2"/>
+              <path d="M15 15L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </header>
+
+    {%- if search.performed -%}
+
+      <div class="search-results{% unless section.settings.show_filters %} search-results--no-sidebar{% endunless %}">
+
+        {%- comment -%} Filters Sidebar {%- endcomment -%}
+        {%- if section.settings.show_filters -%}
+        <aside class="search-sidebar">
+          <div class="search-filters">
+            <h2 class="search-filters__title">Filtrer</h2>
+
+            {%- comment -%} Filter by Type {%- endcomment -%}
+            <div class="search-filter">
+              <h3 class="search-filter__title">Type</h3>
+              <div class="search-filter__options">
+                <label class="search-filter__option">
+                  <input type="radio" name="type" value="" {% unless search.types.size > 0 %}checked{% endunless %}>
+                  <span>Tous ({{ search.results_count }})</span>
+                </label>
+
+                {%- assign product_count = 0 -%}
+                {%- assign article_count = 0 -%}
+                {%- assign page_count = 0 -%}
+
+                {%- for item in search.results -%}
+                  {%- if item.object_type == 'product' -%}
+                    {%- assign product_count = product_count | plus: 1 -%}
+                  {%- elsif item.object_type == 'article' -%}
+                    {%- assign article_count = article_count | plus: 1 -%}
+                  {%- elsif item.object_type == 'page' -%}
+                    {%- assign page_count = page_count | plus: 1 -%}
+                  {%- endif -%}
+                {%- endfor -%}
+
+                {%- if product_count > 0 -%}
+                  <label class="search-filter__option">
+                    <input type="radio" name="type" value="product" {% if search.types contains 'product' %}checked{% endif %}>
+                    <span>Produits ({{ product_count }})</span>
+                  </label>
+                {%- endif -%}
+
+                {%- if article_count > 0 -%}
+                  <label class="search-filter__option">
+                    <input type="radio" name="type" value="article" {% if search.types contains 'article' %}checked{% endif %}>
+                    <span>Articles ({{ article_count }})</span>
+                  </label>
+                {%- endif -%}
+
+                {%- if page_count > 0 -%}
+                  <label class="search-filter__option">
+                    <input type="radio" name="type" value="page" {% if search.types contains 'page' %}checked{% endif %}>
+                    <span>Pages ({{ page_count }})</span>
+                  </label>
+                {%- endif -%}
+              </div>
+            </div>
+          </div>
+        </aside>
+        {%- endif -%}
+
+        {%- comment -%} Results {%- endcomment -%}
+        <div class="search-content">
+
+          <div class="search-summary">
+            {%- if search.results_count > 0 -%}
+              <p class="search-summary__count">
+                {{ search.results_count }} résultat{% if search.results_count > 1 %}s{% endif %} pour <strong>"{{ search.terms }}"</strong>
+              </p>
+            {%- else -%}
+              <p class="search-summary__count">
+                Aucun résultat pour <strong>"{{ search.terms }}"</strong>
+              </p>
+            {%- endif -%}
+          </div>
+
+          {%- if search.results_count > 0 -%}
+            <div class="search-results-list">
+              {%- for item in search.results -%}
+
+                {%- if item.object_type == 'product' -%}
+                  {%- render 'product-card', product: item -%}
+
+                {%- elsif item.object_type == 'article' -%}
+                  <div class="search-result search-result--article">
+                    <div class="search-result__image">
+                      {%- if item.image -%}
+                        <a href="{{ item.url }}">
+                          <img
+                            src="{{ item.image | image_url: width: 200 }}"
+                            alt="{{ item.image.alt | default: item.title }}"
+                            width="200"
+                            height="200"
+                            loading="lazy"
+                          >
+                        </a>
+                      {%- endif -%}
+                    </div>
+
+                    <div class="search-result__content">
+                      <span class="search-result__type">Article</span>
+                      <h3 class="search-result__title">
+                        <a href="{{ item.url }}">{{ item.title }}</a>
+                      </h3>
+
+                      <div class="search-result__meta">
+                        <time datetime="{{ item.published_at | date: '%Y-%m-%d' }}">
+                          {{ item.published_at | date: '%d %B %Y' }}
+                        </time>
+                      </div>
+
+                      {%- if item.excerpt_or_content != blank -%}
+                        <p class="search-result__excerpt">
+                          {{ item.excerpt_or_content | strip_html | truncatewords: 30 }}
+                        </p>
+                      {%- endif -%}
+
+                      <a href="{{ item.url }}" class="search-result__link">
+                        Lire la suite →
+                      </a>
+                    </div>
+                  </div>
+
+                {%- elsif item.object_type == 'page' -%}
+                  <div class="search-result search-result--page">
+                    <div class="search-result__content search-result__content--full">
+                      <span class="search-result__type">Page</span>
+                      <h3 class="search-result__title">
+                        <a href="{{ item.url }}">{{ item.title }}</a>
+                      </h3>
+
+                      {%- if item.content != blank -%}
+                        <p class="search-result__excerpt">
+                          {{ item.content | strip_html | truncatewords: 40 }}
+                        </p>
+                      {%- endif -%}
+
+                      <a href="{{ item.url }}" class="search-result__link">
+                        Voir la page →
+                      </a>
+                    </div>
+                  </div>
+                {%- endif -%}
+
+              {%- endfor -%}
+            </div>
+
+          {%- else -%}
+
+            {%- comment -%} No Results {%- endcomment -%}
+            {%- if section.settings.show_no_results_message -%}
+              <div class="search-no-results">
+                {%- if section.settings.no_results_title != blank -%}
+                  <h2>{{ section.settings.no_results_title }}</h2>
+                {%- else -%}
+                  <h2>Suggestions</h2>
+                {%- endif -%}
+
+                {%- if section.settings.no_results_text != blank -%}
+                  <div class="search-suggestions-text">
+                    {{ section.settings.no_results_text }}
+                  </div>
+                {%- else -%}
+                  <ul class="search-suggestions">
+                    <li>Vérifiez l'orthographe</li>
+                    <li>Essayez des mots-clés différents</li>
+                    <li>Utilisez des termes plus généraux</li>
+                  </ul>
+                {%- endif -%}
+
+                <a href="{{ routes.all_products_collection_url }}" class="btn btn--primary">
+                  Parcourir tous les produits
+                </a>
+              </div>
+            {%- endif -%}
+
+          {%- endif -%}
+
+        </div>
+
+      </div>
+
+    {%- else -%}
+
+      {%- comment -%} Initial State {%- endcomment -%}
+      {%- if section.settings.show_popular_searches -%}
+        <div class="search-initial">
+          {%- if section.settings.popular_searches_title != blank -%}
+            <h2>{{ section.settings.popular_searches_title }}</h2>
+          {%- else -%}
+            <h2>Recherches populaires</h2>
+          {%- endif -%}
+
+          <div class="search-tags">
+            {%- assign popular_terms = section.settings.popular_searches | split: ',' -%}
+            {%- if popular_terms.size > 0 -%}
+              {%- for term in popular_terms -%}
+                {%- assign term_clean = term | strip -%}
+                {%- if term_clean != blank -%}
+                  <a href="{{ routes.search_url }}?q={{ term_clean | url_encode }}" class="search-tag">
+                    {{ term_clean }}
+                  </a>
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endif -%}
+          </div>
+        </div>
+      {%- endif -%}
+
+    {%- endif -%}
+
+  </div>
+</div>
+
+<style>
+.search-page {
+  padding: var(--spacing-2xl) 0;
+  min-height: 60vh;
+}
+
+.search-header {
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.search-header h1 {
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  margin-bottom: var(--spacing-lg);
+}
+
+.search-form--large {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.search-form__wrapper {
+  position: relative;
+  display: flex;
+  background-color: white;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color var(--transition-speed);
+}
+
+.search-form__wrapper:focus-within {
+  border-color: var(--color-primary);
+}
+
+.search-form__input {
+  flex: 1;
+  padding: 1rem 1.25rem;
+  border: none;
+  font-size: 1.125rem;
+  background: transparent;
+}
+
+.search-form__input:focus {
+  outline: none;
+}
+
+.search-form__button {
+  width: 60px;
+  background-color: var(--color-primary);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-speed);
+}
+
+.search-form__button:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.search-results {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-2xl);
+}
+
+@media (min-width: 1024px) {
+  .search-results {
+    grid-template-columns: 250px 1fr;
+  }
+
+  .search-results--no-sidebar {
+    grid-template-columns: 1fr;
+  }
+}
+
+.search-sidebar {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .search-sidebar {
+    display: block;
+  }
+}
+
+.search-filters {
+  position: sticky;
+  top: calc(var(--header-height) + 2rem);
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+}
+
+.search-filters__title {
+  font-size: 1.25rem;
+  margin: 0 0 var(--spacing-md) 0;
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.search-filter {
+  margin-bottom: var(--spacing-lg);
+}
+
+.search-filter__title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-light);
+  margin-bottom: var(--spacing-sm);
+}
+
+.search-filter__options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.search-filter__option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.search-summary {
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.search-summary__count {
+  font-size: 1.125rem;
+  color: var(--color-text-light);
+  margin: 0;
+}
+
+.search-results-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.search-result {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-speed);
+}
+
+.search-result:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.search-result--page {
+  grid-template-columns: 1fr;
+}
+
+.search-result__image {
+  width: 150px;
+  height: 150px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background-color: var(--color-background-light);
+}
+
+.search-result__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.search-result__type {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
+}
+
+.search-result__title {
+  font-size: 1.25rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.search-result__title a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--transition-speed);
+}
+
+.search-result__title a:hover {
+  color: var(--color-primary);
+}
+
+.search-result__meta {
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+  margin-bottom: 0.5rem;
+}
+
+.search-result__excerpt {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--color-text-light);
+  margin: 0.5rem 0;
+}
+
+.search-result__link {
+  display: inline-block;
+  margin-top: 0.75rem;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: color var(--transition-speed);
+}
+
+.search-result__link:hover {
+  text-decoration: underline;
+}
+
+.search-no-results {
+  text-align: center;
+  padding: var(--spacing-3xl) var(--spacing-md);
+}
+
+.search-no-results h2 {
+  font-size: 1.5rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.search-suggestions {
+  list-style: none;
+  padding: 0;
+  margin: var(--spacing-lg) 0;
+  color: var(--color-text-light);
+}
+
+.search-suggestions li {
+  margin-bottom: 0.5rem;
+}
+
+.search-initial {
+  text-align: center;
+  padding: var(--spacing-3xl) 0;
+}
+
+.search-initial h2 {
+  font-size: 1.5rem;
+  margin-bottom: var(--spacing-lg);
+}
+
+.search-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.search-tag {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--color-background-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-text);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all var(--transition-speed);
+}
+
+.search-tag:hover {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  transform: translateY(-2px);
+}
+</style>
+
+{% schema %}
+{
+  "name": "Recherche principale",
+  "class": "section-search-main",
+  "settings": [
+    {
+      "type": "header",
+      "content": "En-tête"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre",
+      "default": "Recherche"
+    },
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "Placeholder du champ de recherche",
+      "default": "Rechercher..."
+    },
+    {
+      "type": "header",
+      "content": "Filtres"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_filters",
+      "label": "Afficher les filtres (sidebar)",
+      "default": true,
+      "info": "Affiche une barre latérale avec filtres par type"
+    },
+    {
+      "type": "header",
+      "content": "Aucun résultat"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_no_results_message",
+      "label": "Afficher un message quand aucun résultat",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "no_results_title",
+      "label": "Titre section aucun résultat",
+      "default": "Suggestions"
+    },
+    {
+      "type": "textarea",
+      "id": "no_results_text",
+      "label": "Texte personnalisé",
+      "info": "Laissez vide pour afficher les suggestions par défaut"
+    },
+    {
+      "type": "header",
+      "content": "Recherches populaires"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_popular_searches",
+      "label": "Afficher les recherches populaires",
+      "default": true,
+      "info": "Affiche des tags de recherche populaire avant qu'une recherche soit effectuée"
+    },
+    {
+      "type": "text",
+      "id": "popular_searches_title",
+      "label": "Titre",
+      "default": "Recherches populaires"
+    },
+    {
+      "type": "textarea",
+      "id": "popular_searches",
+      "label": "Termes de recherche populaires",
+      "default": "golf, CBD, wellness, vêtements, accessoires",
+      "info": "Séparez les termes par des virgules"
+    }
+  ]
+}
+{% endschema %}

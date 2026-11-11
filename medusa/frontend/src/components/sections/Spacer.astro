@@ -1,0 +1,18 @@
+---
+interface Props {
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  mobileSize?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+}
+
+const { size = 'md', mobileSize } = Astro.props
+
+const sizeMap = {
+  xs: 'h-4 lg:h-6',
+  sm: 'h-6 lg:h-10',
+  md: 'h-10 lg:h-16',
+  lg: 'h-16 lg:h-24',
+  xl: 'h-24 lg:h-32',
+}
+---
+
+<div class={sizeMap[size]} aria-hidden="true"></div>

@@ -1,0 +1,366 @@
+{%- comment -%}
+  Shipping Estimator Component
+  Allows customers to estimate shipping costs based on country/zip
+
+  Parameters:
+  - show_country_selector: Show country dropdown (default: true)
+  - show_zip_input: Show postal code input (default: true)
+  - default_country: Default country code (default: shop country)
+  - compact: Compact mode (default: false)
+
+  Usage:
+  {%- render 'shipping-estimator', show_country_selector: true -%}
+{%- endcomment -%}
+
+{%- liquid
+  assign show_country_selector = show_country_selector | default: true
+  assign show_zip_input = show_zip_input | default: true
+  assign compact = compact | default: false
+  assign default_country = default_country | default: localization.country.iso_code | default: 'US'
+-%}
+
+<div class="shipping-estimator {% if compact %}shipping-estimator--compact{% endif %}" data-shipping-estimator>
+  <div class="shipping-estimator__header">
+    <svg class="shipping-estimator__icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <path d="M13.333 2.667H.833v10.833H14V2.667z" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M13.333 6.667h2.5l2.5 2.5v4.166h-5v-6.666z" stroke="currentColor" stroke-width="1.5"/>
+      <circle cx="4.583" cy="15.417" r="2.083" stroke="currentColor" stroke-width="1.5"/>
+      <circle cx="15.417" cy="15.417" r="2.083" stroke="currentColor" stroke-width="1.5"/>
+    </svg>
+    <span class="shipping-estimator__title">
+      {{ 'cart.shipping_estimator.title' | t | default: 'Estimer les frais de livraison' }}
+    </span>
+  </div>
+
+  <form class="shipping-estimator__form" data-shipping-form>
+    <div class="shipping-estimator__fields">
+      {%- if show_country_selector -%}
+        <div class="shipping-estimator__field">
+          <label for="shipping-country" class="shipping-estimator__label">
+            {{ 'cart.shipping_estimator.country' | t | default: 'Pays' }}
+          </label>
+          <select
+            id="shipping-country"
+            name="shipping_address[country]"
+            class="shipping-estimator__select"
+            data-shipping-country
+          >
+            {%- for country in localization.available_countries -%}
+              <option value="{{ country.iso_code }}" {% if country.iso_code == default_country %}selected{% endif %}>
+                {{ country.name }}
+              </option>
+            {%- endfor -%}
+          </select>
+        </div>
+      {%- endif -%}
+
+      {%- if show_zip_input -%}
+        <div class="shipping-estimator__field">
+          <label for="shipping-zip" class="shipping-estimator__label">
+            {{ 'cart.shipping_estimator.zip' | t | default: 'Code postal' }}
+          </label>
+          <input
+            type="text"
+            id="shipping-zip"
+            name="shipping_address[zip]"
+            class="shipping-estimator__input"
+            placeholder="{{ 'cart.shipping_estimator.zip_placeholder' | t | default: 'Entrez votre code postal' }}"
+            data-shipping-zip
+          >
+        </div>
+      {%- endif -%}
+
+      <button type="submit" class="shipping-estimator__submit btn btn--secondary">
+        <span data-submit-text>{{ 'cart.shipping_estimator.calculate' | t | default: 'Calculer' }}</span>
+        <span class="loading-spinner" style="display: none;">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="spin">
+            <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="32" stroke-dashoffset="16"/>
+          </svg>
+        </span>
+      </button>
+    </div>
+  </form>
+
+  <div class="shipping-estimator__results" data-shipping-results style="display: none;">
+    <div class="shipping-estimator__loading" data-results-loading style="display: none;">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" class="spin">
+        <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="40" stroke-dashoffset="20"/>
+      </svg>
+      <span>{{ 'cart.shipping_estimator.calculating' | t | default: 'Calcul en cours...' }}</span>
+    </div>
+
+    <div class="shipping-estimator__rates" data-shipping-rates></div>
+
+    <div class="shipping-estimator__error" data-shipping-error style="display: none;">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 10.5a.75.75 0 110-1.5.75.75 0 010 1.5zM8.75 8a.75.75 0 01-1.5 0V5a.75.75 0 011.5 0v3z"/>
+      </svg>
+      <span data-error-message></span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .shipping-estimator {
+    background-color: var(--color-background-light);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin: var(--spacing-md) 0;
+  }
+
+  .shipping-estimator--compact {
+    padding: var(--spacing-sm);
+  }
+
+  .shipping-estimator__header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .shipping-estimator__icon {
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+
+  .shipping-estimator__title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .shipping-estimator__fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    align-items: flex-end;
+  }
+
+  .shipping-estimator__field {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .shipping-estimator__label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-light);
+    margin-bottom: 0.25rem;
+  }
+
+  .shipping-estimator__select,
+  .shipping-estimator__input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-background);
+  }
+
+  .shipping-estimator__select:focus,
+  .shipping-estimator__input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+
+  .shipping-estimator__submit {
+    flex-shrink: 0;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .shipping-estimator__results {
+    margin-top: var(--spacing-sm);
+    padding-top: var(--spacing-sm);
+    border-top: 1px dashed var(--color-border);
+  }
+
+  .shipping-estimator__loading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-text-light);
+    font-size: 0.875rem;
+  }
+
+  .shipping-estimator__rates {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .shipping-rate {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .shipping-rate:hover,
+  .shipping-rate--selected {
+    border-color: var(--color-primary);
+    background-color: rgba(var(--color-primary-rgb, 37, 99, 235), 0.05);
+  }
+
+  .shipping-rate__info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .shipping-rate__name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .shipping-rate__delivery {
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+  }
+
+  .shipping-rate__price {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+
+  .shipping-rate__price--free {
+    color: var(--color-success);
+  }
+
+  .shipping-estimator__error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-error);
+    font-size: 0.875rem;
+    padding: var(--spacing-xs);
+    background-color: rgba(var(--color-error-rgb, 239, 68, 68), 0.1);
+    border-radius: var(--radius-sm);
+  }
+
+  .spin {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @media (max-width: 767px) {
+    .shipping-estimator__fields {
+      flex-direction: column;
+    }
+
+    .shipping-estimator__field {
+      width: 100%;
+    }
+
+    .shipping-estimator__submit {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  (function() {
+    const estimator = document.querySelector('[data-shipping-estimator]');
+    if (!estimator) return;
+
+    const form = estimator.querySelector('[data-shipping-form]');
+    const countrySelect = estimator.querySelector('[data-shipping-country]');
+    const zipInput = estimator.querySelector('[data-shipping-zip]');
+    const resultsContainer = estimator.querySelector('[data-shipping-results]');
+    const loadingEl = estimator.querySelector('[data-results-loading]');
+    const ratesEl = estimator.querySelector('[data-shipping-rates]');
+    const errorEl = estimator.querySelector('[data-shipping-error]');
+    const errorMsg = estimator.querySelector('[data-error-message]');
+    const submitBtn = form.querySelector('.shipping-estimator__submit');
+    const submitText = submitBtn.querySelector('[data-submit-text]');
+    const loadingSpinner = submitBtn.querySelector('.loading-spinner');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const country = countrySelect?.value || '';
+      const zip = zipInput?.value || '';
+
+      if (!country) {
+        showError(window.theme?.translations?.selectCountry || 'Veuillez sélectionner un pays');
+        return;
+      }
+
+      submitText.style.display = 'none';
+      loadingSpinner.style.display = 'inline-block';
+      submitBtn.disabled = true;
+
+      resultsContainer.style.display = 'block';
+      loadingEl.style.display = 'flex';
+      ratesEl.innerHTML = '';
+      errorEl.style.display = 'none';
+
+      try {
+        const response = await fetch(`/cart/shipping_rates.json?shipping_address[zip]=${encodeURIComponent(zip)}&shipping_address[country]=${encodeURIComponent(country)}`);
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.message || data.errors || 'Unable to calculate shipping');
+        }
+
+        const data = await response.json();
+        const rates = data.shipping_rates || [];
+
+        loadingEl.style.display = 'none';
+
+        if (rates.length === 0) {
+          showError(window.theme?.translations?.noShippingRates || 'Aucune option de livraison disponible pour cette destination');
+          return;
+        }
+
+        ratesEl.innerHTML = rates.map(rate => {
+          const price = parseFloat(rate.price);
+          const isFree = price === 0;
+          const priceFormatted = isFree ?
+            (window.theme?.translations?.free || 'GRATUIT') :
+            Shopify.formatMoney(price * 100, window.theme?.moneyFormat);
+
+          return `
+            <div class="shipping-rate" data-rate-price="${rate.price}">
+              <div class="shipping-rate__info">
+                <span class="shipping-rate__name">${rate.name}</span>
+                ${rate.delivery_days ? `<span class="shipping-rate__delivery">${rate.delivery_days} jours</span>` : ''}
+              </div>
+              <span class="shipping-rate__price ${isFree ? 'shipping-rate__price--free' : ''}">${priceFormatted}</span>
+            </div>
+          `;
+        }).join('');
+
+      } catch (error) {
+        console.error('Shipping estimate error:', error);
+        loadingEl.style.display = 'none';
+        showError(error.message || 'Impossible de calculer les frais de livraison');
+      } finally {
+        submitText.style.display = 'inline';
+        loadingSpinner.style.display = 'none';
+        submitBtn.disabled = false;
+      }
+    });
+
+    function showError(message) {
+      errorEl.style.display = 'flex';
+      errorMsg.textContent = message;
+    }
+  })();
+</script>

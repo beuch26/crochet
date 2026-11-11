@@ -1,0 +1,66 @@
+---
+interface Props {
+  title?: string
+  text?: string
+  image?: string
+  ctaText?: string
+  ctaLink?: string
+}
+
+const {
+  title = 'Satisfaction garantie',
+  text = "Chez Magic Crochet Kit, chaque produit est soigneusement sélectionné pour sa qualité et sa sécurité. Si vous n'êtes pas satisfait, nous vous remboursons sous 30 jours, sans condition.",
+  image = '',
+  ctaText = 'En savoir plus',
+  ctaLink = '/livraison/',
+} = Astro.props
+---
+
+<section class="py-16 lg:py-20 reveal">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-bg-light to-white border border-border-light">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+        <div class="p-10 lg:p-16 flex flex-col justify-center">
+          <div class="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+            </svg>
+          </div>
+          <h2 class="text-2xl lg:text-3xl">{title}</h2>
+          <p class="mt-4 text-text-light leading-relaxed text-lg">{text}</p>
+
+          <div class="mt-6 flex flex-wrap gap-4">
+            <div class="flex items-center gap-2 text-sm text-text-light">
+              <svg class="w-5 h-5 text-success" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+              Retours gratuits
+            </div>
+            <div class="flex items-center gap-2 text-sm text-text-light">
+              <svg class="w-5 h-5 text-success" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+              Garantie 2 ans
+            </div>
+            <div class="flex items-center gap-2 text-sm text-text-light">
+              <svg class="w-5 h-5 text-success" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+              Paiement sécurisé
+            </div>
+          </div>
+
+          <div class="mt-8">
+            <a href={ctaLink} class="btn btn-primary px-8 py-3">{ctaText}</a>
+          </div>
+        </div>
+
+        {image ? (
+          <div class="hidden lg:block">
+            <img src={image} alt={title} class="w-full h-full object-cover" loading="lazy" />
+          </div>
+        ) : (
+          <div class="hidden lg:flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-48 w-48 text-primary/10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="0.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+            </svg>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</section>

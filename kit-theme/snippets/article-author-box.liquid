@@ -1,0 +1,317 @@
+{%- comment -%}
+  Article Author Box
+  Displays author information with Schema Person for E-E-A-T
+  Critical for Google's Experience, Expertise, Authoritativeness, Trust
+  Usage: {% render 'article-author-box', article: article %}
+{%- endcomment -%}
+
+{%- liquid
+  # Get author information from article metafields or theme settings
+  assign author_name = article.author
+  assign author_bio = article.metafields.custom.author_bio | default: settings.default_author_bio
+  assign author_image = article.metafields.custom.author_image | default: settings.default_author_image
+  assign author_title = article.metafields.custom.author_title
+  assign author_linkedin = article.metafields.custom.author_linkedin
+  assign author_twitter = article.metafields.custom.author_twitter
+  assign author_email = article.metafields.custom.author_email
+-%}
+
+{%- if author_name != blank -%}
+  <div class="author-box" itemscope itemtype="https://schema.org/Person">
+    <meta itemprop="name" content="{{ author_name }}">
+
+    <div class="author-box__content">
+
+      {%- comment -%} Author Image {%- endcomment -%}
+      {%- if author_image -%}
+        <div class="author-box__image">
+          <img
+            src="{{ author_image | image_url: width: 120 }}"
+            alt="{{ author_name }}"
+            width="120"
+            height="120"
+            itemprop="image"
+            class="author-avatar"
+          >
+        </div>
+      {%- else -%}
+        {%- comment -%} Default avatar with initials {%- endcomment -%}
+        <div class="author-box__image">
+          <div class="author-avatar author-avatar--initials">
+            {{ author_name | slice: 0 }}
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- comment -%} Author Info {%- endcomment -%}
+      <div class="author-box__info">
+
+        <div class="author-box__header">
+          <h3 class="author-box__title">
+            {{ 'blog.article.about_author' | t }}
+          </h3>
+        </div>
+
+        <div class="author-box__name" itemprop="name">
+          {{ author_name }}
+        </div>
+
+        {%- if author_title -%}
+          <div class="author-box__job-title" itemprop="jobTitle">
+            {{ author_title }}
+          </div>
+        {%- endif -%}
+
+        {%- if author_bio -%}
+          <div class="author-box__bio" itemprop="description">
+            {{ author_bio }}
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} Author Social Links {%- endcomment -%}
+        {%- if author_linkedin or author_twitter or author_email -%}
+          <div class="author-box__social">
+            {%- if author_linkedin -%}
+              <a
+                href="{{ author_linkedin }}"
+                target="_blank"
+                rel="noopener me"
+                class="author-social-link"
+                aria-label="LinkedIn"
+                itemprop="sameAs"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M18.521 0H1.476C.66 0 0 .645 0 1.441v17.118C0 19.355.66 20 1.476 20h17.045c.815 0 1.479-.645 1.479-1.441V1.441C20 .645 19.336 0 18.521 0zM5.923 17.059H2.957V7.501h2.966v9.558zM4.44 6.204c-.95 0-1.719-.772-1.719-1.724 0-.951.769-1.723 1.719-1.723.949 0 1.719.772 1.719 1.723 0 .952-.77 1.724-1.719 1.724zM17.056 17.059h-2.963v-4.65c0-1.107-.022-2.532-1.544-2.532-1.544 0-1.78 1.206-1.78 2.45v4.732H7.806V7.501h2.844v1.307h.041c.396-.75 1.363-1.541 2.806-1.541 3.001 0 3.559 1.976 3.559 4.545v5.247z"/>
+                </svg>
+              </a>
+            {%- endif -%}
+
+            {%- if author_twitter -%}
+              <a
+                href="https://twitter.com/{{ author_twitter }}"
+                target="_blank"
+                rel="noopener me"
+                class="author-social-link"
+                aria-label="Twitter"
+                itemprop="sameAs"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M20 3.924a8.182 8.182 0 01-2.357.646 4.115 4.115 0 001.805-2.27 8.221 8.221 0 01-2.606.996 4.103 4.103 0 00-6.991 3.742A11.645 11.645 0 011.392 2.643a4.103 4.103 0 001.27 5.478A4.087 4.087 0 01.8 7.617v.052a4.104 4.104 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.105 4.105 0 003.834 2.85A8.233 8.233 0 010 16.29a11.616 11.616 0 006.29 1.843c7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.531A8.345 8.345 0 0020 3.924z"/>
+                </svg>
+              </a>
+            {%- endif -%}
+
+            {%- if author_email -%}
+              <a
+                href="mailto:{{ author_email }}"
+                class="author-social-link"
+                aria-label="Email"
+                itemprop="email"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M3 4h14c1.1 0 2 .9 2 2v8c0 1.1-.9 2-2 2H3c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="2"/>
+                  <path d="M19 6l-9 6-9-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </a>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} More Posts by Author {%- endcomment -%}
+        {%- assign author_articles = blog.articles | where: 'author', author_name -%}
+        {%- if author_articles.size > 1 -%}
+          <a href="{{ blog.url }}/authors/{{ author_name | handleize }}" class="author-box__more-posts">
+            {{ 'blog.article.author_posts' | t: author: author_name }}
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        {%- endif -%}
+
+      </div>
+
+    </div>
+  </div>
+{%- endif -%}
+
+<style>
+.author-box {
+  margin: var(--spacing-2xl) 0;
+  padding: var(--spacing-xl);
+  background: linear-gradient(135deg, var(--color-background-light) 0%, var(--color-background) 100%);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.author-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+}
+
+.author-box__content {
+  display: flex;
+  gap: var(--spacing-lg);
+  align-items: start;
+}
+
+@media (max-width: 767px) {
+  .author-box__content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+.author-box__image {
+  flex-shrink: 0;
+}
+
+.author-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.author-avatar--initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  color: white;
+  font-size: 3rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.author-box__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.author-box__header {
+  margin-bottom: var(--spacing-xs);
+}
+
+.author-box__title {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-text-light);
+  font-weight: 600;
+  margin: 0;
+}
+
+.author-box__name {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.author-box__job-title {
+  font-size: 1rem;
+  color: var(--color-primary);
+  font-weight: 600;
+  margin-top: -0.25rem;
+}
+
+.author-box__bio {
+  color: var(--color-text);
+  line-height: 1.6;
+  margin-top: var(--spacing-sm);
+}
+
+.author-box__social {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+@media (max-width: 767px) {
+  .author-box__social {
+    justify-content: center;
+  }
+}
+
+.author-social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: white;
+  border: 2px solid var(--color-border);
+  border-radius: 50%;
+  color: var(--color-text);
+  text-decoration: none;
+  transition: all var(--transition-speed);
+}
+
+.author-social-link:hover {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.author-box__more-posts {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: var(--spacing-md);
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all var(--transition-speed);
+}
+
+.author-box__more-posts:hover {
+  text-decoration: underline;
+  gap: 0.75rem;
+}
+
+.author-box__more-posts svg {
+  transition: transform var(--transition-speed);
+}
+
+.author-box__more-posts:hover svg {
+  transform: translateX(4px);
+}
+
+/* E-E-A-T Badge */
+.author-box::after {
+  content: 'Expert Author';
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-primary);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 767px) {
+  .author-box::after {
+    top: auto;
+    bottom: 1rem;
+  }
+}
+</style>

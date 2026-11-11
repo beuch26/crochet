@@ -1,0 +1,74 @@
+---
+/**
+ * Content Tabs - tabbed content for flexible page layouts
+ * Like Olympus theme's content-tabs section
+ */
+interface Tab {
+  title: string
+  content: string
+  icon?: string
+}
+
+interface Props {
+  title?: string
+  tabs: Tab[]
+}
+
+const { title = '', tabs = [] } = Astro.props
+---
+
+{tabs.length > 0 && (
+  <section class="py-16 lg:py-20 reveal">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      {title && <h2 class="text-center mb-10">{title}</h2>}
+
+      <div class="bg-white rounded-2xl border border-border-light overflow-hidden">
+        <!-- Tab buttons -->
+        <div class="flex border-b border-border-light overflow-x-auto" role="tablist">
+          {tabs.map((tab, i) => (
+            <button
+              role="tab"
+              data-content-tab={i}
+              aria-selected={i === 0 ? 'true' : 'false'}
+              class={`content-tab flex-1 px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-all ${
+                i === 0
+                  ? 'border-primary text-primary bg-primary/5'
+                  : 'border-transparent text-text-muted hover:text-text hover:bg-bg-light'
+              }`}
+            >
+              {tab.title}
+            </button>
+          ))}
+        </div>
+
+        <!-- Tab panels -->
+        {tabs.map((tab, i) => (
+          <div
+            data-content-panel={i}
+            class={`content-panel p-6 lg:p-8 ${i !== 0 ? 'hidden' : ''}`}
+          >
+            <div class="prose max-w-none text-text-light" set:html={tab.content} />
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+
+<script>
+  document.querySelectorAll('.content-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const idx = (tab as HTMLElement).dataset.contentTab
+      document.querySelectorAll('.content-tab').forEach(t => {
+        t.classList.remove('border-primary', 'text-primary', 'bg-primary/5')
+        t.classList.add('border-transparent', 'text-text-muted')
+        t.setAttribute('aria-selected', 'false')
+      })
+      tab.classList.add('border-primary', 'text-primary', 'bg-primary/5')
+      tab.classList.remove('border-transparent', 'text-text-muted')
+      tab.setAttribute('aria-selected', 'true')
+      document.querySelectorAll('.content-panel').forEach(p => p.classList.add('hidden'))
+      document.querySelector(`[data-content-panel="${idx}"]`)?.classList.remove('hidden')
+    })
+  })
+</script>

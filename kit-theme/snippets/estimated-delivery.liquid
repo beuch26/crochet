@@ -1,0 +1,119 @@
+{%- comment -%}
+  Estimated Delivery Date Component
+  Shows estimated delivery date to set customer expectations
+
+  Parameters:
+  - min_days: Minimum delivery days (default: 3)
+  - max_days: Maximum delivery days (default: 5)
+  - format: Date format - 'short' or 'long' (default: long)
+
+  Usage:
+  {%- render 'estimated-delivery', min_days: 3, max_days: 5 -%}
+{%- endcomment -%}
+
+{%- liquid
+  assign min_delivery_days = min_days | default: 3
+  assign max_delivery_days = max_days | default: 5
+
+  assign today = 'now' | date: '%s'
+  assign min_seconds = min_delivery_days | times: 86400
+  assign max_seconds = max_delivery_days | times: 86400
+  assign min_date = today | plus: min_seconds | date: '%s'
+  assign max_date = today | plus: max_seconds | date: '%s'
+
+  assign min_day = min_date | date: '%d'
+  assign max_day = max_date | date: '%d'
+  assign month_num = max_date | date: '%m'
+
+  case month_num
+    when '01'
+      assign month_fr = 'Janvier'
+    when '02'
+      assign month_fr = 'Février'
+    when '03'
+      assign month_fr = 'Mars'
+    when '04'
+      assign month_fr = 'Avril'
+    when '05'
+      assign month_fr = 'Mai'
+    when '06'
+      assign month_fr = 'Juin'
+    when '07'
+      assign month_fr = 'Juillet'
+    when '08'
+      assign month_fr = 'Août'
+    when '09'
+      assign month_fr = 'Septembre'
+    when '10'
+      assign month_fr = 'Octobre'
+    when '11'
+      assign month_fr = 'Novembre'
+    when '12'
+      assign month_fr = 'Décembre'
+  endcase
+-%}
+
+<div class="estimated-delivery">
+  <div class="estimated-delivery__icon">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <path d="M16.667 3.333H3.333v10.834H17v-10.834z" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M16.667 6.667h2.5l2.5 2.5v4.166h-5v-6.666z" stroke="currentColor" stroke-width="1.5" transform="translate(-2.667 0)"/>
+      <circle cx="5.833" cy="15.417" r="1.667" stroke="currentColor" stroke-width="1.5"/>
+      <circle cx="14.167" cy="15.417" r="1.667" stroke="currentColor" stroke-width="1.5"/>
+    </svg>
+  </div>
+  <div class="estimated-delivery__content">
+    <div class="estimated-delivery__title">
+      {{ 'delivery.estimated' | t | default: 'Livraison estimée:' }}
+    </div>
+    <div class="estimated-delivery__date">
+      entre {{ min_day }} et {{ max_day }} {{ month_fr }}
+    </div>
+  </div>
+</div>
+
+<style>
+.estimated-delivery {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0;
+}
+
+.estimated-delivery__icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.estimated-delivery__icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.estimated-delivery__content {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.estimated-delivery__title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-light);
+  line-height: 1;
+}
+
+.estimated-delivery__date {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1;
+}
+</style>

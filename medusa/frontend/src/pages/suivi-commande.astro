@@ -1,0 +1,152 @@
+---
+import Layout from '../layouts/Layout.astro'
+---
+
+<Layout title="Suivi de commande — Ou est mon colis ?" description="Suivez l'etat de votre commande Magic Crochet Kit en temps reel. Entrez votre numero de commande pour connaitre le statut de livraison.">
+  <section class="py-16 lg:py-20">
+    <div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-10">
+        <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-primary/10 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+          </svg>
+        </div>
+        <h1>Suivi de commande</h1>
+        <p class="mt-3 text-text-light">Entrez votre numéro de commande et votre email pour suivre votre colis.</p>
+      </div>
+
+      <!-- Search form -->
+      <div class="bg-white p-8 rounded-2xl border border-border-light">
+        <div id="track-error" class="hidden mb-4 p-3 bg-error/10 text-error text-sm rounded-xl"></div>
+
+        <form id="track-form" class="space-y-5">
+          <div>
+            <label for="track-order-id" class="block text-sm font-medium text-text mb-2">Numéro de commande</label>
+            <input type="text" id="track-order-id" required placeholder="Ex: 1234" class="w-full px-4 py-3 border border-border rounded-xl bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+          </div>
+          <div>
+            <label for="track-email" class="block text-sm font-medium text-text mb-2">Email utilisé lors de la commande</label>
+            <input type="email" id="track-email" required placeholder="votre@email.fr" class="w-full px-4 py-3 border border-border rounded-xl bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+          </div>
+          <button type="submit" id="track-btn" class="btn btn-primary w-full py-3.5">
+            Suivre ma commande
+          </button>
+        </form>
+      </div>
+
+      <!-- Result -->
+      <div id="track-result" class="hidden mt-8 bg-white p-8 rounded-2xl border border-border-light">
+        <p class="text-lg font-semibold font-['DM_Sans'] mb-6 text-text" id="track-title"></p>
+
+        <!-- Progress steps -->
+        <div class="relative">
+          <div class="absolute left-5 top-0 bottom-0 w-0.5 bg-border-light"></div>
+          <div id="track-steps" class="space-y-6 relative"></div>
+        </div>
+
+        <div id="track-details" class="mt-8 pt-6 border-t border-border-light"></div>
+      </div>
+
+      <!-- Help -->
+      <div class="mt-8 text-center">
+        <p class="text-sm text-text-muted">
+          Vous ne trouvez pas votre commande ?
+          <a href="/contact/" class="text-primary hover:underline">Contactez-nous</a>
+        </p>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const MEDUSA_URL = document.querySelector('meta[name="medusa-url"]')?.getAttribute('content') || ''
+  const API_KEY = document.querySelector('meta[name="medusa-key"]')?.getAttribute('content') || ''
+
+  document.getElementById('track-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const btn = document.getElementById('track-btn') as HTMLButtonElement
+    const errorEl = document.getElementById('track-error')!
+    const resultEl = document.getElementById('track-result')!
+    errorEl.classList.add('hidden')
+    resultEl.classList.add('hidden')
+
+    const orderId = (document.getElementById('track-order-id') as HTMLInputElement).value.trim()
+    const email = (document.getElementById('track-email') as HTMLInputElement).value.trim()
+
+    btn.disabled = true
+    btn.textContent = 'Recherche...'
+
+    try {
+      // Try to find order by display_id
+      const res = await fetch(`${MEDUSA_URL}/store/orders?display_id=${orderId}`, {
+        headers: { 'x-publishable-api-key': API_KEY },
+      })
+
+      if (!res.ok) throw new Error('not_found')
+
+      const data = await res.json()
+      const order = data.orders?.[0]
+
+      if (!order || order.email?.toLowerCase() !== email.toLowerCase()) {
+        throw new Error('not_found')
+      }
+
+      // Show result
+      const statusMap: Record<string, { label: string; step: number }> = {
+        pending: { label: 'En attente de traitement', step: 1 },
+        completed: { label: 'Commande complétée', step: 4 },
+        canceled: { label: 'Commande annulée', step: 0 },
+        archived: { label: 'Commande archivée', step: 4 },
+        requires_action: { label: 'Action requise', step: 1 },
+      }
+
+      const status = statusMap[order.status] || { label: order.status, step: 1 }
+      const steps = [
+        { label: 'Commande reçue', desc: 'Votre commande a été enregistrée', done: status.step >= 1 },
+        { label: 'En préparation', desc: 'Nous préparons votre colis', done: status.step >= 2 },
+        { label: 'Expédiée', desc: 'Votre colis est en route', done: status.step >= 3 },
+        { label: 'Livrée', desc: 'Votre commande est arrivée', done: status.step >= 4 },
+      ]
+
+      document.getElementById('track-title')!.textContent = `Commande #${order.display_id || orderId}`
+
+      const stepsEl = document.getElementById('track-steps')!
+      stepsEl.innerHTML = steps.map(s => `
+        <div class="flex items-start gap-4 relative">
+          <div class="w-10 h-10 rounded-full shrink-0 flex items-center justify-center z-10 ${
+            s.done ? 'bg-primary text-white' : 'bg-bg-light text-text-muted border border-border'
+          }">
+            ${s.done
+              ? '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>'
+              : '<div class="w-2 h-2 rounded-full bg-current"></div>'
+            }
+          </div>
+          <div class="pt-2">
+            <p class="text-sm font-medium ${s.done ? 'text-text' : 'text-text-muted'}">${s.label}</p>
+            <p class="text-xs text-text-muted mt-0.5">${s.desc}</p>
+          </div>
+        </div>
+      `).join('')
+
+      const total = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: order.currency_code?.toUpperCase() || 'EUR' }).format(order.total || 0)
+      const date = new Date(order.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+
+      document.getElementById('track-details')!.innerHTML = `
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div><span class="text-text-muted">Date</span><p class="font-medium mt-0.5">${date}</p></div>
+          <div><span class="text-text-muted">Total</span><p class="font-medium mt-0.5">${total}</p></div>
+          <div><span class="text-text-muted">Statut</span><p class="font-medium mt-0.5">${status.label}</p></div>
+          <div><span class="text-text-muted">Email</span><p class="font-medium mt-0.5 truncate">${order.email}</p></div>
+        </div>
+      `
+
+      resultEl.classList.remove('hidden')
+    } catch {
+      errorEl.textContent = 'Commande introuvable. Vérifiez le numéro et l\'email saisis.'
+      errorEl.classList.remove('hidden')
+    } finally {
+      btn.disabled = false
+      btn.textContent = 'Suivre ma commande'
+    }
+  })
+</script>

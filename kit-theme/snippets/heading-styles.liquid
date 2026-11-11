@@ -1,0 +1,481 @@
+{%- comment -%}
+  Heading Styles - Enhanced title styling options
+
+  Usage: {% render 'heading-styles',
+    text: "Mon Titre",
+    tag: 'h2',
+    style: 'signature-1',
+    color: '#dc2626',
+    align: 'center'
+  %}
+
+  Parameters:
+  - text: The heading text
+  - tag: HTML tag (h1, h2, h3, h4, h5, h6, p, span)
+  - style: 'none', 'signature-1' to 'signature-5', 'underline-1' to 'underline-3', 'highlight', 'reflection', 'typing'
+  - color: Accent color for effects
+  - align: 'left', 'center', 'right'
+  - size: 'sm', 'md', 'lg', 'xl', '2xl', '3xl'
+  - typing_texts: Array of texts for typing animation (comma separated)
+  - typing_speed: Speed in ms (default: 100)
+{%- endcomment -%}
+
+{%- liquid
+  assign heading_tag = tag | default: 'h2'
+  assign heading_style = style | default: 'none'
+  assign heading_color = color | default: 'var(--color-primary, #dc2626)'
+  assign heading_align = align | default: 'left'
+  assign heading_size = size | default: 'lg'
+  assign uid = text | handleize | slice: 0, 10 | append: '-' | append: 'now' | date: '%s'
+-%}
+
+<div class="styled-heading-wrapper styled-heading-wrapper--{{ heading_align }}">
+
+{%- case heading_style -%}
+
+  {%- comment -%} ===== SIGNATURES ===== {%- endcomment -%}
+
+  {%- when 'signature-1' -%}
+    {%- comment -%} Wavy handwritten style {%- endcomment -%}
+    <{{ heading_tag }} class="styled-heading styled-heading--signature styled-heading--{{ heading_align }} styled-heading--{{ heading_size }}" style="--heading-color: {{ heading_color }};">
+      <span class="styled-heading__text">{{ text }}</span>
+      <svg class="styled-heading__decor styled-heading__signature-1" viewBox="-347 -30 694 96" stroke="currentColor" fill="none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-width="14" pathLength="1" d="M-335,54 C-335,54 -171,-58 -194,-3 C-217,52 -224,73 -108,32 C8,-8 4,44 96,28 C188,12 318,24 335,24"></path>
+      </svg>
+    </{{ heading_tag }}>
+
+  {%- when 'signature-2' -%}
+    {%- comment -%} Simple swoosh {%- endcomment -%}
+    <{{ heading_tag }} class="styled-heading styled-heading--signature styled-heading--{{ heading_align }} styled-heading--{{ heading_size }}" style="--heading-color: {{ heading_color }};">
+      <span class="styled-heading__text">{{ text }}</span>
+      <svg class="styled-heading__decor styled-heading__signature-2" viewBox="0 0 200 20" stroke="currentColor" fill="none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-width="4" pathLength="1" d="M5,15 Q50,5 100,10 T195,8"></path>
+      </svg>
+    </{{ heading_tag }}>
+
+  {%- when 'signature-3' -%}
+    {%- comment -%} Double wave {%- endcomment -%}
+    <{{ heading_tag }} class="styled-heading styled-heading--signature styled-heading--{{ heading_align }} styled-heading--{{ heading_size }}" style="--heading-color: {{ heading_color }};">
+      <span class="styled-heading__text">{{ text }}</span>
+      <svg class="styled-heading__decor styled-heading__signature-3" viewBox="0 0 200 30" stroke="currentColor" fill="none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-width="3" pathLength="1" d="M5,10 Q30,5 50,10 T100,10 T150,10 T195,10" opacity="0.5"></path>
+        <path stroke-linecap="round" stroke-width="3" pathLength="1" d="M5,20 Q30,15 50,20 T100,20 T150,20 T195,20"></path>
+      </svg>
+    </{{ heading_tag }}>
+
+  {%- when 'signature-4' -%}
+    {%- comment -%} Scribble/sketch style {%- endcomment -%}
+    <{{ heading_tag }} class="styled-heading styled-heading--signature styled-heading--{{ heading_align }} styled-heading--{{ heading_size }}" style="--heading-color: {{ heading_color }};">
+      <span class="styled-heading__text">{{ text }}</span>
+      <svg class="styled-heading__decor styled-heading__signature-4" viewBox="0 0 200 25" stroke="currentColor" fill="none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-width="2.5" pathLength="1" d="M5,12 C20,8 35,16 50,12 C65,8 80,16 95,12 C110,8 125,16 140,12 C155,8 170,16 185,12 C190,11 195,12 195,12"></path>
+        <path stroke-linecap="round" stroke-width="2.5" pathLength="1" d="M10,18 C25,14 40,22 55,18 C70,14 85,22 100,18 C115,14 130,22 145,18 C160,14 175,22 190,18" opacity="0.4"></path>
+      </svg>
+    </{{ heading_tag }}>
+
+  {%- when 'signature-5' -%}
+    {%- comment -%} Elegant curve {%- endcomment -%}
+    <{{ heading_tag }} class="styled-heading styled-heading--signature styled-heading--{{ heading_align }} styled-heading--{{ heading_size }}" style="--heading-color: {{ heading_color }};">
+      <span class="styled-heading__text">{{ text }}</span>
+      <svg class="styled-heading__decor styled-heading__signature-5" viewBox="0 0 200 35" stroke="currentColor" fill="none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-width="3" pathLength="1" d="M10,25 Q100,-10 190,25"></path>
+      </svg>
+    </{{ heading_tag }}>
+
+  {%- comment -%} ===== UNDERLINES ===== {%- endcomment -%}
+
+  {%- when 'underline-1' -%}
+    {%- comment -%} Brush stroke {%- endcomment -%}
+    <{{ heading_tag }} class="styled-heading styled-heading--underline styled-heading--{{ heading_align }} styled-heading--{{ heading_size }}" style="--heading-color: {{ heading_color }};">
+      <span class="styled-heading__text">{{ text }}</span>
+      <svg class="styled-heading__decor styled-heading__underline-1" viewBox="0 0 200 15" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="currentColor" d="M0,7 Q10,2 30,6 T60,8 T90,5 T120,9 T150,6 T180,8 T200,5 L200,15 L0,15 Z" opacity="0.8"></path>
+      </svg>
+    </{{ heading_tag }}>
+
+  {%- when 'underline-2' -%}
+    {%- comment -%} Simple thick line {%- endcomment -%}
+    <{{ heading_tag }} class="styled-heading styled-heading--underline styled-heading--{{ heading_align }} styled-heading--{{ heading_size }}" style="--heading-color: {{ heading_color }};">
+      <span class="styled-heading__text">{{ text }}</span>
+      <span class="styled-heading__decor styled-heading__underline-2"></span>
+    </{{ heading_tag }}>
+
+  {%- when 'underline-3' -%}
+    {%- comment -%} Marker highlight {%- endcomment -%}
+    <{{ heading_tag }} class="styled-heading styled-heading--underline styled-heading--{{ heading_align }} styled-heading--{{ heading_size }}" style="--heading-color: {{ heading_color }};">
+      <span class="styled-heading__text">{{ text }}</span>
+      <svg class="styled-heading__decor styled-heading__underline-3" viewBox="0 0 200 20" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="currentColor" d="M0,5 L5,2 L195,4 L200,8 L198,15 L190,18 L10,16 L2,12 Z" opacity="0.3"></path>
+      </svg>
+    </{{ heading_tag }}>
+
+  {%- comment -%} ===== HIGHLIGHT ===== {%- endcomment -%}
+
+  {%- when 'highlight' -%}
+    <{{ heading_tag }} class="styled-heading styled-heading--highlight styled-heading--{{ heading_align }} styled-heading--{{ heading_size }}" style="--heading-color: {{ heading_color }};">
+      <span class="styled-heading__text styled-heading__highlighted">{{ text }}</span>
+    </{{ heading_tag }}>
+
+  {%- comment -%} ===== REFLECTION ===== {%- endcomment -%}
+
+  {%- when 'reflection' -%}
+    <{{ heading_tag }} class="styled-heading styled-heading--reflection styled-heading--{{ heading_align }} styled-heading--{{ heading_size }}" style="--heading-color: {{ heading_color }};" data-reflection>
+      <span class="styled-heading__text">{{ text }}</span>
+    </{{ heading_tag }}>
+
+  {%- comment -%} ===== TYPING ===== {%- endcomment -%}
+
+  {%- when 'typing' -%}
+    {%- assign typing_array = typing_texts | split: ',' -%}
+    <{{ heading_tag }} class="styled-heading styled-heading--typing styled-heading--{{ heading_align }} styled-heading--{{ heading_size }}"
+         style="--heading-color: {{ heading_color }};"
+         data-typing
+         data-typing-speed="{{ typing_speed | default: 100 }}"
+         data-typing-texts='{{ typing_array | json }}'>
+      <span class="styled-heading__text">{{ text }}</span>
+      <span class="typing-wrapper">
+        <span class="typing-content"></span>
+        <span class="typing-cursor">|</span>
+      </span>
+    </{{ heading_tag }}>
+
+  {%- comment -%} ===== DEFAULT (no style) ===== {%- endcomment -%}
+
+  {%- else -%}
+    <{{ heading_tag }} class="styled-heading styled-heading--{{ heading_align }} styled-heading--{{ heading_size }}" style="--heading-color: {{ heading_color }};">
+      <span class="styled-heading__text">{{ text }}</span>
+    </{{ heading_tag }}>
+
+{%- endcase -%}
+
+</div>
+
+<style>
+/* ========================================
+   STYLED HEADINGS - Base
+   ======================================== */
+.styled-heading-wrapper {
+  width: 100%;
+}
+.styled-heading-wrapper--left { text-align: left; }
+.styled-heading-wrapper--center { text-align: center; }
+.styled-heading-wrapper--right { text-align: right; }
+
+.styled-heading {
+  position: relative;
+  display: inline-block;
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Sizes */
+.styled-heading--sm { font-size: clamp(1rem, 2vw, 1.25rem); }
+.styled-heading--md { font-size: clamp(1.25rem, 3vw, 1.5rem); }
+.styled-heading--lg { font-size: clamp(1.5rem, 4vw, 2rem); }
+.styled-heading--xl { font-size: clamp(2rem, 5vw, 2.5rem); }
+.styled-heading--2xl { font-size: clamp(2.5rem, 6vw, 3.5rem); }
+.styled-heading--3xl { font-size: clamp(3rem, 8vw, 4.5rem); }
+
+/* ========================================
+   SIGNATURES - Common
+   ======================================== */
+.styled-heading--signature {
+  padding-bottom: 0.6em;
+}
+
+.styled-heading__decor {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--heading-color);
+}
+
+/* Signature 1 - Wavy handwritten */
+.styled-heading__signature-1 {
+  width: 90%;
+  max-width: 350px;
+  height: 0.5em;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+/* Signature 2 - Simple swoosh */
+.styled-heading__signature-2 {
+  width: 80%;
+  max-width: 300px;
+  height: 0.3em;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+/* Signature 3 - Double wave */
+.styled-heading__signature-3 {
+  width: 85%;
+  max-width: 320px;
+  height: 0.4em;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+/* Signature 4 - Scribble */
+.styled-heading__signature-4 {
+  width: 95%;
+  max-width: 380px;
+  height: 0.35em;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+/* Signature 5 - Elegant curve */
+.styled-heading__signature-5 {
+  width: 70%;
+  max-width: 280px;
+  height: 0.45em;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.styled-heading--signature.is-visible .styled-heading__decor {
+  animation: draw-line 1s ease forwards;
+}
+
+@keyframes draw-line {
+  to { stroke-dashoffset: 0; }
+}
+
+/* ========================================
+   UNDERLINES
+   ======================================== */
+.styled-heading--underline {
+  padding-bottom: 0.4em;
+}
+
+/* Underline 1 - Brush stroke */
+.styled-heading__underline-1 {
+  width: 100%;
+  height: 0.25em;
+  transform: translateX(-50%) scaleX(0);
+  transform-origin: center;
+}
+
+.styled-heading--underline.is-visible .styled-heading__underline-1 {
+  animation: scale-in 0.6s ease forwards;
+}
+
+/* Underline 2 - Thick line */
+.styled-heading__underline-2 {
+  display: block;
+  width: 60%;
+  max-width: 200px;
+  height: 4px;
+  background: var(--heading-color);
+  border-radius: 2px;
+  transform: translateX(-50%) scaleX(0);
+  transform-origin: center;
+}
+
+.styled-heading--underline.is-visible .styled-heading__underline-2 {
+  animation: scale-in 0.5s ease forwards;
+}
+
+/* Underline 3 - Marker highlight */
+.styled-heading__underline-3 {
+  width: 105%;
+  height: 0.5em;
+  bottom: 0.1em;
+  transform: translateX(-50%) scaleX(0);
+  transform-origin: left;
+}
+
+.styled-heading--underline.is-visible .styled-heading__underline-3 {
+  animation: scale-in-left 0.6s ease forwards;
+}
+
+@keyframes scale-in {
+  to { transform: translateX(-50%) scaleX(1); }
+}
+
+@keyframes scale-in-left {
+  to { transform: translateX(-50%) scaleX(1); }
+}
+
+/* ========================================
+   HIGHLIGHT Style
+   ======================================== */
+.styled-heading__highlighted {
+  position: relative;
+  display: inline;
+}
+
+.styled-heading__highlighted::before {
+  content: '';
+  position: absolute;
+  bottom: 0.05em;
+  left: -0.1em;
+  right: -0.1em;
+  height: 0.35em;
+  background: var(--heading-color);
+  opacity: 0.3;
+  z-index: -1;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s ease;
+}
+
+.styled-heading--highlight.is-visible .styled-heading__highlighted::before {
+  transform: scaleX(1);
+}
+
+/* ========================================
+   REFLECTION Style (Shiny text)
+   ======================================== */
+.styled-heading--reflection .styled-heading__text {
+  background: linear-gradient(
+    90deg,
+    var(--heading-color) 0%,
+    var(--heading-color) 40%,
+    #fff 50%,
+    var(--heading-color) 60%,
+    var(--heading-color) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.styled-heading--reflection.is-visible .styled-heading__text {
+  animation: shine-reflection 3s ease-in-out infinite;
+}
+
+@keyframes shine-reflection {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+/* ========================================
+   TYPING Animation
+   ======================================== */
+.styled-heading--typing .typing-wrapper {
+  display: inline;
+}
+
+.typing-content {
+  color: var(--heading-color);
+}
+
+.typing-cursor {
+  display: inline-block;
+  color: var(--heading-color);
+  animation: blink-cursor 0.7s infinite;
+  font-weight: 100;
+  margin-left: 2px;
+}
+
+@keyframes blink-cursor {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ========================================
+   Reduced Motion
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  .styled-heading__decor {
+    stroke-dashoffset: 0 !important;
+    transform: translateX(-50%) scaleX(1) !important;
+    animation: none !important;
+  }
+
+  .styled-heading__highlighted::before {
+    transform: scaleX(1);
+    transition: none;
+  }
+
+  .styled-heading--reflection .styled-heading__text {
+    animation: none;
+    background: var(--heading-color);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+
+  .typing-cursor {
+    animation: none;
+  }
+}
+</style>
+
+<script>
+(function() {
+  // Intersection Observer for heading animations
+  const headings = document.querySelectorAll('.styled-heading');
+
+  if (headings.length === 0) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+
+        // Start typing animation if applicable
+        if (entry.target.hasAttribute('data-typing')) {
+          startTypingAnimation(entry.target);
+        }
+
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  headings.forEach(heading => observer.observe(heading));
+
+  // Typing Animation
+  function startTypingAnimation(element) {
+    const texts = JSON.parse(element.dataset.typingTexts || '[]');
+    const speed = parseInt(element.dataset.typingSpeed) || 100;
+    const contentEl = element.querySelector('.typing-content');
+
+    if (!contentEl || texts.length === 0) return;
+
+    let textIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let pauseEnd = 0;
+
+    function type() {
+      const currentText = texts[textIndex].trim();
+      const now = Date.now();
+
+      if (now < pauseEnd) {
+        requestAnimationFrame(type);
+        return;
+      }
+
+      if (isDeleting) {
+        contentEl.textContent = currentText.substring(0, charIndex - 1);
+        charIndex--;
+
+        if (charIndex === 0) {
+          isDeleting = false;
+          textIndex = (textIndex + 1) % texts.length;
+          pauseEnd = now + 500;
+        }
+      } else {
+        contentEl.textContent = currentText.substring(0, charIndex + 1);
+        charIndex++;
+
+        if (charIndex === currentText.length) {
+          isDeleting = true;
+          pauseEnd = now + 2000;
+        }
+      }
+
+      const delay = isDeleting ? speed / 2 : speed;
+      setTimeout(() => requestAnimationFrame(type), delay);
+    }
+
+    type();
+  }
+})();
+</script>

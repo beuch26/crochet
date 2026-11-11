@@ -1,0 +1,89 @@
+{%- comment -%}
+  Customer Activate Account Template
+{%- endcomment -%}
+
+<div class="customer-activate section">
+  <div class="container">
+    <div class="customer-form-wrapper">
+
+      <header class="customer-header">
+        <h1>{{ 'customer.activate_account.title' | t }}</h1>
+        <p>{{ 'customer.activate_account.subtext' | t }}</p>
+      </header>
+
+      <div class="customer-form customer-form--centered">
+        {%- form 'activate_customer_password', novalidate: 'novalidate', class: 'form' -%}
+          {%- if form.errors -%}
+            <div class="form-errors">
+              <h3 class="form-errors__title">
+                {{ 'customer.activate_account.error' | t }}
+              </h3>
+              <ul class="form-errors__list">
+                {%- for field in form.errors -%}
+                  <li>
+                    {%- if field == 'form' -%}
+                      {{ form.errors.messages[field] }}
+                    {%- else -%}
+                      {{ form.errors.translated_fields[field] | capitalize }}
+                      {{ form.errors.messages[field] }}
+                    {%- endif -%}
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </div>
+          {%- endif -%}
+
+          <div class="form-group">
+            <label for="activate-password">
+              {{ 'customer.activate_account.password' | t }} <span class="required">*</span>
+            </label>
+            <input
+              type="password"
+              name="customer[password]"
+              id="activate-password"
+              autocomplete="new-password"
+              required
+              {%- if form.errors contains 'password' %}aria-invalid="true"{% endif %}
+            >
+            <p class="form-help">
+              {{ 'customer.activate_account.password_help' | t | default: 'Must be at least 5 characters' }}
+            </p>
+          </div>
+
+          <div class="form-group">
+            <label for="activate-password-confirmation">
+              {{ 'customer.activate_account.password_confirm' | t }} <span class="required">*</span>
+            </label>
+            <input
+              type="password"
+              name="customer[password_confirmation]"
+              id="activate-password-confirmation"
+              autocomplete="new-password"
+              required
+              {%- if form.errors contains 'password_confirmation' %}aria-invalid="true"{% endif %}
+            >
+          </div>
+
+          <button type="submit" class="btn btn--primary btn--full btn--large">
+            {{ 'customer.activate_account.submit' | t }}
+          </button>
+
+          <div class="form-footer">
+            <p>
+              {{ 'customer.activate_account.cancel' | t }}
+              <a href="{{ routes.account_login_url }}">{{ 'customer.activate_account.sign_in' | t }}</a>
+            </p>
+          </div>
+        {%- endform -%}
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+.customer-activate {
+  padding: var(--spacing-2xl) 0;
+  min-height: 60vh;
+}
+</style>

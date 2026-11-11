@@ -1,0 +1,334 @@
+{%- comment -%}
+  Animated Banner Section
+  Banner with Lottie animations support
+
+  Usage: Add via Theme Editor
+{%- endcomment -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign heading = section.settings.heading
+  assign subheading = section.settings.subheading
+  assign button_text = section.settings.button_text
+  assign button_url = section.settings.button_url
+  assign background_color = section.settings.background_color
+  assign text_color = section.settings.text_color
+  assign text_alignment = section.settings.text_alignment | default: 'center'
+  assign layout = section.settings.layout | default: 'animation-right'
+  assign animation_src = section.settings.animation_url
+  assign animation_width = section.settings.animation_width | default: '300px'
+  assign animation_trigger = section.settings.animation_trigger | default: 'scroll'
+-%}
+
+<section
+  class="animated-banner animated-banner--{{ layout }} animated-banner--{{ text_alignment }}"
+  id="animated-banner-{{ section_id }}"
+  style="--banner-bg: {{ background_color }}; --banner-color: {{ text_color }};"
+>
+  <div class="container">
+    <div class="animated-banner__wrapper">
+      <div class="animated-banner__content">
+        {%- if heading != blank -%}
+          {%- if section.settings.enable_heading_style -%}
+            {%- render 'heading-styles',
+              text: heading,
+              tag: 'h2',
+              style: section.settings.heading_style,
+              color: section.settings.heading_style_color,
+              align: 'center',
+              size: 'xl',
+              typing_texts: section.settings.typing_texts
+            -%}
+          {%- else -%}
+            <h2 class="animated-banner__heading">{{ heading }}</h2>
+          {%- endif -%}
+        {%- endif -%}
+
+        {%- if subheading != blank -%}
+          <p class="animated-banner__subheading">{{ subheading }}</p>
+        {%- endif -%}
+
+        {%- if button_text != blank and button_url != blank -%}
+          <a href="{{ button_url }}" class="animated-banner__button btn btn--primary">
+            {{ button_text }}
+          </a>
+        {%- endif -%}
+      </div>
+
+      {%- if animation_src != blank -%}
+        <div class="animated-banner__animation">
+          {%- render 'lottie-animation',
+            src: animation_src,
+            width: animation_width,
+            height: 'auto',
+            trigger: animation_trigger,
+            autoplay: true,
+            loop: true
+          -%}
+        </div>
+      {%- elsif section.settings.image != blank -%}
+        <div class="animated-banner__image">
+          <img
+            src="{{ section.settings.image | image_url: width: 600 }}"
+            alt="{{ section.settings.image.alt | default: heading }}"
+            width="{{ section.settings.image.width }}"
+            height="{{ section.settings.image.height }}"
+            loading="lazy"
+          >
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+<style>
+  .animated-banner {
+    background-color: var(--banner-bg);
+    color: var(--banner-color);
+    padding: var(--spacing-2xl) 0;
+  }
+
+  .animated-banner__wrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xl);
+  }
+
+  .animated-banner--animation-left .animated-banner__animation,
+  .animated-banner--animation-left .animated-banner__image {
+    order: -1;
+  }
+
+  .animated-banner--animation-right .animated-banner__content {
+    order: -1;
+  }
+
+  .animated-banner--center {
+    text-align: center;
+  }
+
+  .animated-banner--center .animated-banner__wrapper {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .animated-banner__content {
+    flex: 1;
+    max-width: 600px;
+  }
+
+  .animated-banner--center .animated-banner__content {
+    max-width: 800px;
+  }
+
+  .animated-banner__heading {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 700;
+    margin-bottom: var(--spacing-sm);
+    line-height: 1.2;
+  }
+
+  .animated-banner__subheading {
+    font-size: clamp(1rem, 2vw, 1.125rem);
+    opacity: 0.9;
+    margin-bottom: var(--spacing-md);
+    line-height: 1.6;
+  }
+
+  .animated-banner__button {
+    display: inline-flex;
+    background-color: var(--banner-color);
+    color: var(--banner-bg);
+  }
+
+  .animated-banner__button:hover {
+    opacity: 0.9;
+  }
+
+  .animated-banner__animation,
+  .animated-banner__image {
+    flex: 0 0 auto;
+    max-width: 50%;
+  }
+
+  .animated-banner--center .animated-banner__animation,
+  .animated-banner--center .animated-banner__image {
+    max-width: 400px;
+  }
+
+  .animated-banner__image img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  @media (max-width: 767px) {
+    .animated-banner__wrapper {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .animated-banner--animation-left .animated-banner__animation,
+    .animated-banner--animation-left .animated-banner__image {
+      order: 0;
+    }
+
+    .animated-banner__animation,
+    .animated-banner__image {
+      max-width: 280px;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Bannière Animée",
+  "tag": "section",
+  "class": "section-animated-banner",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre",
+      "default": "Offre Spéciale"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Sous-titre",
+      "default": "Obtenez 20% de réduction sur votre première commande en vous inscrivant à notre newsletter"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Texte du bouton",
+      "default": "Acheter maintenant"
+    },
+    {
+      "type": "url",
+      "id": "button_url",
+      "label": "Lien du bouton"
+    },
+    {
+      "type": "header",
+      "content": "Animation"
+    },
+    {
+      "type": "text",
+      "id": "animation_url",
+      "label": "URL de l'animation Lottie",
+      "info": "URL vers un fichier JSON Lottie (ex: depuis LottieFiles.com)"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image de secours",
+      "info": "Utilisée si aucune URL d'animation n'est fournie"
+    },
+    {
+      "type": "text",
+      "id": "animation_width",
+      "label": "Largeur de l'animation",
+      "default": "300px"
+    },
+    {
+      "type": "select",
+      "id": "animation_trigger",
+      "label": "Déclencheur de l'animation",
+      "options": [
+        { "value": "load", "label": "Au chargement de la page" },
+        { "value": "scroll", "label": "Quand visible" },
+        { "value": "hover", "label": "Au survol" }
+      ],
+      "default": "scroll"
+    },
+    {
+      "type": "header",
+      "content": "Disposition"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Position de l'animation",
+      "options": [
+        { "value": "animation-left", "label": "Gauche" },
+        { "value": "animation-right", "label": "Droite" },
+        { "value": "center", "label": "Centre (empilé)" }
+      ],
+      "default": "animation-right"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Alignement du texte",
+      "options": [
+        { "value": "left", "label": "Gauche" },
+        { "value": "center", "label": "Centre" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "header",
+      "content": "Couleurs"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Couleur de fond",
+      "default": "#f5f5f5"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Couleur du texte",
+      "default": "#1a1a1a"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Bannière Animée"
+    }
+  ]
+}
+{% endschema %}

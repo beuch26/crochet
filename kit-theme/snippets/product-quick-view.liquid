@@ -1,0 +1,440 @@
+{%- comment -%}
+  Product Quick View Modal
+  Shows product details in a modal without leaving the page
+  Usage: Add data-quick-view="{{ product.handle }}" to any button
+{%- endcomment -%}
+
+<div class="quick-view-modal" data-quick-view-modal style="display:none;">
+  <div class="quick-view-modal__overlay" data-quick-view-close></div>
+
+  <div class="quick-view-modal__container">
+    <button type="button" class="quick-view-modal__close" data-quick-view-close aria-label="{{ 'general.accessibility.close' | t }}">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="quick-view-modal__content" data-quick-view-content>
+      <div class="quick-view-loading">
+        <div class="spinner"></div>
+        <p>{{ 'products.quick_view.loading' | t | default: 'Loading...' }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.quick-view-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.quick-view-modal__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.8);
+  cursor: pointer;
+}
+
+.quick-view-modal__container {
+  position: relative;
+  width: 90%;
+  max-width: 1000px;
+  max-height: 90vh;
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.quick-view-modal__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 48px;
+  height: 48px;
+  background-color: rgba(255,255,255,0.9);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all var(--transition-speed);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.quick-view-modal__close:hover {
+  background-color: var(--color-primary);
+  color: white;
+  transform: rotate(90deg);
+}
+
+.quick-view-modal__content {
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: var(--spacing-xl);
+}
+
+.quick-view-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: var(--spacing-md);
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Quick View Product Layout */
+.quick-view-product {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-2xl);
+}
+
+@media (min-width: 768px) {
+  .quick-view-product {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.quick-view-product__gallery {
+  position: relative;
+}
+
+.quick-view-product__image {
+  width: 100%;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background-color: var(--color-background-light);
+  margin-bottom: var(--spacing-md);
+}
+
+.quick-view-product__image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.quick-view-product__thumbnails {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.quick-view-product__thumbnail {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color var(--transition-speed);
+}
+
+.quick-view-product__thumbnail:hover,
+.quick-view-product__thumbnail.active {
+  border-color: var(--color-primary);
+}
+
+.quick-view-product__thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.quick-view-product__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.quick-view-product__vendor {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-light);
+}
+
+.quick-view-product__title {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.quick-view-product__price {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.quick-view-product__price--compare {
+  text-decoration: line-through;
+  color: var(--color-text-light);
+  font-size: 1.25rem;
+  font-weight: 400;
+}
+
+.quick-view-product__price--current.on-sale {
+  color: var(--color-error);
+}
+
+.quick-view-product__description {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--color-text-light);
+}
+
+.quick-view-product__actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: auto;
+}
+
+.quick-view-product__view-full {
+  text-align: center;
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.quick-view-product__view-full a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quick-view-product__view-full a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 767px) {
+  .quick-view-modal__container {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    border-radius: 0;
+  }
+
+  .quick-view-modal__content {
+    max-height: 100vh;
+  }
+}
+</style>
+
+<script>
+(function() {
+  // Quick View functionality
+  const modal = document.querySelector('[data-quick-view-modal]');
+  const modalContent = document.querySelector('[data-quick-view-content]');
+  const closeButtons = document.querySelectorAll('[data-quick-view-close]');
+
+  // Open quick view
+  document.addEventListener('click', (e) => {
+    const trigger = e.target.closest('[data-quick-view]');
+    if (!trigger) return;
+
+    e.preventDefault();
+    const productHandle = trigger.dataset.quickView;
+    openQuickView(productHandle);
+  });
+
+  // Close quick view
+  closeButtons.forEach(button => {
+    button.addEventListener('click', closeQuickView);
+  });
+
+  // Close on escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.style.display !== 'none') {
+      closeQuickView();
+    }
+  });
+
+  function openQuickView(productHandle) {
+    if (!modal || !modalContent) return;
+
+    // Show modal with loading state
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    // Fetch product data
+    fetch(`/products/${productHandle}?view=quick-view`)
+      .then(response => response.text())
+      .then(html => {
+        // If the view doesn't exist, fetch the regular product page
+        if (html.includes('quick-view')) {
+          modalContent.innerHTML = html;
+        } else {
+          // Parse the HTML and extract product info
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const productData = extractProductData(doc, productHandle);
+          modalContent.innerHTML = renderQuickView(productData);
+        }
+
+        // Initialize product form functionality
+        initializeQuickViewProduct();
+      })
+      .catch(error => {
+        console.error('Error loading product:', error);
+        modalContent.innerHTML = `
+          <div class="quick-view-error">
+            <p>{{ 'products.quick_view.error' | t | default: 'Unable to load product' }}</p>
+          </div>
+        `;
+      });
+  }
+
+  function closeQuickView() {
+    if (!modal) return;
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  function extractProductData(doc, handle) {
+    // Extract product information from the page
+    const title = doc.querySelector('h1')?.textContent || '';
+    const price = doc.querySelector('[data-product-price]')?.textContent || '';
+    const images = Array.from(doc.querySelectorAll('[data-product-main-image], .product-images img'))
+      .map(img => img.src)
+      .filter(src => src);
+    const description = doc.querySelector('.product-description, [data-product-description]')?.textContent || '';
+
+    return {
+      handle,
+      title,
+      price,
+      images: images.slice(0, 5),
+      description: description.substring(0, 200) + '...'
+    };
+  }
+
+  function renderQuickView(product) {
+    const imagesHTML = product.images.length > 0
+      ? `<div class="quick-view-product__image">
+          <img src="${product.images[0]}" alt="${product.title}">
+        </div>
+        ${product.images.length > 1 ? `
+          <div class="quick-view-product__thumbnails">
+            ${product.images.map((img, i) => `
+              <div class="quick-view-product__thumbnail ${i === 0 ? 'active' : ''}" data-thumbnail="${i}">
+                <img src="${img}" alt="${product.title}">
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}`
+      : '';
+
+    return `
+      <div class="quick-view-product">
+        <div class="quick-view-product__gallery">
+          ${imagesHTML}
+        </div>
+        <div class="quick-view-product__info">
+          <h2 class="quick-view-product__title">${product.title}</h2>
+          <div class="quick-view-product__price">
+            <span class="quick-view-product__price--current">${product.price}</span>
+          </div>
+          <div class="quick-view-product__description">
+            ${product.description}
+          </div>
+          <div class="quick-view-product__view-full">
+            <a href="/products/${product.handle}">
+              {{ 'products.quick_view.view_full' | t | default: 'View Full Details' }}
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function initializeQuickViewProduct() {
+    // Thumbnail clicks
+    const thumbnails = modalContent.querySelectorAll('[data-thumbnail]');
+    const mainImage = modalContent.querySelector('.quick-view-product__image img');
+
+    thumbnails.forEach((thumbnail, index) => {
+      thumbnail.addEventListener('click', () => {
+        const img = thumbnail.querySelector('img');
+        if (mainImage && img) {
+          mainImage.src = img.src;
+          thumbnails.forEach(t => t.classList.remove('active'));
+          thumbnail.classList.add('active');
+        }
+      });
+    });
+
+    // Add to cart functionality if product form exists
+    const addToCartButton = modalContent.querySelector('[data-add-to-cart]');
+    if (addToCartButton) {
+      addToCartButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Use existing cart functionality from theme.js
+        if (window.Cart && window.Cart.addToCart) {
+          window.Cart.addToCart(e);
+        }
+      });
+    }
+  }
+
+  // Export for use by other scripts
+  window.QuickView = {
+    open: openQuickView,
+    close: closeQuickView
+  };
+})();
+</script>

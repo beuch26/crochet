@@ -1,0 +1,100 @@
+[
+  {
+    "id": "sec_hero",
+    "type": "hero",
+    "props": {
+      "badge": "Livraison gratuite dès 50€",
+      "title": "Apprenez le <span class=\"text-primary\">crochet</span> facilement",
+      "variant": "split-right",
+      "subtitle": "Nos kits tout-en-un pour débutants incluent le matériel, le fil de qualité et un guide pas à pas. Créez vos premières pièces avec confiance.",
+      "image_url": "/images/hero/hero-crochet.png",
+      "cta_primary": { "url": "/collections/kits-de-crochet/", "text": "Découvrir les kits" },
+      "cta_secondary": { "url": "/blog/", "text": "Voir les tutoriels" }
+    },
+    "visible": true
+  },
+  {
+    "id": "sec_categories",
+    "type": "collection_bubbles",
+    "props": { "limit": 12, "title": "Nos univers" },
+    "visible": true
+  },
+  {
+    "id": "sec_featured_products",
+    "type": "featured_products",
+    "props": {
+      "limit": 8,
+      "title": "Nos kits les plus vendus",
+      "cta_url": "/collections/kits-de-crochet/",
+      "cta_text": "Voir tout",
+      "subtitle": "Sélectionnés pour vos premières créations"
+    },
+    "visible": true
+  },
+  {
+    "id": "sec_trust_bar",
+    "type": "trust_bar",
+    "props": {
+      "items": [
+        { "icon": "truck", "title": "Livraison 24-48h", "subtitle": "Gratuite dès 50€" },
+        { "icon": "card", "title": "Paiement sécurisé", "subtitle": "Stripe · 3D Secure" },
+        { "icon": "return", "title": "Retour offert", "subtitle": "30 jours satisfait" },
+        { "icon": "headset", "title": "Conseil expert", "subtitle": "Réponse sous 24h" }
+      ]
+    },
+    "visible": true
+  },
+  {
+    "id": "sec_marquee",
+    "type": "ticker_marquee",
+    "props": {
+      "items": ["Kit tout-en-un", "Guide vidéo offert", "Fil de qualité", "Pour débutants"]
+    },
+    "visible": true
+  },
+  {
+    "id": "sec_features",
+    "type": "features",
+    "props": {},
+    "visible": true
+  },
+  {
+    "id": "sec_guarantee",
+    "type": "guarantee_banner",
+    "props": {
+      "title": "Satisfaction garantie",
+      "text": "Chez Magic Crochet Kit, nous sélectionnons chaque produit avec soin. Si votre kit ne correspond pas à vos attentes, nous vous remboursons sous 30 jours, sans condition.",
+      "ctaText": "En savoir plus",
+      "ctaLink": "/livraison/"
+    },
+    "visible": true
+  },
+  {
+    "id": "sec_testimonials",
+    "type": "testimonials",
+    "props": {
+      "title": "Ce que disent nos clients",
+      "subtitle": "Des milliers de créations réalisées grâce à nos kits"
+    },
+    "visible": true
+  },
+  {
+    "id": "sec_blog_preview",
+    "type": "blog_preview",
+    "props": {
+      "limit": 3,
+      "title": "Tutoriels & astuces",
+      "subtitle": "Apprenez de nouvelles techniques avec nos guides"
+    },
+    "visible": true
+  },
+  {
+    "id": "sec_newsletter",
+    "type": "newsletter",
+    "props": {
+      "title": "Rejoignez la communauté Magic Crochet Kit",
+      "subtitle": "Nouveaux kits, tutos exclusifs et offres réservées à nos abonnés."
+    },
+    "visible": true
+  }
+]

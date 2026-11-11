@@ -1,0 +1,95 @@
+---
+interface Props {
+  title?: string
+  subtitle?: string
+  videoUrl?: string
+  videoId?: string
+  provider?: 'youtube' | 'vimeo'
+  aspectRatio?: string
+  autoplay?: boolean
+}
+
+const {
+  title = '',
+  subtitle = '',
+  videoUrl = '',
+  videoId = '',
+  provider = 'youtube',
+  aspectRatio = '16/9',
+  autoplay = false,
+} = Astro.props
+
+// Extract video ID from URL if not provided directly
+let vid = videoId
+if (!vid && videoUrl) {
+  if (videoUrl.includes('youtube.com/watch')) {
+    vid = new URL(videoUrl).searchParams.get('v') || ''
+  } else if (videoUrl.includes('youtu.be/')) {
+    vid = videoUrl.split('youtu.be/')[1]?.split('?')[0] || ''
+  } else if (videoUrl.includes('vimeo.com/')) {
+    vid = videoUrl.split('vimeo.com/')[1]?.split('?')[0] || ''
+  }
+}
+
+const embedUrl = provider === 'youtube'
+  ? `https://www.youtube-nocookie.com/embed/${vid}?rel=0${autoplay ? '&autoplay=1&mute=1' : ''}`
+  : `https://player.vimeo.com/video/${vid}?dnt=1${autoplay ? '&autoplay=1&muted=1' : ''}`
+---
+
+{vid && (
+  <section class="py-16 lg:py-20 reveal">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {(title || subtitle) && (
+        <div class="text-center mb-10 max-w-2xl mx-auto">
+          {title && <h2>{title}</h2>}
+          {subtitle && <p class="mt-3 text-text-light text-lg">{subtitle}</p>}
+        </div>
+      )}
+
+      <div class="relative rounded-2xl overflow-hidden shadow-xl border border-border-light bg-black group" id="video-container">
+        <!-- Play overlay (loads iframe on click for performance) -->
+        <div id="video-poster" class="absolute inset-0 z-10 cursor-pointer flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10" style={`aspect-ratio: ${aspectRatio}`}>
+          {provider === 'youtube' && (
+            <img
+              src={`https://img.youtube.com/vi/${vid}/maxresdefault.jpg`}
+              alt={title || 'Vidéo'}
+              loading="lazy"
+              class="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
+          <div class="relative z-10 w-20 h-20 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-8 h-8 text-primary ml-1" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </div>
+        </div>
+
+        <div id="video-frame" class="hidden" style={`aspect-ratio: ${aspectRatio}`}>
+          <iframe
+            data-src={embedUrl}
+            class="w-full h-full"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+            loading="lazy"
+            title={title || 'Vidéo'}
+          ></iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+)}
+
+<script>
+  const poster = document.getElementById('video-poster')
+  const frame = document.getElementById('video-frame')
+  poster?.addEventListener('click', () => {
+    const iframe = frame?.querySelector('iframe')
+    if (iframe) {
+      const src = iframe.dataset.src
+      if (src) iframe.src = src + (src.includes('?') ? '&' : '?') + 'autoplay=1'
+    }
+    poster.classList.add('hidden')
+    frame?.classList.remove('hidden')
+  })
+</script>

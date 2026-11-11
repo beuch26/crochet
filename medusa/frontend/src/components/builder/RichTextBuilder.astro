@@ -1,0 +1,44 @@
+---
+import { normalizeInternalHrefsInHTML } from '../../lib/url'
+
+interface Props {
+  alignment?: 'left' | 'center' | 'right'
+  max_width?: 'narrow' | 'medium' | 'wide' | 'full'
+  content?: string
+  background_color?: string
+  padding_y?: 'small' | 'medium' | 'large'
+}
+
+const {
+  alignment = 'center',
+  max_width = 'medium',
+  content = '',
+  background_color = '#ffffff',
+  padding_y = 'medium',
+} = Astro.props
+
+const widthClass = {
+  narrow: 'max-w-2xl',
+  medium: 'max-w-4xl',
+  wide: 'max-w-6xl',
+  full: 'max-w-full',
+}[max_width]
+
+const paddingClass = {
+  small: 'py-8 lg:py-12',
+  medium: 'py-16 lg:py-20',
+  large: 'py-24 lg:py-32',
+}[padding_y]
+
+const alignClass = {
+  left: 'text-left',
+  center: 'text-center',
+  right: 'text-right',
+}[alignment]
+---
+
+<section class={`${paddingClass} reveal`} style={`background-color:${background_color}`}>
+  <div class={`${widthClass} mx-auto px-4 sm:px-6 lg:px-8`}>
+    <div class={`prose ${alignClass} max-w-none`} set:html={normalizeInternalHrefsInHTML(content)} />
+  </div>
+</section>

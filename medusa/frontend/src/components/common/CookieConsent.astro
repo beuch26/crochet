@@ -1,0 +1,255 @@
+---
+// RGPD Cookie Consent — Consent Mode V2
+---
+
+<!-- Cookie banner -->
+<div id="cookie-banner" class="fixed bottom-0 left-0 right-0 z-[80] p-4 hidden" role="dialog" aria-label="Gestion des cookies">
+  <div class="max-w-3xl mx-auto bg-gray-950 text-white rounded-2xl shadow-2xl overflow-hidden">
+    <!-- Main view -->
+    <div id="cookie-main" class="p-6">
+      <div class="flex items-start gap-3 mb-4">
+        <svg class="w-6 h-6 text-primary shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        <div>
+          <p class="text-base font-semibold mb-1">Nous respectons votre vie privee</p>
+          <p class="text-sm text-gray-300 leading-relaxed">
+            Nous utilisons des cookies pour ameliorer votre experience, analyser le trafic et personnaliser le contenu.
+            Vous pouvez accepter tous les cookies, les refuser ou personnaliser vos choix.
+            <a href="/politique-de-confidentialite/" class="underline underline-offset-2 hover:text-primary-light">Politique de confidentialite</a>
+          </p>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <button id="cookie-accept-all" type="button" class="px-6 py-2.5 bg-primary text-white text-sm font-semibold rounded-full hover:bg-primary-hover transition-colors">
+          Tout accepter
+        </button>
+        <button id="cookie-reject-all" type="button" class="px-6 py-2.5 border border-gray-600 text-white text-sm font-medium rounded-full hover:bg-white/10 transition-colors">
+          Tout refuser
+        </button>
+        <button id="cookie-customize" type="button" class="px-6 py-2.5 text-sm text-gray-400 hover:text-white transition-colors underline underline-offset-2">
+          Personnaliser
+        </button>
+      </div>
+    </div>
+
+    <!-- Customize view -->
+    <div id="cookie-settings" class="hidden">
+      <div class="px-6 pt-5 pb-3 border-b border-gray-800">
+        <p class="text-base font-semibold">Parametres des cookies</p>
+        <p class="text-xs text-gray-400 mt-1">Gerez vos preferences de cookies. Les cookies necessaires ne peuvent pas etre desactives.</p>
+      </div>
+      <div class="px-6 py-4 space-y-4">
+        <!-- Necessary -->
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-sm font-medium text-white">Cookies necessaires</p>
+            <p class="text-xs text-gray-400 mt-0.5">Indispensables au fonctionnement du site (panier, session, securite). Toujours actifs.</p>
+          </div>
+          <div class="shrink-0 mt-1">
+            <div class="w-10 h-5 bg-primary rounded-full relative cursor-not-allowed opacity-60">
+              <div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Analytics -->
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-sm font-medium text-white">Cookies analytiques</p>
+            <p class="text-xs text-gray-400 mt-0.5">Nous aident a comprendre comment vous utilisez le site (Google Analytics, etc.).</p>
+          </div>
+          <label class="shrink-0 mt-1 cursor-pointer">
+            <input type="checkbox" id="consent-analytics" class="sr-only peer" />
+            <div class="w-10 h-5 bg-gray-700 rounded-full peer-checked:bg-primary relative transition-colors">
+              <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full peer-checked:left-auto peer-checked:right-0.5 transition-all"></div>
+            </div>
+          </label>
+        </div>
+        <!-- Marketing -->
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-sm font-medium text-white">Cookies marketing</p>
+            <p class="text-xs text-gray-400 mt-0.5">Utilises pour le suivi publicitaire et le reciblage (Meta Pixel, etc.).</p>
+          </div>
+          <label class="shrink-0 mt-1 cursor-pointer">
+            <input type="checkbox" id="consent-marketing" class="sr-only peer" />
+            <div class="w-10 h-5 bg-gray-700 rounded-full peer-checked:bg-primary relative transition-colors">
+              <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full peer-checked:left-auto peer-checked:right-0.5 transition-all"></div>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div class="px-6 pb-5 flex items-center gap-3">
+        <button id="cookie-save" type="button" class="px-6 py-2.5 bg-primary text-white text-sm font-semibold rounded-full hover:bg-primary-hover transition-colors">
+          Enregistrer mes choix
+        </button>
+        <button id="cookie-back" type="button" class="px-6 py-2.5 text-sm text-gray-400 hover:text-white transition-colors">
+          Retour
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Small "manage cookies" button (after consent given) -->
+<button id="cookie-manage-btn" type="button" class="fixed bottom-4 left-4 z-[40] w-10 h-10 bg-gray-900/80 backdrop-blur text-white rounded-full shadow-lg items-center justify-center hover:bg-gray-800 transition-colors hidden" aria-label="Gerer les cookies" title="Gerer les cookies">
+  <svg class="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+</button>
+
+<script>
+  // ============================================================
+  // RGPD Cookie Consent with Google Consent Mode V2
+  // ============================================================
+
+  interface ConsentState {
+    necessary: boolean
+    analytics: boolean
+    marketing: boolean
+    timestamp: string
+  }
+
+  const CONSENT_KEY = 'mck_consent'
+  const banner = document.getElementById('cookie-banner')!
+  const mainView = document.getElementById('cookie-main')!
+  const settingsView = document.getElementById('cookie-settings')!
+  const manageBtn = document.getElementById('cookie-manage-btn')!
+
+  // Toggle elements for customization
+  const analyticsToggle = document.getElementById('consent-analytics') as HTMLInputElement
+  const marketingToggle = document.getElementById('consent-marketing') as HTMLInputElement
+
+  // -----------------------------------------------------------
+  // Read stored consent
+  // -----------------------------------------------------------
+  function getStoredConsent(): ConsentState | null {
+    try {
+      const raw = localStorage.getItem(CONSENT_KEY)
+      return raw ? JSON.parse(raw) : null
+    } catch {
+      return null
+    }
+  }
+
+  // -----------------------------------------------------------
+  // Apply Google Consent Mode V2 + load/block scripts
+  // -----------------------------------------------------------
+  function applyConsent(consent: ConsentState) {
+    // 1. Google Consent Mode V2 — update
+    if (typeof window.gtag === 'function') {
+      window.gtag('consent', 'update', {
+        analytics_storage: consent.analytics ? 'granted' : 'denied',
+        ad_storage: consent.marketing ? 'granted' : 'denied',
+        ad_user_data: consent.marketing ? 'granted' : 'denied',
+        ad_personalization: consent.marketing ? 'granted' : 'denied',
+        functionality_storage: 'granted',
+        security_storage: 'granted',
+      })
+    }
+
+    // 2. Load GA4 if analytics granted
+    if (consent.analytics) {
+      const ga4Id = document.querySelector('meta[name="ga4-id"]')?.getAttribute('content')
+      if (ga4Id && !document.querySelector(`script[src*="${ga4Id}"]`)) {
+        const s = document.createElement('script')
+        s.async = true
+        s.src = `https://www.googletagmanager.com/gtag/js?id=${ga4Id}`
+        document.head.appendChild(s)
+        window.gtag('config', ga4Id)
+      }
+    }
+
+    // 3. Load Meta Pixel if marketing granted
+    if (consent.marketing) {
+      const pixelId = document.querySelector('meta[name="meta-pixel-id"]')?.getAttribute('content')
+      if (pixelId && !(window as any).fbq) {
+        ;(function(f: any,b: any,e: any,v: any) {
+          const n: any = f.fbq = function(){ n.callMethod ? n.callMethod.apply(n,arguments) : n.queue.push(arguments) }
+          if(!f._fbq) f._fbq = n; n.push=n; n.loaded=!0; n.version='2.0'; n.queue=[]
+          const t = b.createElement(e); t.async=!0; t.src=v
+          const s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t,s)
+        })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js')
+        ;(window as any).fbq('init', pixelId)
+        ;(window as any).fbq('track', 'PageView')
+      }
+    }
+
+    // 4. Set cookie for server-side (expires in 13 months — CNIL max)
+    const maxAge = 60 * 60 * 24 * 395
+    document.cookie = `mck_consent=${encodeURIComponent(JSON.stringify(consent))};path=/;max-age=${maxAge};SameSite=Lax`
+  }
+
+  // -----------------------------------------------------------
+  // Save consent
+  // -----------------------------------------------------------
+  function saveConsent(analytics: boolean, marketing: boolean) {
+    const consent: ConsentState = {
+      necessary: true,
+      analytics,
+      marketing,
+      timestamp: new Date().toISOString(),
+    }
+    localStorage.setItem(CONSENT_KEY, JSON.stringify(consent))
+    applyConsent(consent)
+    banner.classList.add('hidden')
+    manageBtn.classList.remove('hidden')
+    manageBtn.classList.add('flex')
+  }
+
+  // -----------------------------------------------------------
+  // Init: check for existing consent
+  // -----------------------------------------------------------
+  const stored = getStoredConsent()
+
+  if (stored) {
+    // Consent already given — apply and show manage button
+    applyConsent(stored)
+    manageBtn.classList.remove('hidden')
+    manageBtn.classList.add('flex')
+  } else {
+    // No consent yet — show banner after 1.5s
+    setTimeout(() => banner.classList.remove('hidden'), 1500)
+  }
+
+  // -----------------------------------------------------------
+  // Button handlers
+  // -----------------------------------------------------------
+  document.getElementById('cookie-accept-all')?.addEventListener('click', () => {
+    saveConsent(true, true)
+  })
+
+  document.getElementById('cookie-reject-all')?.addEventListener('click', () => {
+    saveConsent(false, false)
+  })
+
+  document.getElementById('cookie-customize')?.addEventListener('click', () => {
+    mainView.classList.add('hidden')
+    settingsView.classList.remove('hidden')
+    // Pre-fill toggles from stored values
+    const s = getStoredConsent()
+    analyticsToggle.checked = s?.analytics ?? false
+    marketingToggle.checked = s?.marketing ?? false
+  })
+
+  document.getElementById('cookie-back')?.addEventListener('click', () => {
+    settingsView.classList.add('hidden')
+    mainView.classList.remove('hidden')
+  })
+
+  document.getElementById('cookie-save')?.addEventListener('click', () => {
+    saveConsent(analyticsToggle.checked, marketingToggle.checked)
+  })
+
+  // Manage button (reopen banner)
+  manageBtn.addEventListener('click', () => {
+    manageBtn.classList.add('hidden')
+    mainView.classList.remove('hidden')
+    settingsView.classList.add('hidden')
+    banner.classList.remove('hidden')
+  })
+
+  // TypeScript: declare gtag on window
+  declare global {
+    interface Window {
+      gtag: (...args: any[]) => void
+      dataLayer: any[]
+    }
+  }
+</script>

@@ -1,0 +1,288 @@
+{%- comment -%}
+  Recently Viewed Products Section
+  Shows products user has viewed in current session
+  Uses localStorage to track views
+{%- endcomment -%}
+
+<div class="recently-viewed section" data-recently-viewed>
+  <div class="container">
+    <header class="section-header text-center">
+      {%- assign title_text = section.settings.title | default: 'Recently Viewed' -%}
+      {%- if section.settings.enable_heading_style -%}
+        {%- render 'heading-styles',
+          text: title_text,
+          tag: 'h2',
+          style: section.settings.heading_style,
+          color: section.settings.heading_style_color,
+          align: 'center',
+          size: 'xl',
+          typing_texts: section.settings.typing_texts
+        -%}
+      {%- else -%}
+        <h2 class="section-title">{{ title_text }}</h2>
+      {%- endif -%}
+    </header>
+
+    <div class="recently-viewed__grid" data-recently-viewed-grid style="display:none;">
+      {%- comment -%} Products will be inserted here by JavaScript {%- endcomment -%}
+    </div>
+
+    <div class="recently-viewed__empty" data-recently-viewed-empty>
+      <p>{{ 'products.recently_viewed.empty' | t | default: 'No recently viewed products' }}</p>
+    </div>
+  </div>
+</div>
+
+<style>
+.recently-viewed {
+  padding: var(--spacing-2xl) 0;
+  display: none; /* Hidden by default, shown by JS when there are products */
+}
+
+.recently-viewed.has-products {
+  display: block;
+}
+
+.recently-viewed__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.recently-viewed__empty {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--color-text-light);
+}
+</style>
+
+<script>
+(function() {
+  const STORAGE_KEY = 'recently_viewed_products';
+  const MAX_PRODUCTS = {{ section.settings.max_products | default: 8 }};
+
+  const RecentlyViewed = {
+    init() {
+      // Only track on product pages
+      if (document.body.classList.contains('template-product')) {
+        this.trackCurrentProduct();
+      }
+
+      // Render recently viewed on any page
+      this.render();
+    },
+
+    trackCurrentProduct() {
+      // Get current product data
+      const productData = this.getCurrentProductData();
+      if (!productData) return;
+
+      // Get existing products
+      let products = this.getProducts();
+
+      // Remove if already exists (to move to front)
+      products = products.filter(p => p.id !== productData.id);
+
+      // Add to front
+      products.unshift(productData);
+
+      // Limit to MAX_PRODUCTS
+      products = products.slice(0, MAX_PRODUCTS);
+
+      // Save
+      this.saveProducts(products);
+    },
+
+    getCurrentProductData() {
+      // Try to get product JSON from script tag
+      const productJson = document.querySelector('[data-product-json]');
+      if (productJson) {
+        try {
+          const product = JSON.parse(productJson.textContent);
+          return {
+            id: product.id,
+            handle: product.handle,
+            title: product.title,
+            url: product.url || `/products/${product.handle}`,
+            image: product.featured_image || (product.images && product.images[0]),
+            price: product.price,
+            compare_at_price: product.compare_at_price,
+            available: product.available
+          };
+        } catch(e) {}
+      }
+
+      // Fallback: scrape from page
+      const title = document.querySelector('h1, [data-product-title]')?.textContent?.trim();
+      const image = document.querySelector('[data-product-main-image]')?.src;
+      const price = document.querySelector('[data-product-price]')?.textContent?.trim();
+
+      if (title && image) {
+        return {
+          id: Date.now(), // Fallback ID
+          handle: window.location.pathname.split('/').pop(),
+          title: title,
+          url: window.location.pathname,
+          image: image,
+          price: price,
+          available: true
+        };
+      }
+
+      return null;
+    },
+
+    render() {
+      const section = document.querySelector('[data-recently-viewed]');
+      const grid = document.querySelector('[data-recently-viewed-grid]');
+      const empty = document.querySelector('[data-recently-viewed-empty]');
+
+      if (!section || !grid || !empty) return;
+
+      let products = this.getProducts();
+
+      // Filter out current product if on product page
+      const currentHandle = window.location.pathname.split('/').pop();
+      products = products.filter(p => p.handle !== currentHandle);
+
+      if (products.length === 0) {
+        grid.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+
+      // Show section
+      section.classList.add('has-products');
+      grid.style.display = 'grid';
+      empty.style.display = 'none';
+
+      // Render products
+      grid.innerHTML = products.map(product => `
+        <div class="product-card-wrapper">
+          <div class="product-card">
+            <a href="${product.url}" class="product-card__link">
+              <div class="product-card__image">
+                <img src="${product.image}" alt="${product.title}" loading="lazy">
+              </div>
+              <div class="product-card__info">
+                <h3 class="product-card__title">${product.title}</h3>
+                ${product.price ? `
+                  <div class="product-card__price">
+                    ${product.compare_at_price && product.compare_at_price > product.price ? `
+                      <span class="price-compare">${this.formatPrice(product.compare_at_price)}</span>
+                    ` : ''}
+                    <span class="price-current">${this.formatPrice(product.price)}</span>
+                  </div>
+                ` : ''}
+              </div>
+            </a>
+          </div>
+        </div>
+      `).join('');
+    },
+
+    formatPrice(price) {
+      if (typeof price === 'string') return price;
+      // Simple formatting - you can enhance this
+      return `$${(price / 100).toFixed(2)}`;
+    },
+
+    getProducts() {
+      try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        return data ? JSON.parse(data) : [];
+      } catch(e) {
+        return [];
+      }
+    },
+
+    saveProducts(products) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+      } catch(e) {
+        console.error('Error saving recently viewed:', e);
+      }
+    }
+  };
+
+  // Initialize
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => RecentlyViewed.init());
+  } else {
+    RecentlyViewed.init();
+  }
+
+  // Export
+  window.RecentlyViewed = RecentlyViewed;
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Vus récemment",
+  "class": "section-recently-viewed",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre",
+      "default": "Vus récemment"
+    },
+    {
+      "type": "range",
+      "id": "max_products",
+      "label": "Nombre max de produits",
+      "min": 4,
+      "max": 12,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Vus récemment"
+    }
+  ]
+}
+{% endschema %}

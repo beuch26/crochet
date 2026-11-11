@@ -1,0 +1,294 @@
+{%- comment -%}
+  Logo List Section
+  Display brand logos or client logos
+{%- endcomment -%}
+
+{%- render 'section-spacing', id: section.id, margin_top: section.settings.section_margin_top, margin_bottom: section.settings.section_margin_bottom -%}
+
+<div class="logo-list section section--{{ section.settings.color_scheme }}">
+  <div class="container">
+
+    {%- if section.settings.title != blank -%}
+      {%- liquid
+        assign heading_tag = section.settings.heading_tag | default: 'h2'
+      -%}
+      <header class="section-header text-center">
+        {%- if section.settings.enable_heading_style -%}
+          {%- render 'heading-styles',
+            text: section.settings.title,
+            tag: heading_tag,
+            style: section.settings.heading_style,
+            color: section.settings.heading_style_color,
+            align: 'center',
+            size: 'xl',
+            typing_texts: section.settings.typing_texts
+          -%}
+        {%- else -%}
+          <{{ heading_tag }} class="section-title">{{ section.settings.title }}</{{ heading_tag }}>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <div class="logo-list__grid">
+        {%- for block in section.blocks -%}
+          <div class="logo-list__item" {{ block.shopify_attributes }}>
+            {%- if block.settings.link != blank -%}
+              <a href="{{ block.settings.link }}" class="logo-list__link">
+            {%- endif -%}
+
+            {%- if block.settings.image != blank -%}
+              <img
+                src="{{ block.settings.image | image_url: width: 200 }}"
+                alt="{{ block.settings.image.alt | default: shop.name }}"
+                width="200"
+                height="auto"
+                loading="lazy"
+              >
+            {%- else -%}
+              <div class="logo-list__placeholder">
+                {{ 'logo' | placeholder_svg_tag }}
+              </div>
+            {%- endif -%}
+
+            {%- if block.settings.link != blank -%}
+              </a>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+  </div>
+</div>
+
+<style>
+.logo-list {
+  padding: var(--spacing-2xl) 0;
+}
+
+.section--light {
+  background-color: var(--color-background-light);
+}
+
+.logo-list__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-xl);
+  align-items: center;
+}
+
+@media (min-width: 640px) {
+  .logo-list__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .logo-list__grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.logo-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-speed);
+}
+
+.logo-list__item:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.logo-list__link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.logo-list__item img {
+  max-width: 100%;
+  height: auto;
+  max-height: 60px;
+  object-fit: contain;
+  filter: grayscale(100%);
+  opacity: 0.7;
+  transition: all var(--transition-speed);
+}
+
+.logo-list__item:hover img {
+  filter: grayscale(0%);
+  opacity: 1;
+}
+
+.logo-list__placeholder {
+  width: 100px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.3;
+}
+
+.logo-list__placeholder svg {
+  width: 100%;
+  height: 100%;
+}
+</style>
+
+{% schema %}
+{
+  "name": "Liste de logos",
+  "class": "section-logo-list",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre",
+      "default": "Ils parlent de nous"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "SEO : Niveau de titre",
+      "options": [
+        {"value": "h1", "label": "H1"},
+        {"value": "h2", "label": "H2 (Recommandé)"},
+        {"value": "h3", "label": "H3"},
+        {"value": "h4", "label": "H4"}
+      ],
+      "default": "h2",
+      "info": "Choisissez le niveau de titre pour cette section."
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Palette de couleurs",
+      "options": [
+        {
+          "value": "default",
+          "label": "Par défaut"
+        },
+        {
+          "value": "light",
+          "label": "Clair"
+        }
+      ],
+      "default": "light"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "header",
+      "content": "Espacement de la section"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_top",
+      "label": "Marge en haut (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_bottom",
+      "label": "Marge en bas (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "logo",
+      "name": "Logo",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image du logo"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Lien (Optionnel)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Liste de logos",
+      "blocks": [
+        {
+          "type": "logo"
+        },
+        {
+          "type": "logo"
+        },
+        {
+          "type": "logo"
+        },
+        {
+          "type": "logo"
+        },
+        {
+          "type": "logo"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

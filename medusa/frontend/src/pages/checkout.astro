@@ -1,0 +1,892 @@
+---
+import Layout from '../layouts/Layout.astro'
+---
+
+<Layout title="Commande" description="Finalisez votre commande — Magic Crochet Kit" noindex={true}>
+  <!-- Stripe.js -->
+  <script is:inline src="https://js.stripe.com/v3/"></script>
+
+  <section class="py-8 lg:py-12">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center gap-3 mb-8">
+        <a href="/" class="text-2xl font-bold font-['DM_Serif_Display'] text-primary">Magic Crochet Kit</a>
+        <span class="text-text-muted">—</span>
+        <h1 style="font-size: 1.25rem;" class="font-semibold font-['DM_Sans']">Commande</h1>
+      </div>
+
+      <!-- Progress steps -->
+      <div class="flex items-center gap-0 mb-10 text-sm">
+        <div class="flex items-center gap-2 text-primary font-medium" id="step-1-label">
+          <span class="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold" id="step-1-dot">1</span>
+          Informations
+        </div>
+        <div class="flex-1 h-0.5 bg-border mx-3" id="step-bar-1"></div>
+        <div class="flex items-center gap-2 text-text-muted" id="step-2-label">
+          <span class="w-7 h-7 rounded-full bg-bg-light border border-border text-text-muted flex items-center justify-center text-xs font-bold" id="step-2-dot">2</span>
+          Livraison
+        </div>
+        <div class="flex-1 h-0.5 bg-border mx-3" id="step-bar-2"></div>
+        <div class="flex items-center gap-2 text-text-muted" id="step-3-label">
+          <span class="w-7 h-7 rounded-full bg-bg-light border border-border text-text-muted flex items-center justify-center text-xs font-bold" id="step-3-dot">3</span>
+          Paiement
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10">
+        <!-- Forms -->
+        <div>
+          <!-- Step 1: Contact info -->
+          <div id="checkout-step-1">
+            <h2 class="text-lg font-semibold font-['DM_Sans'] mb-5">Informations de contact</h2>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-text mb-1.5">Email *</label>
+                <input type="email" id="ck-email" required class="w-full px-4 py-3 border border-border rounded-xl bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="votre@email.fr" />
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-text mb-1.5">Prénom *</label>
+                  <input type="text" id="ck-first" required class="w-full px-4 py-3 border border-border rounded-xl bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-text mb-1.5">Nom *</label>
+                  <input type="text" id="ck-last" required class="w-full px-4 py-3 border border-border rounded-xl bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-text mb-1.5">Téléphone</label>
+                <input type="tel" id="ck-phone" class="w-full px-4 py-3 border border-border rounded-xl bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="06 XX XX XX XX" />
+              </div>
+              <button type="button" id="ck-next-1" class="btn btn-primary w-full py-3.5 mt-2">
+                Continuer vers la livraison
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 2: Shipping -->
+          <div id="checkout-step-2" class="hidden">
+            <h2 class="text-lg font-semibold font-['DM_Sans'] mb-5">Adresse de livraison</h2>
+            <div class="space-y-4">
+              <div class="relative">
+                <label class="block text-sm font-medium text-text mb-1.5">Adresse *</label>
+                <input type="text" id="ck-address1" required autocomplete="street-address" class="w-full px-4 py-3 border border-border rounded-xl bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="Commencez a taper votre adresse..." />
+                <!-- Autocomplete dropdown -->
+                <div id="ck-address-suggestions" class="hidden absolute top-full left-0 right-0 mt-1 z-30 bg-white border border-border rounded-xl shadow-xl max-h-72 overflow-y-auto"></div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-text mb-1.5">Complément d'adresse</label>
+                <input type="text" id="ck-address2" class="w-full px-4 py-3 border border-border rounded-xl bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="Apt, étage, bâtiment..." />
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-text mb-1.5">Code postal *</label>
+                  <input type="text" id="ck-zip" required class="w-full px-4 py-3 border border-border rounded-xl bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-text mb-1.5">Ville *</label>
+                  <input type="text" id="ck-city" required class="w-full px-4 py-3 border border-border rounded-xl bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-text mb-1.5">Pays</label>
+                <select id="ck-country" class="w-full px-4 py-3 border border-border rounded-xl bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                  <option value="fr">France</option>
+                  <option value="be">Belgique</option>
+                  <option value="ch">Suisse</option>
+                  <option value="lu">Luxembourg</option>
+                </select>
+              </div>
+              <!-- Shipping options (loaded after address input) -->
+              <div id="ck-shipping-options" class="hidden mt-6">
+                <h3 class="text-base font-semibold font-['DM_Sans'] mb-4">Mode de livraison</h3>
+                <div id="ck-shipping-loading" class="text-sm text-text-muted py-6 text-center">
+                  <svg class="animate-spin h-5 w-5 mx-auto mb-2 text-primary" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                  Calcul des tarifs en cours...
+                </div>
+                <div id="ck-shipping-list" class="hidden"></div>
+                <div id="ck-shipping-error" class="hidden text-sm text-error p-3 bg-error/10 rounded-xl"></div>
+              </div>
+
+              <!-- Order notes -->
+              <div class="mt-6">
+                <label class="block text-sm font-medium text-text mb-1.5">Note de commande <span class="text-text-muted font-normal">(optionnel)</span></label>
+                <textarea id="ck-notes" rows="3" class="w-full px-4 py-3 border border-border rounded-xl bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm" placeholder="Instructions particulières pour votre commande..."></textarea>
+              </div>
+
+              <div class="flex gap-3 mt-5">
+                <button type="button" id="ck-back-2" class="btn btn-outline flex-1 py-3.5">Retour</button>
+                <button type="button" id="ck-next-2" class="btn btn-primary flex-1 py-3.5" disabled>Continuer vers le paiement</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Payment (Stripe Elements) -->
+          <div id="checkout-step-3" class="hidden">
+            <h2 class="text-lg font-semibold font-['DM_Sans'] mb-5">Paiement sécurisé</h2>
+
+            <!-- Recap address + shipping -->
+            <div class="mb-6 p-4 bg-bg-light rounded-xl text-sm">
+              <div class="flex justify-between items-start">
+                <div>
+                  <p class="font-medium text-text" id="ck-recap-name"></p>
+                  <p class="text-text-muted mt-0.5" id="ck-recap-address"></p>
+                  <p class="text-text-muted" id="ck-recap-email"></p>
+                  <p class="text-text-muted mt-2 pt-2 border-t border-border" id="ck-recap-shipping"></p>
+                </div>
+                <button type="button" id="ck-edit-info" class="text-primary text-xs hover:underline">Modifier</button>
+              </div>
+            </div>
+
+            <!-- Stripe card element -->
+            <div class="border border-border rounded-xl p-5 bg-white mb-4">
+              <div class="flex items-center gap-2 mb-4">
+                <svg class="w-5 h-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                <span class="text-sm font-medium text-text">Carte bancaire</span>
+                <div class="ml-auto flex gap-1.5">
+                  <svg class="h-6 w-10" viewBox="0 0 780 500" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="780" height="500" rx="40" fill="#1A1F71"/><path d="M293 348.7l33.3-206h53.2l-33.2 206H293zm221.5-200.8c-10.5-4-27-8.3-47.6-8.3-52.4 0-89.3 27.9-89.6 67.8-.3 29.5 26.4 46 46.5 55.8 20.7 10.1 27.6 16.5 27.5 25.5-.1 13.8-16.5 20.1-31.7 20.1-21.2 0-32.5-3.1-49.9-10.8l-6.8-3.3-7.4 45.9c12.4 5.7 35.3 10.7 59.1 10.9 55.7 0 91.9-27.5 92.3-70.2.2-23.4-14-41.2-44.6-55.9-18.6-9.5-30-15.9-29.8-25.5 0-8.5 9.6-17.7 30.4-17.7 17.4-.3 29.9 3.7 39.7 7.9l4.8 2.4 7.1-44.6zm138.8-5.2h-41c-12.7 0-22.2 3.7-27.8 17l-78.8 188h55.7s9.1-25.3 11.2-30.9h68c1.6 7.2 6.5 30.9 6.5 30.9H704l-50.7-205zm-65.4 132.1c4.4-11.9 21.2-57.6 21.2-57.6-.3.5 4.4-12 7.1-19.7l3.6 17.8s10.2 49.2 12.3 59.5h-44.2zM285 142.7l-52 140.5-5.5-28.6c-9.6-32.6-39.6-68-73.2-85.7l47.5 179.7h56.1l83.4-206h-56.3z" fill="#fff"/><path d="M189.6 142.7H107l-.7 3.5c66.5 17 110.6 58 128.8 107.3L217 170c-3-13-12.4-16.8-27.4-17.3z" fill="#F9A533"/></svg>
+                  <svg class="h-6 w-10" viewBox="0 0 780 500" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="780" height="500" rx="40" fill="#fff" stroke="#ddd"/><circle cx="310" cy="250" r="150" fill="#EB001B"/><circle cx="470" cy="250" r="150" fill="#F79E1B"/><path d="M390 130.1c37.7 29.7 62 75.5 62 126.9s-24.3 97.2-62 126.9c-37.7-29.7-62-75.5-62-126.9s24.3-97.2 62-126.9z" fill="#FF5F00"/></svg>
+                </div>
+              </div>
+              <div id="stripe-payment-element" class="min-h-[120px]">
+                <p class="text-sm text-text-muted italic py-4">Chargement du formulaire de paiement...</p>
+              </div>
+            </div>
+
+            <!-- Error message -->
+            <div id="ck-error" class="hidden mb-4 p-4 bg-error/10 border border-error/20 rounded-xl text-sm text-error"></div>
+
+            <div class="flex gap-3">
+              <button type="button" id="ck-back-3" class="btn btn-outline flex-1 py-3.5">Retour</button>
+              <button type="button" id="ck-pay" class="btn btn-primary flex-1 py-3.5 relative" disabled>
+                <span id="ck-pay-text">Payer</span>
+                <span id="ck-pay-loading" class="hidden absolute inset-0 flex items-center justify-center">
+                  <svg class="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                </span>
+              </button>
+            </div>
+
+            <div class="mt-4 flex items-center justify-center gap-2 text-xs text-text-muted">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              Paiement sécurisé par Stripe — Vos données bancaires sont chiffrées
+            </div>
+          </div>
+
+          <!-- Step 4: Confirmation -->
+          <div id="checkout-step-4" class="hidden text-center py-10">
+            <div class="w-16 h-16 mx-auto mb-6 rounded-full bg-success/10 flex items-center justify-center">
+              <svg class="w-8 h-8 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <h2 class="text-2xl font-['DM_Serif_Display'] mb-3">Merci pour votre commande !</h2>
+            <p class="text-text-light mb-2">Votre paiement a été accepté.</p>
+            <p class="text-sm text-text-muted mb-8">Vous recevrez un email de confirmation à <strong id="ck-confirm-email"></strong></p>
+            <a href="/collections/" class="btn btn-primary">Continuer mes achats</a>
+          </div>
+        </div>
+
+        <!-- Order summary sidebar -->
+        <div>
+          <div class="bg-bg-light rounded-2xl p-6 sticky top-24" id="ck-sidebar">
+            <h3 class="text-base font-semibold font-['DM_Sans'] mb-4">Résumé de la commande</h3>
+            <div id="ck-items" class="space-y-3 mb-4 max-h-[300px] overflow-y-auto">
+              <p class="text-sm text-text-muted" id="ck-loading">Chargement du panier...</p>
+            </div>
+            <!-- Promo code -->
+            <div class="mb-4">
+              <div class="flex gap-2">
+                <input type="text" id="ck-promo-input" placeholder="Code promo" class="flex-1 px-3 py-2 border border-border rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                <button type="button" id="ck-promo-apply" class="px-4 py-2 border border-primary text-primary text-sm font-medium rounded-lg hover:bg-primary hover:text-white transition-colors">OK</button>
+              </div>
+              <div id="ck-promo-msg" class="hidden text-xs mt-1.5 px-1"></div>
+              <div id="ck-promo-active" class="hidden mt-2 flex items-center justify-between bg-success/10 text-success text-xs font-medium px-3 py-2 rounded-lg">
+                <span id="ck-promo-code-display"></span>
+                <button type="button" id="ck-promo-remove" class="text-error hover:underline">Retirer</button>
+              </div>
+            </div>
+
+            <div class="border-t border-border pt-4 space-y-2">
+              <div class="flex justify-between text-sm">
+                <span class="text-text-muted">Sous-total</span>
+                <span class="font-medium" id="ck-subtotal">--</span>
+              </div>
+              <div class="flex justify-between text-sm hidden" id="ck-discount-row">
+                <span class="text-text-muted">Reduction</span>
+                <span class="font-medium text-success" id="ck-discount">-</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-text-muted">Livraison</span>
+                <span class="font-medium text-success" id="ck-shipping">Gratuite</span>
+              </div>
+              <div class="flex justify-between text-base font-bold pt-2 border-t border-border mt-2">
+                <span>Total</span>
+                <span id="ck-total">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const MEDUSA_URL = document.querySelector('meta[name="medusa-url"]')?.getAttribute('content') || ''
+  const API_KEY = document.querySelector('meta[name="medusa-key"]')?.getAttribute('content') || ''
+  const cartId = localStorage.getItem('mck_cart_id') || ''
+  const STRIPE_PK = 'pk_live_51Nk1CGJ2Z2qXk4mlQRr7BDMqsjyu32HkfeTDPmNNJeu1zGMU54UQ0fNdMrK4KudXLZn1wseCK2bZ3zmxeeIFn44u00fLCzMaLQ'
+
+  let stripe: any = null
+  let elements: any = null
+  let paymentElement: any = null
+  let currentCart: any = null
+
+  function formatPrice(amount: number) {
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount)
+  }
+
+  // Load cart items
+  async function loadCart() {
+    if (!cartId) {
+      document.getElementById('ck-loading')!.textContent = 'Panier vide'
+      return null
+    }
+    try {
+      const res = await fetch(`${MEDUSA_URL}/store/carts/${cartId}?fields=+items,+items.variant,+items.product`, {
+        headers: { 'x-publishable-api-key': API_KEY },
+      })
+      const { cart } = await res.json()
+      currentCart = cart
+      const items = cart.items || []
+
+      if (items.length === 0) {
+        document.getElementById('ck-loading')!.textContent = 'Panier vide'
+        return null
+      }
+
+      document.getElementById('ck-items')!.innerHTML = items.map((item: any) => `
+        <div class="flex gap-3">
+          <div class="w-14 h-14 rounded-lg bg-white border border-border-light overflow-hidden shrink-0 relative">
+            ${item.thumbnail ? `<img src="${item.thumbnail}" class="w-full h-full object-contain p-1" />` : ''}
+            <span class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-text text-white text-[10px] font-bold rounded-full flex items-center justify-center">${item.quantity}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-text truncate">${item.title}</p>
+            <p class="text-xs text-text-muted">Qté: ${item.quantity}</p>
+          </div>
+          <span class="text-sm font-semibold">${formatPrice(item.unit_price * item.quantity)}</span>
+        </div>
+      `).join('')
+
+      document.getElementById('ck-subtotal')!.textContent = formatPrice(cart.subtotal || cart.total || 0)
+      document.getElementById('ck-total')!.textContent = formatPrice(cart.total || 0)
+
+      // GA4 begin_checkout + TikTok InitiateCheckout
+      const __checkoutPayload = {
+        currency: cart.currency_code?.toUpperCase() || 'EUR',
+        value: cart.total || 0,
+        items: items.map((it: any) => ({
+          item_id: it.variant?.product?.id || it.product_id,
+          item_name: it.title,
+          item_variant: it.variant?.title || undefined,
+          price: it.unit_price,
+          quantity: it.quantity,
+        })),
+      }
+      if ((window as any).gaTrack) (window as any).gaTrack('begin_checkout', __checkoutPayload)
+      if ((window as any).ttqTrack) (window as any).ttqTrack('begin_checkout', __checkoutPayload)
+
+      return cart
+    } catch {
+      document.getElementById('ck-loading')!.textContent = 'Erreur de chargement'
+      return null
+    }
+  }
+
+  loadCart()
+
+  // ===== Address autocomplete via French BAN API (free, no key) =====
+  const addrInput = document.getElementById('ck-address1') as HTMLInputElement
+  const addrSuggestions = document.getElementById('ck-address-suggestions')!
+  let addrDebounce: any = null
+
+  function clearSuggestions() {
+    addrSuggestions.classList.add('hidden')
+    addrSuggestions.innerHTML = ''
+  }
+
+  async function searchAddress(query: string) {
+    if (query.length < 4) { clearSuggestions(); return }
+    const country = (document.getElementById('ck-country') as HTMLSelectElement).value
+    if (country !== 'fr') return // BAN only works for France
+    try {
+      const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5&type=housenumber`)
+      const data = await res.json()
+      const features = data.features || []
+      if (features.length === 0) { clearSuggestions(); return }
+      addrSuggestions.innerHTML = features.map((f: any) => {
+        const p = f.properties
+        return `<button type="button" class="addr-sug w-full text-left px-4 py-3 hover:bg-bg-light border-b border-border-light last:border-b-0 transition-colors" data-addr="${p.name}" data-zip="${p.postcode}" data-city="${p.city}">
+          <div class="text-sm font-medium text-text">${p.name}</div>
+          <div class="text-xs text-text-muted">${p.postcode} ${p.city}</div>
+        </button>`
+      }).join('')
+      addrSuggestions.classList.remove('hidden')
+      addrSuggestions.querySelectorAll('.addr-sug').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const el = btn as HTMLElement
+          addrInput.value = el.dataset.addr || ''
+          ;(document.getElementById('ck-zip') as HTMLInputElement).value = el.dataset.zip || ''
+          ;(document.getElementById('ck-city') as HTMLInputElement).value = el.dataset.city || ''
+          clearSuggestions()
+          // Trigger shipping reload
+          ;(document.getElementById('ck-zip') as HTMLInputElement).dispatchEvent(new Event('input'))
+        })
+      })
+    } catch { clearSuggestions() }
+  }
+
+  addrInput?.addEventListener('input', () => {
+    clearTimeout(addrDebounce)
+    addrDebounce = setTimeout(() => searchAddress(addrInput.value.trim()), 300)
+  })
+  document.addEventListener('click', (e) => {
+    if (!addrSuggestions.contains(e.target as Node) && e.target !== addrInput) clearSuggestions()
+  })
+
+  // Step navigation
+  function goToStep(step: number) {
+    [1, 2, 3, 4].forEach(s => {
+      document.getElementById(`checkout-step-${s}`)?.classList.toggle('hidden', s !== step)
+    })
+    // Hide sidebar on confirmation
+    if (step === 4) document.getElementById('ck-sidebar')?.classList.add('hidden')
+
+    for (let s = 1; s <= 3; s++) {
+      const label = document.getElementById(`step-${s}-label`)
+      const dot = document.getElementById(`step-${s}-dot`)
+      const bar = document.getElementById(`step-bar-${s}`)
+      if (s <= step) {
+        label?.classList.add('text-primary', 'font-medium')
+        label?.classList.remove('text-text-muted')
+        if (dot) { dot.classList.add('bg-primary', 'text-white', 'border-primary'); dot.classList.remove('bg-bg-light', 'text-text-muted', 'border-border') }
+      } else {
+        label?.classList.remove('text-primary', 'font-medium')
+        label?.classList.add('text-text-muted')
+        if (dot) { dot.classList.remove('bg-primary', 'text-white', 'border-primary'); dot.classList.add('bg-bg-light', 'text-text-muted', 'border-border') }
+      }
+      if (bar && s < step) bar.classList.add('bg-primary')
+      if (bar && s >= step) bar.classList.remove('bg-primary')
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  // Step 1 → 2
+  document.getElementById('ck-next-1')?.addEventListener('click', async () => {
+    const email = (document.getElementById('ck-email') as HTMLInputElement).value.trim()
+    const first = (document.getElementById('ck-first') as HTMLInputElement).value.trim()
+    const last = (document.getElementById('ck-last') as HTMLInputElement).value.trim()
+    if (!email || !first || !last) { alert('Veuillez remplir les champs obligatoires'); return }
+
+    // Update cart with email
+    try {
+      await fetch(`${MEDUSA_URL}/store/carts/${cartId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-publishable-api-key': API_KEY },
+        body: JSON.stringify({ email }),
+      })
+    } catch {}
+
+    goToStep(2)
+  })
+
+  // Load shipping options when zip is filled
+  let selectedShipping: any = null
+
+  async function loadShippingOptions() {
+    const zip = (document.getElementById('ck-zip') as HTMLInputElement).value.trim()
+    const country = (document.getElementById('ck-country') as HTMLSelectElement).value
+    if (zip.length < 4) return
+
+    const optionsContainer = document.getElementById('ck-shipping-options')!
+    const loading = document.getElementById('ck-shipping-loading')!
+    const list = document.getElementById('ck-shipping-list')!
+    const error = document.getElementById('ck-shipping-error')!
+    const nextBtn = document.getElementById('ck-next-2') as HTMLButtonElement
+
+    optionsContainer.classList.remove('hidden')
+    loading.classList.remove('hidden')
+    list.classList.add('hidden')
+    error.classList.add('hidden')
+    nextBtn.disabled = true
+    selectedShipping = null
+
+    try {
+      const items = currentCart?.items?.map((i: any) => ({ quantity: i.quantity, weight: 0.5 })) || [{ quantity: 1, weight: 0.5 }]
+      const res = await fetch(`${MEDUSA_URL}/store/shipping`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-publishable-api-key': API_KEY },
+        body: JSON.stringify({ to_zip: zip, to_country: country, items }),
+      })
+      const data = await res.json()
+
+      loading.classList.add('hidden')
+
+      if (!data.shipping_options?.length) {
+        error.textContent = 'Aucun transporteur disponible pour cette destination.'
+        error.classList.remove('hidden')
+        return
+      }
+
+      // Check free shipping threshold
+      const freeThreshold = parseInt(document.querySelector('meta[name="free-shipping-threshold"]')?.getAttribute('content') || '50')
+      const cartTotal = currentCart?.subtotal || 0
+
+      // Packlink ne renvoie pas d'URL de logo (seulement un logo_id) et son CDN
+      // répond 403 en hotlink : on sert nos propres fichiers depuis /carriers/,
+      // résolus par mot-clé sur le nom du transporteur.
+      const carrierSlug = (carrier: string) => {
+        const c = (carrier || '').toLowerCase()
+        if (c.includes('chronopost')) return 'chronopost'
+        if (c.includes('mondial')) return 'mondial-relay'
+        if (c.includes('colis priv')) return 'colis-prive'
+        if (c.includes('colissimo')) return 'colissimo'
+        if (c.includes('ups')) return 'ups'
+        if (c.includes('dhl')) return 'dhl'
+        if (c.includes('gls')) return 'gls'
+        if (c.includes('dpd')) return 'dpd'
+        if (c.includes('relais colis')) return 'relais-colis'
+        return c.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'carrier'
+      }
+      // Repli quand le fichier n'existe pas : pastille de marque avec le nom
+      // lisible, plutôt que les trois lettres tronquées d'avant.
+      const carrierBadge = (carrier: string) => {
+        const c = (carrier || '').toLowerCase()
+        const styles: Record<string, { bg: string; fg?: string; label: string }> = {
+          'chronopost':    { bg: '#E5007D', label: 'Chrono' },
+          'colissimo':     { bg: '#003C71', label: 'Coliss' },
+          'mondial relay': { bg: '#E2001A', label: 'M.Relay' },
+          'colis prive':   { bg: '#EC6608', label: 'C.Privé' },
+          'colis privé':   { bg: '#EC6608', label: 'C.Privé' },
+          'ups':           { bg: '#4B2E1E', label: 'UPS' },
+          'dhl':           { bg: '#FFCC00', fg: '#D40511', label: 'DHL' },
+          'gls':           { bg: '#061AB1', label: 'GLS' },
+          'relais colis':  { bg: '#E2001A', label: 'Relais' },
+          'dpd':           { bg: '#DC0032', label: 'DPD' },
+        }
+        const key = Object.keys(styles).find(k => c.includes(k))
+        const st = key ? styles[key] : { bg: '#4cbb6c', label: (carrier || '?').substring(0, 6) }
+        return `<span style="background:${st.bg};color:${st.fg || '#fff'}" class="text-[11px] font-bold rounded-md px-2 py-1.5 leading-none tracking-tight whitespace-nowrap">${st.label}</span>`
+      }
+
+      list.innerHTML = `<div class="border border-border rounded-xl overflow-hidden divide-y divide-border">` +
+        data.shipping_options.map((opt: any, i: number) => {
+        const isFree = cartTotal >= freeThreshold && opt.price <= 6
+        const finalPrice = isFree ? 0 : opt.price
+        const priceLabel = isFree ? '<span class="text-success font-bold">Gratuit</span>' : `<span class="font-bold">${formatPrice(opt.price)}</span>`
+        const deliveryText = opt.delivery_label
+        return `
+          <label class="flex items-center gap-4 p-4 cursor-pointer hover:bg-bg-light/50 transition-colors shipping-option ${i === 0 ? '' : ''}" data-shipping-id="${opt.id}" data-shipping-price="${finalPrice}" data-shipping-name="${opt.carrier} — ${opt.name}">
+            <input type="radio" name="shipping" value="${opt.id}" class="w-4 h-4 text-primary shrink-0 accent-primary" />
+            <div class="w-16 h-10 flex items-center justify-center shrink-0">
+              ${carrierBadge(opt.carrier)}
+              <img src="/carriers/${carrierSlug(opt.carrier)}.png" alt="${opt.carrier}" class="max-h-8 max-w-14 object-contain hidden" onload="this.classList.remove('hidden'); if(this.previousElementSibling) this.previousElementSibling.style.display='none'" onerror="this.remove()" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-text">${opt.carrier}</p>
+              <p class="text-xs text-text-muted">${opt.name}</p>
+            </div>
+            <div class="text-center shrink-0 px-3">
+              <p class="text-xs font-medium text-text">${deliveryText}</p>
+            </div>
+            <div class="text-right shrink-0 min-w-[80px]">
+              ${priceLabel}
+            </div>
+          </label>
+        `
+      }).join('') + `</div>`
+      list.classList.remove('hidden')
+
+      // Bind radio selection
+      list.querySelectorAll('.shipping-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+          list.querySelectorAll('.shipping-option').forEach(o => o.classList.remove('bg-primary/5'))
+          const radio = opt.querySelector('input[type="radio"]') as HTMLInputElement
+          radio.checked = true
+          selectedShipping = {
+            id: opt.getAttribute('data-shipping-id'),
+            price: parseFloat(opt.getAttribute('data-shipping-price') || '0'),
+            name: opt.getAttribute('data-shipping-name'),
+          }
+          nextBtn.disabled = false
+          // Update summary
+          document.getElementById('ck-shipping')!.textContent = selectedShipping.price === 0 ? 'Gratuite' : formatPrice(selectedShipping.price)
+          document.getElementById('ck-shipping')!.className = selectedShipping.price === 0 ? 'font-medium text-success' : 'font-medium'
+          const total = (currentCart?.subtotal || 0) + selectedShipping.price
+          document.getElementById('ck-total')!.textContent = formatPrice(total)
+        })
+      })
+    } catch (e) {
+      loading.classList.add('hidden')
+      error.textContent = 'Erreur lors du calcul des frais de port.'
+      error.classList.remove('hidden')
+    }
+  }
+
+  // Auto-load shipping when zip changes
+  let shippingDebounce: any
+  document.getElementById('ck-zip')?.addEventListener('input', () => {
+    clearTimeout(shippingDebounce)
+    shippingDebounce = setTimeout(loadShippingOptions, 800)
+  })
+  document.getElementById('ck-country')?.addEventListener('change', () => {
+    const zip = (document.getElementById('ck-zip') as HTMLInputElement).value.trim()
+    if (zip.length >= 4) loadShippingOptions()
+  })
+
+  // Step 2 → 3 (init Stripe)
+  document.getElementById('ck-next-2')?.addEventListener('click', async () => {
+    const addr = (document.getElementById('ck-address1') as HTMLInputElement).value.trim()
+    const zip = (document.getElementById('ck-zip') as HTMLInputElement).value.trim()
+    const city = (document.getElementById('ck-city') as HTMLInputElement).value.trim()
+    const country = (document.getElementById('ck-country') as HTMLSelectElement).value
+    if (!addr || !zip || !city) { alert('Veuillez remplir l\'adresse complète'); return }
+    if (!selectedShipping) { alert('Veuillez choisir un mode de livraison'); return }
+
+    const first = (document.getElementById('ck-first') as HTMLInputElement).value.trim()
+    const last = (document.getElementById('ck-last') as HTMLInputElement).value.trim()
+    const email = (document.getElementById('ck-email') as HTMLInputElement).value.trim()
+    const phone = (document.getElementById('ck-phone') as HTMLInputElement).value.trim()
+    const address2 = (document.getElementById('ck-address2') as HTMLInputElement).value.trim()
+
+    // Update recap
+    document.getElementById('ck-recap-name')!.textContent = `${first} ${last}`
+    document.getElementById('ck-recap-address')!.textContent = `${addr}${address2 ? ', ' + address2 : ''}, ${zip} ${city}`
+    document.getElementById('ck-recap-email')!.textContent = email
+    document.getElementById('ck-recap-shipping')!.textContent = `🚚 ${selectedShipping?.name || 'Livraison standard'}`
+
+    // Update cart with shipping address
+    try {
+      await fetch(`${MEDUSA_URL}/store/carts/${cartId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-publishable-api-key': API_KEY },
+        body: JSON.stringify({
+          shipping_address: {
+            first_name: first,
+            last_name: last,
+            address_1: addr,
+            address_2: address2,
+            postal_code: zip,
+            city: city,
+            country_code: country,
+            phone: phone,
+          },
+          billing_address: {
+            first_name: first,
+            last_name: last,
+            address_1: addr,
+            address_2: address2,
+            postal_code: zip,
+            city: city,
+            country_code: country,
+            phone: phone,
+          },
+        }),
+      })
+    } catch {}
+
+    // 1. Add Medusa shipping method to cart (required for payment collection)
+    try {
+      // Fetch available Medusa shipping options
+      const soRes = await fetch(`${MEDUSA_URL}/store/shipping-options?cart_id=${cartId}`, {
+        headers: { 'x-publishable-api-key': API_KEY },
+      })
+      const soData = await soRes.json()
+      const medusaOption = soData.shipping_options?.[0]
+      if (medusaOption) {
+        await fetch(`${MEDUSA_URL}/store/carts/${cartId}/shipping-methods`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-publishable-api-key': API_KEY },
+          body: JSON.stringify({ option_id: medusaOption.id }),
+        })
+      }
+    } catch (e) {
+      console.error('Shipping method error:', e)
+    }
+
+    goToStep(3)
+    await initStripePayment()
+  })
+
+  // Initialize Stripe payment
+  async function initStripePayment() {
+    try {
+      // 1. Create payment collection for the cart
+      const pcRes = await fetch(`${MEDUSA_URL}/store/payment-collections`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-publishable-api-key': API_KEY },
+        body: JSON.stringify({ cart_id: cartId }),
+      })
+      const pcData = await pcRes.json()
+      const paymentCollectionId = pcData.payment_collection?.id
+
+      if (!paymentCollectionId) {
+        showError('Impossible d\'initialiser le paiement. Veuillez réessayer.')
+        console.error('No payment collection created', pcData)
+        return
+      }
+
+      // 2. Create Stripe payment session on the payment collection
+      const sessionRes = await fetch(`${MEDUSA_URL}/store/payment-collections/${paymentCollectionId}/payment-sessions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-publishable-api-key': API_KEY },
+        body: JSON.stringify({ provider_id: 'pp_stripe_stripe' }),
+      })
+      const sessionData = await sessionRes.json()
+
+      // Find Stripe payment session
+      const paymentCollection = sessionData.payment_collection
+      const sessions = paymentCollection?.payment_sessions || []
+      const stripeSession = sessions.find((s: any) => s.provider_id === 'pp_stripe_stripe')
+
+      if (!stripeSession) {
+        showError('Impossible d\'initialiser le paiement. Veuillez réessayer.')
+        console.error('No stripe session found', sessionData)
+        return
+      }
+
+      const clientSecret = stripeSession.data?.client_secret
+
+      if (!clientSecret) {
+        showError('Erreur de configuration du paiement.')
+        console.error('No client secret', stripeSession)
+        return
+      }
+
+      // Init Stripe Elements
+      stripe = (window as any).Stripe(STRIPE_PK)
+      elements = stripe.elements({
+        clientSecret,
+        appearance: {
+          theme: 'stripe',
+          variables: {
+            colorPrimary: '#2563eb',
+            borderRadius: '12px',
+            fontFamily: 'DM Sans, system-ui, sans-serif',
+          },
+        },
+        locale: 'fr',
+      })
+
+      // Create payment element with all wallet methods enabled (Apple Pay, Google Pay, Link, etc.)
+      paymentElement = elements.create('payment', {
+        layout: { type: 'tabs', defaultCollapsed: false },
+        wallets: { applePay: 'auto', googlePay: 'auto' },
+        defaultValues: {
+          billingDetails: {
+            name: ((document.getElementById('ck-first') as HTMLInputElement)?.value || '') + ' ' + ((document.getElementById('ck-last') as HTMLInputElement)?.value || ''),
+            email: (document.getElementById('ck-email') as HTMLInputElement)?.value || '',
+          },
+        },
+      })
+      const container = document.getElementById('stripe-payment-element')!
+      container.innerHTML = ''
+      paymentElement.mount(container)
+
+      paymentElement.on('ready', () => {
+        document.getElementById('ck-pay')!.removeAttribute('disabled')
+      })
+
+      // Update total — use selectedShipping price from Packlink
+      const totalAmount = (currentCart?.subtotal || 0) + (selectedShipping?.price || 0)
+      document.getElementById('ck-total')!.textContent = formatPrice(totalAmount)
+      const payText = document.getElementById('ck-pay-text')
+      if (payText) payText.textContent = `Payer ${formatPrice(totalAmount)}`
+    } catch (e) {
+      console.error('Stripe init error:', e)
+      showError('Erreur lors de l\'initialisation du paiement. Veuillez rafraîchir la page.')
+    }
+  }
+
+  function showError(msg: string) {
+    const el = document.getElementById('ck-error')!
+    el.textContent = msg
+    el.classList.remove('hidden')
+  }
+
+  function hideError() {
+    document.getElementById('ck-error')?.classList.add('hidden')
+  }
+
+  // Pay button
+  document.getElementById('ck-pay')?.addEventListener('click', async () => {
+    if (!stripe || !elements) return
+    hideError()
+
+    const payBtn = document.getElementById('ck-pay')!
+    const payText = document.getElementById('ck-pay-text')!
+    const payLoading = document.getElementById('ck-pay-loading')!
+
+    payBtn.setAttribute('disabled', 'true')
+    payText.classList.add('invisible')
+    payLoading.classList.remove('hidden')
+
+    try {
+      const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: window.location.origin + '/checkout/',
+        },
+        redirect: 'if_required',
+      })
+
+      if (error) {
+        showError(error.message || 'Le paiement a échoué. Veuillez réessayer.')
+        payBtn.removeAttribute('disabled')
+        payText.classList.remove('invisible')
+        payLoading.classList.add('hidden')
+        return
+      }
+
+      // Payment succeeded!
+      // Complete the cart
+      let completedOrder: any = null
+      try {
+        const completeRes = await fetch(`${MEDUSA_URL}/store/carts/${cartId}/complete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-publishable-api-key': API_KEY },
+        })
+        const completeData = await completeRes.json().catch(() => ({}))
+        completedOrder = completeData?.order || completeData?.type === 'order' ? completeData : null
+      } catch {}
+
+      // GA4 purchase + TikTok CompletePayment — fired after Medusa's
+      // /carts/:id/complete succeeds. transaction_id falls back to the
+      // cart id when Medusa didn't return the order object inline.
+      try {
+        if (currentCart) {
+          const items = (currentCart.items || []).map((it: any) => ({
+            item_id: it.variant?.product?.id || it.product_id,
+            item_name: it.title,
+            item_variant: it.variant?.title || undefined,
+            price: it.unit_price,
+            quantity: it.quantity,
+          }))
+          const purchasePayload = {
+            transaction_id: completedOrder?.id || completedOrder?.display_id || cartId,
+            currency: currentCart.currency_code?.toUpperCase() || 'EUR',
+            value: currentCart.total || 0,
+            tax: currentCart.tax_total || 0,
+            shipping: currentCart.shipping_total || 0,
+            items,
+          }
+          if ((window as any).gaTrack) (window as any).gaTrack('purchase', purchasePayload)
+          if ((window as any).ttqTrack) (window as any).ttqTrack('purchase', purchasePayload)
+        }
+      } catch {}
+
+      // Clear cart
+      localStorage.removeItem('mck_cart_id')
+
+      // Update cart badge
+      const badge = document.getElementById('cart-count')
+      if (badge) { badge.textContent = '0'; badge.classList.add('hidden') }
+
+      // Show confirmation
+      const email = (document.getElementById('ck-email') as HTMLInputElement).value
+      document.getElementById('ck-confirm-email')!.textContent = email
+      goToStep(4)
+
+    } catch (e: any) {
+      showError(e.message || 'Une erreur est survenue. Veuillez réessayer.')
+      payBtn.removeAttribute('disabled')
+      payText.classList.remove('invisible')
+      payLoading.classList.add('hidden')
+    }
+  })
+
+  // Navigation
+  document.getElementById('ck-back-2')?.addEventListener('click', () => goToStep(1))
+  document.getElementById('ck-back-3')?.addEventListener('click', () => goToStep(2))
+  document.getElementById('ck-edit-info')?.addEventListener('click', () => goToStep(1))
+
+  // Promo code
+  document.getElementById('ck-promo-apply')?.addEventListener('click', async () => {
+    const input = document.getElementById('ck-promo-input') as HTMLInputElement
+    const code = input.value.trim().toUpperCase()
+    const msg = document.getElementById('ck-promo-msg')!
+    if (!code) return
+
+    msg.classList.remove('hidden')
+    msg.textContent = 'Verification...'
+    msg.className = 'text-xs mt-1.5 px-1 text-text-muted'
+
+    try {
+      const res = await fetch(`${MEDUSA_URL}/store/carts/${cartId}/promotions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-publishable-api-key': API_KEY },
+        body: JSON.stringify({ promo_codes: [code] }),
+      })
+      if (res.ok) {
+        // Reload cart to get updated prices
+        const cartRes = await fetch(`${MEDUSA_URL}/store/carts/${cartId}?fields=+items,+items.variant,+items.product`, {
+          headers: { 'x-publishable-api-key': API_KEY },
+        })
+        const { cart } = await cartRes.json()
+        currentCart = cart
+
+        const discount = (cart.discount_total || 0)
+        if (discount > 0) {
+          msg.classList.add('hidden')
+          document.getElementById('ck-promo-active')!.classList.remove('hidden')
+          document.getElementById('ck-promo-code-display')!.textContent = `Code ${code} applique`
+          document.getElementById('ck-discount-row')!.classList.remove('hidden')
+          document.getElementById('ck-discount')!.textContent = `-${formatPrice(discount)}`
+          document.getElementById('ck-subtotal')!.textContent = formatPrice(cart.subtotal || 0)
+          document.getElementById('ck-total')!.textContent = formatPrice(cart.total || 0)
+          input.value = ''
+        } else {
+          msg.textContent = 'Code promo invalide'
+          msg.className = 'text-xs mt-1.5 px-1 text-error'
+        }
+      } else {
+        msg.textContent = 'Code promo invalide ou expire'
+        msg.className = 'text-xs mt-1.5 px-1 text-error'
+      }
+    } catch {
+      msg.textContent = 'Erreur de verification'
+      msg.className = 'text-xs mt-1.5 px-1 text-error'
+    }
+  })
+
+  document.getElementById('ck-promo-remove')?.addEventListener('click', async () => {
+    // Remove promotions from cart
+    try {
+      const cartRes = await fetch(`${MEDUSA_URL}/store/carts/${cartId}?fields=+items,+items.variant,+items.product,+promotions`, {
+        headers: { 'x-publishable-api-key': API_KEY },
+      })
+      const { cart } = await cartRes.json()
+      const promoCodes = cart.promotions?.map((p: any) => p.code).filter(Boolean) || []
+
+      if (promoCodes.length > 0) {
+        await fetch(`${MEDUSA_URL}/store/carts/${cartId}/promotions`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json', 'x-publishable-api-key': API_KEY },
+          body: JSON.stringify({ promo_codes: promoCodes }),
+        })
+      }
+
+      // Reload cart
+      const updatedRes = await fetch(`${MEDUSA_URL}/store/carts/${cartId}?fields=+items`, {
+        headers: { 'x-publishable-api-key': API_KEY },
+      })
+      const { cart: updated } = await updatedRes.json()
+      currentCart = updated
+
+      document.getElementById('ck-promo-active')!.classList.add('hidden')
+      document.getElementById('ck-discount-row')!.classList.add('hidden')
+      document.getElementById('ck-subtotal')!.textContent = formatPrice(updated.subtotal || 0)
+      document.getElementById('ck-total')!.textContent = formatPrice(updated.total || 0)
+    } catch (e) {
+      console.error('Remove promo error:', e)
+    }
+  })
+</script>

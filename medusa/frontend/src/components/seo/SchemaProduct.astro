@@ -1,0 +1,61 @@
+---
+interface Props {
+  name: string
+  description: string
+  image?: string
+  price: number
+  currency?: string
+  url: string
+  sku?: string
+  availability?: string
+  reviewCount?: number
+  avgRating?: number
+  brand?: string
+}
+
+const {
+  name,
+  description,
+  image,
+  price,
+  currency = 'EUR',
+  url,
+  sku,
+  availability = 'InStock',
+  reviewCount = 0,
+  avgRating = 0,
+  brand = 'Magic Crochet Kit',
+} = Astro.props
+
+const schema: any = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": name,
+  "description": description.replace(/<[^>]*>/g, '').substring(0, 500),
+  ...(image && { "image": image }),
+  ...(sku && { "sku": sku }),
+  "brand": { "@type": "Brand", "name": brand },
+  "offers": {
+    "@type": "Offer",
+    "url": `https://magic-crochet-kit.com${url}`,
+    "priceCurrency": currency,
+    "price": Number(price).toFixed(2),
+    "availability": `https://schema.org/${availability}`,
+    "seller": {
+      "@type": "Organization",
+      "name": "Magic Crochet Kit"
+    }
+  }
+}
+
+if (reviewCount > 0 && avgRating > 0) {
+  schema.aggregateRating = {
+    "@type": "AggregateRating",
+    "ratingValue": avgRating.toFixed(1),
+    "reviewCount": reviewCount,
+    "bestRating": "5",
+    "worstRating": "1",
+  }
+}
+---
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />

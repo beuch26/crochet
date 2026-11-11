@@ -1,0 +1,189 @@
+{%- comment -%}
+  Product Recommendations Section
+  Uses Shopify's Product Recommendations API
+  Displays related/recommended products
+{%- endcomment -%}
+
+<div
+  class="product-recommendations section"
+  data-product-recommendations
+  data-product-id="{{ product.id }}"
+  data-section-id="{{ section.id }}"
+  data-limit="{{ section.settings.products_to_show }}"
+>
+  {%- if recommendations.performed and recommendations.products_count > 0 -%}
+    <div class="container">
+
+      <header class="section-header text-center">
+        {%- assign heading_text = section.settings.heading | default: 'Vous aimerez aussi' -%}
+        {%- if section.settings.enable_heading_style -%}
+          {%- render 'heading-styles',
+            text: heading_text,
+            tag: 'h2',
+            style: section.settings.heading_style,
+            color: section.settings.heading_style_color,
+            align: 'center',
+            size: 'xl',
+            typing_texts: section.settings.typing_texts
+          -%}
+        {%- else -%}
+          <h2 class="section-title">{{ heading_text }}</h2>
+          <div class="section-title-underline"></div>
+        {%- endif -%}
+      </header>
+
+      <div class="grid {% if section.settings.columns_desktop == 2 %}grid--2{% elsif section.settings.columns_desktop == 3 %}grid--3{% else %}grid--4{% endif %}">
+        {%- for product in recommendations.products limit: section.settings.products_to_show -%}
+          {%- render 'product-card', product: product -%}
+        {%- endfor -%}
+      </div>
+
+    </div>
+  {%- endif -%}
+</div>
+
+<style>
+.product-recommendations {
+  padding: var(--spacing-xl) 0;
+  background-color: white;
+}
+
+.product-recommendations .section-header {
+  text-align: center;
+}
+
+.product-recommendations .section-title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-md);
+}
+
+.section-title-underline {
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+  border-radius: 2px;
+  margin: 0 auto;
+}
+</style>
+
+<script>
+(function() {
+  const recommendationsSection = document.querySelector('[data-product-recommendations]');
+  if (!recommendationsSection) return;
+
+  const productId = recommendationsSection.dataset.productId;
+  const sectionId = recommendationsSection.dataset.sectionId;
+  const limit = recommendationsSection.dataset.limit || 4;
+
+  // Build recommendations URL
+  const recommendationsUrl = `/recommendations/products?product_id=${productId}&limit=${limit}&section_id=${sectionId}`;
+
+  // Fetch recommendations
+  fetch(recommendationsUrl)
+    .then(response => response.text())
+    .then(html => {
+      // Parse the HTML response
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const newSection = doc.querySelector('[data-product-recommendations]');
+
+      if (newSection && newSection.innerHTML.trim() !== '') {
+        recommendationsSection.innerHTML = newSection.innerHTML;
+      } else {
+        // If no recommendations, hide the section
+        recommendationsSection.style.display = 'none';
+      }
+    })
+    .catch(error => {
+      console.error('Error loading product recommendations:', error);
+      recommendationsSection.style.display = 'none';
+    });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Recommandations produits",
+  "class": "section-product-recommendations",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre",
+      "default": "Vous aimerez aussi"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Produits à afficher",
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "Colonnes (Bureau)",
+      "options": [
+        {
+          "value": "2",
+          "label": "2 colonnes"
+        },
+        {
+          "value": "3",
+          "label": "3 colonnes"
+        },
+        {
+          "value": "4",
+          "label": "4 colonnes"
+        }
+      ],
+      "default": "4"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    }
+  ]
+}
+{% endschema %}

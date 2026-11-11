@@ -1,0 +1,512 @@
+{%- comment -%}
+  Customer Addresses Template
+{%- endcomment -%}
+
+<div class="customer-addresses section">
+  <div class="container">
+
+    <header class="addresses-header">
+      <a href="{{ routes.account_url }}" class="addresses-back">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M12 16L6 10L12 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        {{ 'customer.account.return' | t }}
+      </a>
+      <h1>{{ 'customer.addresses.title' | t }}</h1>
+    </header>
+
+    <div class="addresses-grid">
+
+      {%- comment -%} Add New Address Card {%- endcomment -%}
+      <div class="address-card address-card--add">
+        <button type="button" class="address-add-button" data-address-form-toggle data-address-id="new">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2"/>
+            <path d="M24 14V34M14 24H34" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span>{{ 'customer.addresses.add_new' | t }}</span>
+        </button>
+      </div>
+
+      {%- comment -%} Existing Addresses {%- endcomment -%}
+      {%- for address in customer.addresses -%}
+        <div class="address-card">
+          {%- if address == customer.default_address -%}
+            <span class="address-card__badge">{{ 'customer.addresses.default' | t }}</span>
+          {%- endif -%}
+
+          <address class="address-card__content">
+            <strong>{{ address.name }}</strong><br>
+            {{ address.company }}<br>
+            {{ address.address1 }}<br>
+            {%- if address.address2 != blank -%}
+              {{ address.address2 }}<br>
+            {%- endif -%}
+            {{ address.city }}, {{ address.province_code }} {{ address.zip }}<br>
+            {{ address.country }}
+            {%- if address.phone != blank -%}
+              <br>{{ address.phone }}
+            {%- endif -%}
+          </address>
+
+          <div class="address-card__actions">
+            <button
+              type="button"
+              class="btn btn--small btn--secondary"
+              data-address-form-toggle
+              data-address-id="{{ address.id }}"
+            >
+              {{ 'customer.addresses.edit' | t }}
+            </button>
+
+            <button
+              type="button"
+              class="btn btn--small btn--text"
+              data-address-delete
+              data-address-id="{{ address.id }}"
+            >
+              {{ 'customer.addresses.delete' | t }}
+            </button>
+          </div>
+        </div>
+      {%- endfor -%}
+
+    </div>
+
+  </div>
+</div>
+
+{%- comment -%} Address Form Modal {%- endcomment -%}
+<div class="address-modal" data-address-modal style="display:none;">
+  <div class="address-modal__overlay" data-modal-close></div>
+  <div class="address-modal__content">
+    <div class="address-modal__header">
+      <h2 data-modal-title>{{ 'customer.addresses.add_new' | t }}</h2>
+      <button type="button" class="address-modal__close" data-modal-close aria-label="{{ 'general.accessibility.close' | t }}">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="address-modal__body">
+      {%- comment -%} New Address Form {%- endcomment -%}
+      {%- form 'customer_address', customer.new_address, data-address-form: 'new', style: 'display:none;' -%}
+        <div class="form-row">
+          <div class="form-group">
+            <label for="address_new_first_name">{{ 'customer.addresses.first_name' | t }} <span class="required">*</span></label>
+            <input type="text" name="address[first_name]" id="address_new_first_name" required>
+          </div>
+          <div class="form-group">
+            <label for="address_new_last_name">{{ 'customer.addresses.last_name' | t }} <span class="required">*</span></label>
+            <input type="text" name="address[last_name]" id="address_new_last_name" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="address_new_company">{{ 'customer.addresses.company' | t }}</label>
+          <input type="text" name="address[company]" id="address_new_company">
+        </div>
+
+        <div class="form-group">
+          <label for="address_new_address1">{{ 'customer.addresses.address1' | t }} <span class="required">*</span></label>
+          <input type="text" name="address[address1]" id="address_new_address1" required>
+        </div>
+
+        <div class="form-group">
+          <label for="address_new_address2">{{ 'customer.addresses.address2' | t }}</label>
+          <input type="text" name="address[address2]" id="address_new_address2">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="address_new_city">{{ 'customer.addresses.city' | t }} <span class="required">*</span></label>
+            <input type="text" name="address[city]" id="address_new_city" required>
+          </div>
+          <div class="form-group">
+            <label for="address_new_country">{{ 'customer.addresses.country' | t }} <span class="required">*</span></label>
+            <select name="address[country]" id="address_new_country" data-country-select required>
+              {{ all_country_option_tags }}
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="address_new_province">{{ 'customer.addresses.province' | t }}</label>
+            <select name="address[province]" id="address_new_province" data-province-select>
+              <option value="">{{ 'customer.addresses.province_placeholder' | t }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="address_new_zip">{{ 'customer.addresses.zip' | t }} <span class="required">*</span></label>
+            <input type="text" name="address[zip]" id="address_new_zip" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="address_new_phone">{{ 'customer.addresses.phone' | t }}</label>
+          <input type="tel" name="address[phone]" id="address_new_phone">
+        </div>
+
+        <div class="form-group form-group--checkbox">
+          <label>
+            <input type="checkbox" name="address[default]" value="1">
+            {{ 'customer.addresses.set_default' | t }}
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn--primary">{{ 'customer.addresses.add' | t }}</button>
+          <button type="button" class="btn btn--secondary" data-modal-close>{{ 'customer.addresses.cancel' | t }}</button>
+        </div>
+      {%- endform -%}
+
+      {%- comment -%} Edit Address Forms {%- endcomment -%}
+      {%- for address in customer.addresses -%}
+        {%- form 'customer_address', address, data-address-form: address.id, style: 'display:none;' -%}
+          <div class="form-row">
+            <div class="form-group">
+              <label for="address_{{ address.id }}_first_name">{{ 'customer.addresses.first_name' | t }} <span class="required">*</span></label>
+              <input type="text" name="address[first_name]" id="address_{{ address.id }}_first_name" value="{{ address.first_name }}" required>
+            </div>
+            <div class="form-group">
+              <label for="address_{{ address.id }}_last_name">{{ 'customer.addresses.last_name' | t }} <span class="required">*</span></label>
+              <input type="text" name="address[last_name]" id="address_{{ address.id }}_last_name" value="{{ address.last_name }}" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="address_{{ address.id }}_company">{{ 'customer.addresses.company' | t }}</label>
+            <input type="text" name="address[company]" id="address_{{ address.id }}_company" value="{{ address.company }}">
+          </div>
+
+          <div class="form-group">
+            <label for="address_{{ address.id }}_address1">{{ 'customer.addresses.address1' | t }} <span class="required">*</span></label>
+            <input type="text" name="address[address1]" id="address_{{ address.id }}_address1" value="{{ address.address1 }}" required>
+          </div>
+
+          <div class="form-group">
+            <label for="address_{{ address.id }}_address2">{{ 'customer.addresses.address2' | t }}</label>
+            <input type="text" name="address[address2]" id="address_{{ address.id }}_address2" value="{{ address.address2 }}">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="address_{{ address.id }}_city">{{ 'customer.addresses.city' | t }} <span class="required">*</span></label>
+              <input type="text" name="address[city]" id="address_{{ address.id }}_city" value="{{ address.city }}" required>
+            </div>
+            <div class="form-group">
+              <label for="address_{{ address.id }}_country">{{ 'customer.addresses.country' | t }} <span class="required">*</span></label>
+              <select name="address[country]" id="address_{{ address.id }}_country" data-country-select required>
+                {{ address.country_option_tags }}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="address_{{ address.id }}_province">{{ 'customer.addresses.province' | t }}</label>
+              <select name="address[province]" id="address_{{ address.id }}_province" data-province-select>
+                <option value="{{ address.province }}">{{ address.province }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="address_{{ address.id }}_zip">{{ 'customer.addresses.zip' | t }} <span class="required">*</span></label>
+              <input type="text" name="address[zip]" id="address_{{ address.id }}_zip" value="{{ address.zip }}" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="address_{{ address.id }}_phone">{{ 'customer.addresses.phone' | t }}</label>
+            <input type="tel" name="address[phone]" id="address_{{ address.id }}_phone" value="{{ address.phone }}">
+          </div>
+
+          <div class="form-group form-group--checkbox">
+            <label>
+              <input type="checkbox" name="address[default]" value="1" {% if address == customer.default_address %}checked{% endif %}>
+              {{ 'customer.addresses.set_default' | t }}
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn--primary">{{ 'customer.addresses.update' | t }}</button>
+            <button type="button" class="btn btn--secondary" data-modal-close>{{ 'customer.addresses.cancel' | t }}</button>
+          </div>
+        {%- endform -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+{%- comment -%} Delete Confirmation Forms {%- endcomment -%}
+{%- for address in customer.addresses -%}
+  {%- form 'customer_address', address, data-delete-form: address.id, style: 'display:none;' -%}
+    <input type="hidden" name="_method" value="delete">
+  {%- endform -%}
+{%- endfor -%}
+
+<style>
+.customer-addresses {
+  padding: var(--spacing-2xl) 0;
+  min-height: 60vh;
+}
+
+.addresses-header {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.addresses-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.addresses-back:hover {
+  text-decoration: underline;
+}
+
+.addresses-header h1 {
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  margin: 0;
+}
+
+.addresses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.address-card {
+  position: relative;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.address-card--add {
+  background-color: var(--color-background-light);
+  border-style: dashed;
+  min-height: 250px;
+}
+
+.address-add-button {
+  width: 100%;
+  height: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  color: var(--color-text-light);
+  transition: all var(--transition-speed);
+}
+
+.address-add-button:hover {
+  color: var(--color-primary);
+}
+
+.address-add-button span {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.address-card__badge {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.address-card__content {
+  font-style: normal;
+  font-size: 0.875rem;
+  line-height: 1.8;
+  color: var(--color-text);
+  flex: 1;
+}
+
+.address-card__actions {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-border);
+}
+
+/* Address Modal */
+.address-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.address-modal__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  cursor: pointer;
+}
+
+.address-modal__content {
+  position: relative;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.address-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.address-modal__header h2 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.address-modal__close {
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color var(--transition-speed);
+}
+
+.address-modal__close:hover {
+  background-color: var(--color-background-light);
+}
+
+.address-modal__body {
+  padding: var(--spacing-lg);
+  overflow-y: auto;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+}
+
+@media (max-width: 767px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 767px) {
+  .form-actions {
+    flex-direction: column;
+  }
+}
+</style>
+
+<script>
+(function() {
+  const modal = document.querySelector('[data-address-modal]');
+  const modalTitle = document.querySelector('[data-modal-title]');
+  const toggleButtons = document.querySelectorAll('[data-address-form-toggle]');
+  const closeButtons = document.querySelectorAll('[data-modal-close]');
+  const deleteButtons = document.querySelectorAll('[data-address-delete]');
+  const addressForms = document.querySelectorAll('[data-address-form]');
+
+  // Open modal
+  toggleButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const addressId = button.dataset.addressId;
+      const form = document.querySelector(`[data-address-form="${addressId}"]`);
+
+      if (form && modal) {
+        // Hide all forms
+        addressForms.forEach(f => f.style.display = 'none');
+
+        // Show selected form
+        form.style.display = 'block';
+
+        // Update modal title
+        if (addressId === 'new') {
+          modalTitle.textContent = {{ 'customer.addresses.add_new' | t | json }};
+        } else {
+          modalTitle.textContent = {{ 'customer.addresses.edit_address' | t | json }};
+        }
+
+        // Show modal
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+    });
+  });
+
+  // Close modal
+  closeButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    });
+  });
+
+  // Delete address
+  deleteButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const addressId = button.dataset.addressId;
+      const confirmMessage = {{ 'customer.addresses.delete_confirm' | t | json }};
+
+      if (confirm(confirmMessage)) {
+        const deleteForm = document.querySelector(`[data-delete-form="${addressId}"]`);
+        if (deleteForm) {
+          deleteForm.submit();
+        }
+      }
+    });
+  });
+})();
+</script>

@@ -1,0 +1,582 @@
+{%- comment -%}
+  Wishlist System with localStorage - Modal & JavaScript Only
+
+  This snippet provides the wishlist modal and JavaScript functionality.
+
+  For wishlist buttons on product cards/pages, use this code:
+  <button
+    type="button"
+    class="wishlist-button"
+    data-wishlist-toggle="{{ product.id }}"
+    data-product-title="{{ product.title | escape }}"
+    data-product-url="{{ product.url }}"
+    data-product-image="{{ product.featured_image | image_url: width: 300 }}"
+    data-product-price="{{ product.price | money }}"
+    aria-label="Add to wishlist"
+  >
+    <svg class="wishlist-button__icon wishlist-button__icon--empty" width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M12 21.35L10.55 20.03C5.4 15.36 2 12.27 2 8.5C2 5.41 4.42 3 7.5 3C9.24 3 10.91 3.81 12 5.08C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.41 22 8.5C22 12.27 18.6 15.36 13.45 20.03L12 21.35Z" stroke="currentColor" stroke-width="2"/>
+    </svg>
+    <svg class="wishlist-button__icon wishlist-button__icon--filled" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
+      <path d="M12 21.35L10.55 20.03C5.4 15.36 2 12.27 2 8.5C2 5.41 4.42 3 7.5 3C9.24 3 10.91 3.81 12 5.08C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.41 22 8.5C22 12.27 18.6 15.36 13.45 20.03L12 21.35Z"/>
+    </svg>
+  </button>
+{%- endcomment -%}
+
+{%- comment -%} Wishlist Page Modal {%- endcomment -%}
+<div class="wishlist-modal" data-wishlist-modal style="display:none;">
+  <div class="wishlist-modal__overlay" data-wishlist-close></div>
+
+  <div class="wishlist-modal__container">
+    <div class="wishlist-modal__header">
+      <div class="wishlist-modal__title">{{ 'wishlist.title' | t | default: 'My Wishlist' }}</div>
+      <button type="button" class="wishlist-modal__close" data-wishlist-close aria-label="{{ 'general.accessibility.close' | t }}">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="wishlist-modal__content" data-wishlist-content>
+      <div class="wishlist-empty" data-wishlist-empty>
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+          <path d="M40 70L34.5 65.0667C17.3333 49.6 6.66667 40.1333 6.66667 28.3333C6.66667 18.8 13.8 11.6667 23.3333 11.6667C28.3333 11.6667 33.1333 13.9 36.6667 17.5C40.2 13.9 45 11.6667 50 11.6667C59.5333 11.6667 66.6667 18.8 66.6667 28.3333C66.6667 40.1333 56 49.6 38.8333 65.0667L40 70Z" stroke="currentColor" stroke-width="3"/>
+        </svg>
+        <p>{{ 'wishlist.empty' | t | default: 'Your wishlist is empty' }}</p>
+        <a href="{{ routes.all_products_collection_url }}" class="btn btn--primary">
+          {{ 'wishlist.start_shopping' | t | default: 'Start Shopping' }}
+        </a>
+      </div>
+
+      <div class="wishlist-items" data-wishlist-items style="display:none;">
+        {%- comment -%} Items will be inserted here by JavaScript {%- endcomment -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+{%- comment -%}
+  Wishlist Header Link/Badge
+  This is already in the header (sections/header.liquid line 94-100)
+  No need to render it here - it would create duplicates
+{%- endcomment -%}
+
+<style>
+/* Wishlist Button */
+.wishlist-button {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-speed);
+}
+
+.wishlist-button:hover {
+  border-color: var(--color-primary);
+  transform: scale(1.1);
+}
+
+.wishlist-button.active .wishlist-button__icon--empty {
+  display: none;
+}
+
+.wishlist-button.active .wishlist-button__icon--filled {
+  display: block !important;
+  color: var(--color-error);
+  animation: heartBeat 0.3s ease;
+}
+
+@keyframes heartBeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* Wishlist Link/Counter */
+.wishlist-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  text-decoration: none;
+  padding: 0.5rem;
+  transition: color var(--transition-speed);
+}
+
+.wishlist-link:hover {
+  color: var(--color-primary);
+}
+
+.wishlist-count {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 18px;
+  height: 18px;
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: 50%;
+  font-size: 0.625rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Wishlist Modal */
+.wishlist-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wishlist-modal__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  cursor: pointer;
+}
+
+.wishlist-modal__container {
+  position: relative;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.wishlist-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.wishlist-modal__header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.wishlist-modal__close {
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color var(--transition-speed);
+}
+
+.wishlist-modal__close:hover {
+  background-color: var(--color-background-light);
+}
+
+.wishlist-modal__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-lg);
+}
+
+.wishlist-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: var(--spacing-md);
+  color: var(--color-text-light);
+  text-align: center;
+}
+
+.wishlist-empty svg {
+  opacity: 0.3;
+}
+
+.wishlist-items {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.wishlist-item {
+  display: grid;
+  grid-template-columns: 100px 1fr auto;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: var(--color-background-light);
+  border-radius: var(--radius-md);
+  align-items: center;
+}
+
+.wishlist-item__image {
+  width: 100px;
+  height: 100px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background-color: var(--color-background);
+}
+
+.wishlist-item__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wishlist-item__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wishlist-item__title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.wishlist-item__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.wishlist-item__title a:hover {
+  color: var(--color-primary);
+}
+
+.wishlist-item__price {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.wishlist-item__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wishlist-item__remove {
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-light);
+  transition: all var(--transition-speed);
+}
+
+.wishlist-item__remove:hover {
+  background-color: var(--color-error);
+  border-color: var(--color-error);
+  color: white;
+}
+
+@media (max-width: 767px) {
+  .wishlist-item {
+    grid-template-columns: 80px 1fr;
+  }
+
+  .wishlist-item__image {
+    width: 80px;
+    height: 80px;
+  }
+
+  .wishlist-item__actions {
+    grid-column: 2;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+</style>
+
+<script>
+(function() {
+  const STORAGE_KEY = 'shopify_wishlist';
+
+  // Wishlist object
+  const Wishlist = {
+    items: [],
+
+    init() {
+      this.loadFromStorage();
+      this.updateUI();
+      this.attachEventListeners();
+    },
+
+    loadFromStorage() {
+      try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        this.items = data ? JSON.parse(data) : [];
+      } catch (e) {
+        console.error('Error loading wishlist:', e);
+        this.items = [];
+      }
+    },
+
+    saveToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(this.items));
+      } catch (e) {
+        console.error('Error saving wishlist:', e);
+      }
+    },
+
+    add(productId, productData) {
+      if (this.has(productId)) return false;
+
+      this.items.push({
+        id: productId,
+        title: productData.title,
+        url: productData.url,
+        image: productData.image,
+        price: productData.price,
+        addedAt: Date.now()
+      });
+
+      this.saveToStorage();
+      this.updateUI();
+      this.showNotification('{{ "wishlist.added" | t | default: "Added to wishlist" }}');
+      return true;
+    },
+
+    remove(productId) {
+      this.items = this.items.filter(item => item.id !== productId);
+      this.saveToStorage();
+      this.updateUI();
+      this.showNotification('{{ "wishlist.removed" | t | default: "Removed from wishlist" }}');
+    },
+
+    has(productId) {
+      return this.items.some(item => item.id === productId);
+    },
+
+    toggle(productId, productData) {
+      if (this.has(productId)) {
+        this.remove(productId);
+        return false;
+      } else {
+        this.add(productId, productData);
+        return true;
+      }
+    },
+
+    clear() {
+      this.items = [];
+      this.saveToStorage();
+      this.updateUI();
+    },
+
+    updateUI() {
+      // Update count badge
+      const countElement = document.querySelector('[data-wishlist-count]');
+      if (countElement) {
+        countElement.textContent = this.items.length;
+        countElement.style.display = this.items.length > 0 ? 'flex' : 'none';
+      }
+
+      // Update all wishlist buttons
+      document.querySelectorAll('[data-wishlist-toggle]').forEach(button => {
+        const productId = button.dataset.wishlistToggle;
+        if (this.has(productId)) {
+          button.classList.add('active');
+          button.setAttribute('aria-label', '{{ "wishlist.remove_from_wishlist" | t | default: "Remove from wishlist" }}');
+        } else {
+          button.classList.remove('active');
+          button.setAttribute('aria-label', '{{ "wishlist.add_to_wishlist" | t | default: "Add to wishlist" }}');
+        }
+      });
+
+      // Update modal content
+      this.renderModal();
+    },
+
+    renderModal() {
+      const itemsContainer = document.querySelector('[data-wishlist-items]');
+      const emptyState = document.querySelector('[data-wishlist-empty]');
+
+      if (!itemsContainer || !emptyState) return;
+
+      if (this.items.length === 0) {
+        itemsContainer.style.display = 'none';
+        emptyState.style.display = 'flex';
+      } else {
+        itemsContainer.style.display = 'grid';
+        emptyState.style.display = 'none';
+
+        itemsContainer.innerHTML = this.items.map(item => `
+          <div class="wishlist-item">
+            <div class="wishlist-item__image">
+              <img src="${item.image}" alt="${item.title}" loading="lazy">
+            </div>
+            <div class="wishlist-item__info">
+              <h3 class="wishlist-item__title">
+                <a href="${item.url}">${item.title}</a>
+              </h3>
+              <div class="wishlist-item__price">${item.price}</div>
+            </div>
+            <div class="wishlist-item__actions">
+              <a href="${item.url}" class="btn btn--small btn--primary">
+                {{ 'wishlist.view_product' | t | default: 'View' }}
+              </a>
+              <button type="button" class="wishlist-item__remove" data-wishlist-remove="${item.id}" aria-label="{{ 'wishlist.remove' | t | default: 'Remove' }}">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `).join('');
+
+        // Attach remove event listeners
+        itemsContainer.querySelectorAll('[data-wishlist-remove]').forEach(button => {
+          button.addEventListener('click', () => {
+            this.remove(button.dataset.wishlistRemove);
+          });
+        });
+      }
+    },
+
+    showNotification(message) {
+      // Simple notification - could be enhanced
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        padding: 1rem 1.5rem;
+        background-color: var(--color-success);
+        color: white;
+        border-radius: var(--radius-md);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10001;
+        animation: slideInRight 0.3s ease;
+      `;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+      }, 2000);
+    },
+
+    attachEventListeners() {
+      // Toggle wishlist buttons
+      document.addEventListener('click', (e) => {
+        const button = e.target.closest('[data-wishlist-toggle]');
+        if (!button) return;
+
+        e.preventDefault();
+        const productId = button.dataset.wishlistToggle;
+        const productData = {
+          title: button.dataset.productTitle,
+          url: button.dataset.productUrl,
+          image: button.dataset.productImage,
+          price: button.dataset.productPrice
+        };
+
+        this.toggle(productId, productData);
+      });
+
+      // Open modal
+      document.querySelectorAll('[data-wishlist-open]').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.openModal();
+        });
+      });
+
+      // Close modal
+      document.querySelectorAll('[data-wishlist-close]').forEach(button => {
+        button.addEventListener('click', () => {
+          this.closeModal();
+        });
+      });
+
+      // Close on escape
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          this.closeModal();
+        }
+      });
+    },
+
+    openModal() {
+      const modal = document.querySelector('[data-wishlist-modal]');
+      if (!modal) return;
+
+      this.renderModal();
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    },
+
+    closeModal() {
+      const modal = document.querySelector('[data-wishlist-modal]');
+      if (!modal) return;
+
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+  };
+
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => Wishlist.init());
+  } else {
+    Wishlist.init();
+  }
+
+  // Export for external use
+  window.Wishlist = Wishlist;
+})();
+</script>
+
+<style>
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+</style>

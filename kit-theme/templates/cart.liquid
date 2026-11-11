@@ -1,0 +1,27 @@
+{%- comment -%}
+  Cart Template - Full Page Cart
+  Shows cart contents, totals, and checkout button
+
+  When view=drawer, render only the drawer body content for AJAX refresh
+{%- endcomment -%}
+
+{%- if request.design_mode == false and request.view == 'drawer' -%}
+  {%- layout none -%}
+  {%- comment -%} Only render drawer body content WITHOUT the wrapper div to avoid nesting {%- endcomment -%}
+  {%- if cart.item_count > 0 -%}
+    {%- render 'cart-drawer-body' -%}
+  {%- else -%}
+    <div class="cart-empty">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+        <path d="M8 16h48l-4 32H12L8 16z" stroke="currentColor" stroke-width="3" fill="none"/>
+        <circle cx="20" cy="52" r="4" fill="currentColor"/>
+        <circle cx="44" cy="52" r="4" fill="currentColor"/>
+      </svg>
+      <p>Votre panier est vide</p>
+      <a href="/collections/all" class="btn btn--primary">Continuer mes achats</a>
+    </div>
+  {%- endif -%}
+{%- else -%}
+  {%- comment -%} Full Page Cart {%- endcomment -%}
+  {%- section 'cart-main' -%}
+{%- endif -%}

@@ -1,0 +1,151 @@
+{%- comment -%}
+  Mobile Navigation Drawer
+{%- endcomment -%}
+
+<nav class="mobile-nav drawer" data-mobile-menu role="navigation" aria-label="{{ 'general.accessibility.mobile_navigation' | t | default: 'Mobile navigation' }}">
+  <div class="drawer__header">
+    <h2>{{ 'general.menu' | t | default: 'Menu' }}</h2>
+    <button class="drawer__close" data-mobile-menu-toggle aria-label="{{ 'general.accessibility.close' | t }}">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="drawer__body">
+    <ul class="mobile-nav__list">
+      {%- for link in linklists.main-menu.links -%}
+        <li class="mobile-nav__item">
+          <a href="{{ link.url }}" class="mobile-nav__link">{{ link.title }}</a>
+
+          {%- if link.links.size > 0 -%}
+            <ul class="mobile-nav__sublist">
+              {%- for child_link in link.links -%}
+                <li>
+                  <a href="{{ child_link.url }}" class="mobile-nav__sublink">{{ child_link.title }}</a>
+                </li>
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+
+      {%- if customer -%}
+        <li class="mobile-nav__item">
+          <a href="{{ routes.account_url }}" class="mobile-nav__link">{{ 'customer.account.title' | t }}</a>
+        </li>
+        <li class="mobile-nav__item">
+          <a href="{{ routes.account_logout_url }}" class="mobile-nav__link">{{ 'customer.account.logout' | t }}</a>
+        </li>
+      {%- else -%}
+        <li class="mobile-nav__item">
+          <a href="{{ routes.account_login_url }}" class="mobile-nav__link">{{ 'customer.login.title' | t }}</a>
+        </li>
+      {%- endif -%}
+    </ul>
+  </div>
+</nav>
+
+<style>
+.mobile-nav__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mobile-nav__item {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.mobile-nav__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  color: var(--color-text);
+  font-weight: 500;
+  font-size: 1rem;
+  text-decoration: none;
+  background: transparent;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.mobile-nav__link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  border-radius: 0 2px 2px 0;
+  transition: height 0.2s ease;
+}
+
+.mobile-nav__link:active,
+.mobile-nav__link:focus {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(124, 58, 237, 0.05) 100%);
+  color: var(--color-primary);
+}
+
+.mobile-nav__link:active::after,
+.mobile-nav__link:focus::after {
+  height: 60%;
+}
+
+.mobile-nav__sublist {
+  list-style: none;
+  padding: 0.5rem 0 0.5rem 2.5rem;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mobile-nav__sublink {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: var(--color-text-light);
+  font-size: 0.9375rem;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  position: relative;
+  padding-left: 2rem;
+}
+
+.mobile-nav__sublink::before {
+  content: '';
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  background: var(--color-text-light);
+  border-radius: 50%;
+  opacity: 0.4;
+  transition: all 0.2s ease;
+}
+
+.mobile-nav__sublink:active,
+.mobile-nav__sublink:focus {
+  background: rgba(37, 99, 235, 0.05);
+  color: var(--color-primary);
+  transform: translateX(4px);
+}
+
+.mobile-nav__sublink:active::before,
+.mobile-nav__sublink:focus::before {
+  background: var(--color-primary);
+  opacity: 1;
+  transform: translateY(-50%) scale(1.2);
+}
+</style>

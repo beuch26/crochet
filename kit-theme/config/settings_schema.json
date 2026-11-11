@@ -1,0 +1,1073 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "Magic Crochet Kit Theme",
+    "theme_version": "2.10.3",
+    "theme_author": "Beucher Matthieu",
+    "theme_documentation_url": "https://github.com/beuch26/magic-crochet-kit",
+    "theme_support_url": "https://github.com/beuch26/magic-crochet-kit/issues"
+  },
+  {
+    "name": "Colors",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Color Scheme"
+      },
+      {
+        "type": "color",
+        "id": "color_primary",
+        "label": "Primary Color",
+        "default": "#2563eb",
+        "info": "Main brand color - used for buttons, links, and accents"
+      },
+      {
+        "type": "color",
+        "id": "color_secondary",
+        "label": "Secondary Color",
+        "default": "#7c3aed"
+      },
+      {
+        "type": "color",
+        "id": "color_text",
+        "label": "Text Color",
+        "default": "#1f2937"
+      },
+      {
+        "type": "color",
+        "id": "color_text_light",
+        "label": "Light Text Color",
+        "default": "#6b7280",
+        "info": "Used for secondary text and captions"
+      },
+      {
+        "type": "color",
+        "id": "color_background",
+        "label": "Background Color",
+        "default": "#ffffff"
+      },
+      {
+        "type": "color",
+        "id": "color_background_light",
+        "label": "Light Background Color",
+        "default": "#f9fafb",
+        "info": "Used for sections and cards"
+      },
+      {
+        "type": "color",
+        "id": "color_border",
+        "label": "Border Color",
+        "default": "#e5e7eb"
+      },
+      {
+        "type": "color",
+        "id": "color_success",
+        "label": "Success Color",
+        "default": "#10b981"
+      },
+      {
+        "type": "color",
+        "id": "color_warning",
+        "label": "Warning Color",
+        "default": "#f59e0b"
+      },
+      {
+        "type": "color",
+        "id": "color_error",
+        "label": "Error Color",
+        "default": "#ef4444"
+      },
+      {
+        "type": "header",
+        "content": "Couleur des liens"
+      },
+      {
+        "type": "color",
+        "id": "color_link",
+        "label": "Couleur des liens",
+        "info": "Laissez vide pour utiliser la couleur primaire"
+      },
+      {
+        "type": "color",
+        "id": "color_link_hover",
+        "label": "Couleur des liens (survol)",
+        "info": "Laissez vide pour utiliser la couleur secondaire"
+      },
+      {
+        "type": "header",
+        "content": "Couleur des prix"
+      },
+      {
+        "type": "color",
+        "id": "color_price",
+        "label": "Couleur du prix",
+        "info": "Laissez vide pour utiliser la couleur principale du theme"
+      },
+      {
+        "type": "color",
+        "id": "color_price_sale",
+        "label": "Couleur du prix en promo",
+        "info": "Laissez vide pour utiliser la couleur du prix"
+      },
+      {
+        "type": "color",
+        "id": "color_price_compare",
+        "label": "Couleur de l'ancien prix (barre)",
+        "info": "Laissez vide pour utiliser le gris par defaut"
+      }
+    ]
+  },
+  {
+    "name": "Typography",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Font Settings"
+      },
+      {
+        "type": "font_picker",
+        "id": "font_heading",
+        "label": "Heading Font",
+        "default": "assistant_n4",
+        "info": "Used for all headings (H1, H2, H3, etc.)"
+      },
+      {
+        "type": "font_picker",
+        "id": "font_body",
+        "label": "Body Font",
+        "default": "assistant_n4",
+        "info": "Used for body text and paragraphs"
+      },
+      {
+        "type": "range",
+        "id": "font_size_base",
+        "label": "Base Font Size (px)",
+        "min": 14,
+        "max": 20,
+        "step": 1,
+        "default": 16
+      },
+      {
+        "type": "select",
+        "id": "line_height_base",
+        "label": "Base Line Height",
+        "options": [
+          {
+            "value": "1.4",
+            "label": "Tight (1.4)"
+          },
+          {
+            "value": "1.6",
+            "label": "Normal (1.6)"
+          },
+          {
+            "value": "1.8",
+            "label": "Relaxed (1.8)"
+          }
+        ],
+        "default": "1.6"
+      },
+      {
+        "type": "header",
+        "content": "Espacement des titres de section"
+      },
+      {
+        "type": "range",
+        "id": "section_title_margin_bottom",
+        "label": "Espace apres les titres de section (px)",
+        "min": 8,
+        "max": 60,
+        "step": 4,
+        "default": 24,
+        "unit": "px",
+        "info": "Espacement uniforme sous les titres H2 de chaque section"
+      },
+      {
+        "type": "header",
+        "content": "Custom Fonts / Polices Personnalisées"
+      },
+      {
+        "type": "checkbox",
+        "id": "use_custom_font_heading",
+        "label": "Use custom heading font / Utiliser police personnalisée pour titres",
+        "default": false,
+        "info": "Override the Heading Font with a custom font"
+      },
+      {
+        "type": "text",
+        "id": "custom_font_heading_name",
+        "label": "Custom Heading Font Name / Nom de la police",
+        "info": "Example: 'Montserrat', 'Open Sans', 'MyCustomFont'",
+        "placeholder": "Montserrat"
+      },
+      {
+        "type": "url",
+        "id": "custom_font_heading_url",
+        "label": "Google Fonts URL / URL Google Fonts",
+        "info": "Get URL from fonts.google.com - Example: https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap"
+      },
+      {
+        "type": "checkbox",
+        "id": "use_custom_font_body",
+        "label": "Use custom body font / Utiliser police personnalisée pour texte",
+        "default": false,
+        "info": "Override the Body Font with a custom font"
+      },
+      {
+        "type": "text",
+        "id": "custom_font_body_name",
+        "label": "Custom Body Font Name / Nom de la police",
+        "info": "Example: 'Roboto', 'Lato', 'MyCustomFont'",
+        "placeholder": "Roboto"
+      },
+      {
+        "type": "url",
+        "id": "custom_font_body_url",
+        "label": "Google Fonts URL / URL Google Fonts",
+        "info": "Get URL from fonts.google.com - Example: https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+      },
+      {
+        "type": "header",
+        "content": "Advanced: Upload Custom Font Files"
+      },
+      {
+        "type": "paragraph",
+        "content": "Pour uploader vos propres fichiers de police (.woff2, .woff):\n1. Allez dans 'Content > Files' dans Shopify Admin\n2. Uploadez vos fichiers .woff2 et .woff\n3. Copiez les URLs des fichiers\n4. Ajoutez le code CSS dans 'Custom CSS' ci-dessous avec @font-face"
+      },
+      {
+        "type": "textarea",
+        "id": "custom_font_css",
+        "label": "Custom Font CSS (@font-face)",
+        "info": "Add @font-face declarations here for uploaded font files",
+        "placeholder": "@font-face {\n  font-family: 'MyCustomFont';\n  src: url('https://cdn.shopify.com/.../font.woff2') format('woff2'),\n       url('https://cdn.shopify.com/.../font.woff') format('woff');\n  font-weight: 400;\n  font-style: normal;\n}"
+      }
+    ]
+  },
+  {
+    "name": "Logo & Branding",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "Logo Image",
+        "info": "Recommended: 400x100px, transparent PNG"
+      },
+      {
+        "type": "range",
+        "id": "logo_width",
+        "label": "Logo Width (px)",
+        "min": 100,
+        "max": 300,
+        "step": 10,
+        "default": 180
+      },
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "Favicon",
+        "info": "Recommended: 32x32px PNG"
+      },
+      {
+        "type": "image_picker",
+        "id": "share_image",
+        "label": "Default Social Share Image",
+        "info": "Recommended: 1200x630px. Used when a page has no specific image"
+      }
+    ]
+  },
+  {
+    "name": "SEO & Analytics",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Search Engine Optimization"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_multilingual",
+        "label": "Enable Multilingual SEO (hreflang tags)",
+        "default": false
+      },
+      {
+        "type": "text",
+        "id": "seo_noindex_pages",
+        "label": "Pages to Noindex",
+        "info": "Comma-separated template names (e.g., search,cart,404)",
+        "placeholder": "search,cart"
+      },
+      {
+        "type": "header",
+        "content": "Google Analytics"
+      },
+      {
+        "type": "text",
+        "id": "google_analytics_id",
+        "label": "Google Analytics 4 Measurement ID",
+        "info": "Format: G-XXXXXXXXXX",
+        "placeholder": "G-XXXXXXXXXX"
+      },
+      {
+        "type": "checkbox",
+        "id": "ga_anonymize_ip",
+        "label": "Anonymize IP Addresses",
+        "default": true,
+        "info": "Required for GDPR compliance"
+      },
+      {
+        "type": "header",
+        "content": "Meta Pixel (Facebook)"
+      },
+      {
+        "type": "text",
+        "id": "facebook_pixel_id",
+        "label": "Meta Pixel ID",
+        "placeholder": "123456789"
+      },
+      {
+        "type": "text",
+        "id": "facebook_app_id",
+        "label": "Facebook App ID (Optional)",
+        "placeholder": "123456789"
+      }
+    ]
+  },
+  {
+    "name": "Social Media",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Social Media Links"
+      },
+      {
+        "type": "text",
+        "id": "twitter_username",
+        "label": "Twitter/X Username",
+        "info": "Without @",
+        "placeholder": "yourbrand"
+      },
+      {
+        "type": "text",
+        "id": "social_facebook_url",
+        "label": "Facebook URL",
+        "placeholder": "https://facebook.com/yourbrand"
+      },
+      {
+        "type": "text",
+        "id": "social_instagram_url",
+        "label": "Instagram URL",
+        "placeholder": "https://instagram.com/yourbrand"
+      },
+      {
+        "type": "text",
+        "id": "social_twitter_url",
+        "label": "Twitter/X URL",
+        "placeholder": "https://twitter.com/yourbrand"
+      },
+      {
+        "type": "text",
+        "id": "social_pinterest_url",
+        "label": "Pinterest URL",
+        "placeholder": "https://pinterest.com/yourbrand"
+      },
+      {
+        "type": "text",
+        "id": "social_youtube_url",
+        "label": "YouTube URL",
+        "placeholder": "https://youtube.com/@yourbrand"
+      },
+      {
+        "type": "text",
+        "id": "social_linkedin_url",
+        "label": "LinkedIn URL",
+        "placeholder": "https://linkedin.com/company/yourbrand"
+      },
+      {
+        "type": "text",
+        "id": "social_tiktok_url",
+        "label": "TikTok URL",
+        "placeholder": "https://tiktok.com/@yourbrand"
+      }
+    ]
+  },
+  {
+    "name": "Contact Information",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Business Contact"
+      },
+      {
+        "type": "text",
+        "id": "contact_email",
+        "label": "Contact Email",
+        "placeholder": "contact@yourbusiness.com"
+      },
+      {
+        "type": "text",
+        "id": "contact_phone",
+        "label": "Contact Phone",
+        "info": "Include country code (e.g., +1234567890)",
+        "placeholder": "+1234567890"
+      },
+      {
+        "type": "text",
+        "id": "legal_business_name",
+        "label": "Legal Business Name",
+        "info": "Official registered business name"
+      }
+    ]
+  },
+  {
+    "name": "Local Business (SEO)",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Local Business Information"
+      },
+      {
+        "type": "paragraph",
+        "content": "Fill this out if you have a physical location. This information powers Google's Knowledge Graph and local search results."
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_local_business",
+        "label": "Enable Local Business Schema",
+        "default": false
+      },
+      {
+        "type": "text",
+        "id": "business_address",
+        "label": "Street Address",
+        "placeholder": "123 Main Street"
+      },
+      {
+        "type": "text",
+        "id": "business_city",
+        "label": "City",
+        "placeholder": "New York"
+      },
+      {
+        "type": "text",
+        "id": "business_region",
+        "label": "State/Province/Region",
+        "placeholder": "NY"
+      },
+      {
+        "type": "text",
+        "id": "business_postal_code",
+        "label": "Postal Code",
+        "placeholder": "10001"
+      },
+      {
+        "type": "text",
+        "id": "business_country",
+        "label": "Country Code",
+        "info": "2-letter ISO code (e.g., US, FR, CA)",
+        "placeholder": "US"
+      },
+      {
+        "type": "text",
+        "id": "business_latitude",
+        "label": "Latitude (Optional)",
+        "placeholder": "40.7128"
+      },
+      {
+        "type": "text",
+        "id": "business_longitude",
+        "label": "Longitude (Optional)",
+        "placeholder": "-74.0060"
+      },
+      {
+        "type": "textarea",
+        "id": "business_opening_hours",
+        "label": "Opening Hours",
+        "info": "Format: Day:StartTime-EndTime|NextDay:StartTime-EndTime. Example: Monday:09:00-17:00|Tuesday:09:00-17:00",
+        "placeholder": "Monday:09:00-17:00|Tuesday:09:00-17:00|Wednesday:09:00-17:00"
+      },
+      {
+        "type": "select",
+        "id": "business_price_range",
+        "label": "Price Range",
+        "options": [
+          {
+            "value": "$",
+            "label": "$ - Inexpensive"
+          },
+          {
+            "value": "$$",
+            "label": "$$ - Moderate"
+          },
+          {
+            "value": "$$$",
+            "label": "$$$ - Expensive"
+          },
+          {
+            "value": "$$$$",
+            "label": "$$$$ - Very Expensive"
+          }
+        ],
+        "default": "$$"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_store_reviews",
+        "label": "Enable Store Reviews in Schema",
+        "default": false
+      },
+      {
+        "type": "text",
+        "id": "store_rating",
+        "label": "Average Store Rating (1-5)",
+        "placeholder": "4.8"
+      },
+      {
+        "type": "text",
+        "id": "store_review_count",
+        "label": "Total Number of Reviews",
+        "placeholder": "150"
+      }
+    ]
+  },
+  {
+    "name": "Author Information (Blog E-E-A-T)",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Default Author Info"
+      },
+      {
+        "type": "paragraph",
+        "content": "This information improves E-E-A-T (Experience, Expertise, Authoritativeness, Trust) for blog articles."
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_author_info",
+        "label": "Enable Author Information",
+        "default": true
+      },
+      {
+        "type": "image_picker",
+        "id": "default_author_image",
+        "label": "Default Author Image",
+        "info": "Used if article doesn't have a specific author image"
+      },
+      {
+        "type": "textarea",
+        "id": "default_author_bio",
+        "label": "Default Author Bio",
+        "placeholder": "Expert in [field] with X years of experience..."
+      }
+    ]
+  },
+  {
+    "name": "Layout & Design",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Container & Spacing"
+      },
+      {
+        "type": "range",
+        "id": "container_width",
+        "label": "Container Max Width (px)",
+        "min": 1000,
+        "max": 1600,
+        "step": 50,
+        "default": 1200
+      },
+      {
+        "type": "header",
+        "content": "Forme des boutons"
+      },
+      {
+        "type": "header",
+        "content": "Couleurs de survol (hover)"
+      },
+      {
+        "type": "color",
+        "id": "button_primary_hover_bg",
+        "label": "Bouton principal : fond au survol",
+        "info": "Laissez vide pour utiliser la couleur principale du thème"
+      },
+      {
+        "type": "color",
+        "id": "button_primary_hover_text",
+        "label": "Bouton principal : texte au survol",
+        "info": "Laissez vide pour utiliser blanc (#ffffff)"
+      },
+      {
+        "type": "color",
+        "id": "button_secondary_hover_bg",
+        "label": "Bouton secondaire : fond au survol",
+        "info": "Laissez vide pour utiliser la couleur principale du thème"
+      },
+      {
+        "type": "color",
+        "id": "button_secondary_hover_text",
+        "label": "Bouton secondaire : texte au survol",
+        "info": "Laissez vide pour utiliser blanc (#ffffff)"
+      },
+      {
+        "type": "select",
+        "id": "button_radius_primary",
+        "label": "Forme du bouton principal",
+        "options": [
+          { "value": "0px", "label": "Carré" },
+          { "value": "4px", "label": "Légèrement arrondi" },
+          { "value": "8px", "label": "Arrondi (par défaut)" },
+          { "value": "16px", "label": "Très arrondi" },
+          { "value": "50px", "label": "Pilule" }
+        ],
+        "default": "8px",
+        "info": "S'applique à tous les boutons principaux du site"
+      },
+      {
+        "type": "select",
+        "id": "button_radius_secondary",
+        "label": "Forme du bouton secondaire",
+        "options": [
+          { "value": "0px", "label": "Carré" },
+          { "value": "4px", "label": "Légèrement arrondi" },
+          { "value": "8px", "label": "Arrondi (par défaut)" },
+          { "value": "16px", "label": "Très arrondi" },
+          { "value": "50px", "label": "Pilule" }
+        ],
+        "default": "8px",
+        "info": "S'applique à tous les boutons secondaires du site"
+      },
+      {
+        "type": "header",
+        "content": "Border Radius"
+      },
+      {
+        "type": "range",
+        "id": "border_radius_sm",
+        "label": "Small Border Radius (px)",
+        "min": 0,
+        "max": 20,
+        "step": 2,
+        "default": 4
+      },
+      {
+        "type": "range",
+        "id": "border_radius_md",
+        "label": "Medium Border Radius (px)",
+        "min": 0,
+        "max": 30,
+        "step": 2,
+        "default": 8
+      },
+      {
+        "type": "range",
+        "id": "border_radius_lg",
+        "label": "Large Border Radius (px)",
+        "min": 0,
+        "max": 40,
+        "step": 2,
+        "default": 12
+      },
+      {
+        "type": "header",
+        "content": "Animation"
+      },
+      {
+        "type": "select",
+        "id": "transition_speed",
+        "label": "Transition Speed",
+        "options": [
+          {
+            "value": "0.2",
+            "label": "Fast (0.2s)"
+          },
+          {
+            "value": "0.3",
+            "label": "Normal (0.3s)"
+          },
+          {
+            "value": "0.4",
+            "label": "Slow (0.4s)"
+          }
+        ],
+        "default": "0.3"
+      },
+      {
+        "type": "select",
+        "id": "text_direction",
+        "label": "Text Direction",
+        "options": [
+          {
+            "value": "ltr",
+            "label": "Left to Right (LTR)"
+          },
+          {
+            "value": "rtl",
+            "label": "Right to Left (RTL)"
+          }
+        ],
+        "default": "ltr"
+      }
+    ]
+  },
+  {
+    "name": "Product Settings",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "prices_include_tax",
+        "label": "Prices Include Tax",
+        "default": false,
+        "info": "Used in Schema.org markup"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_shipping_info",
+        "label": "Enable Shipping Information in Schema",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "shipping_rate",
+        "label": "Default Shipping Rate",
+        "placeholder": "0",
+        "info": "Enter 0 for free shipping"
+      },
+      {
+        "type": "text",
+        "id": "shipping_country",
+        "label": "Shipping Country Code",
+        "placeholder": "US",
+        "info": "2-letter ISO code"
+      },
+      {
+        "type": "number",
+        "id": "free_shipping_threshold",
+        "label": "Free Shipping Threshold (in cents)",
+        "default": 5000,
+        "info": "Minimum cart value for free shipping. Example: 5000 = 50€ or $50. Used in cart drawer progress bar."
+      },
+      {
+        "type": "range",
+        "id": "handling_time_min",
+        "label": "Min Handling Time (days)",
+        "min": 0,
+        "max": 10,
+        "step": 1,
+        "default": 1
+      },
+      {
+        "type": "range",
+        "id": "handling_time_max",
+        "label": "Max Handling Time (days)",
+        "min": 1,
+        "max": 15,
+        "step": 1,
+        "default": 3
+      },
+      {
+        "type": "range",
+        "id": "transit_time_min",
+        "label": "Min Transit Time (days)",
+        "min": 1,
+        "max": 20,
+        "step": 1,
+        "default": 3
+      },
+      {
+        "type": "range",
+        "id": "transit_time_max",
+        "label": "Max Transit Time (days)",
+        "min": 1,
+        "max": 30,
+        "step": 1,
+        "default": 7
+      },
+      {
+        "type": "header",
+        "content": "Shipping Checkpoints"
+      },
+      {
+        "type": "number",
+        "id": "shipping_checkpoint_1",
+        "label": "Checkpoint 1 Threshold (cents)",
+        "default": 5000
+      },
+      {
+        "type": "text",
+        "id": "shipping_checkpoint_1_label",
+        "label": "Checkpoint 1 Label",
+        "default": "Livraison gratuite"
+      },
+      {
+        "type": "text",
+        "id": "shipping_checkpoint_1_icon",
+        "label": "Checkpoint 1 Icon (emoji)",
+        "default": "🚚"
+      },
+      {
+        "type": "number",
+        "id": "shipping_checkpoint_2",
+        "label": "Checkpoint 2 Threshold (cents)",
+        "default": 10000,
+        "info": "Set to 0 to disable"
+      },
+      {
+        "type": "text",
+        "id": "shipping_checkpoint_2_label",
+        "label": "Checkpoint 2 Label",
+        "default": "Express gratuit"
+      },
+      {
+        "type": "text",
+        "id": "shipping_checkpoint_2_icon",
+        "label": "Checkpoint 2 Icon (emoji)",
+        "default": "⚡"
+      },
+      {
+        "type": "number",
+        "id": "shipping_checkpoint_3",
+        "label": "Checkpoint 3 Threshold (cents)",
+        "default": 15000,
+        "info": "Set to 0 to disable"
+      },
+      {
+        "type": "text",
+        "id": "shipping_checkpoint_3_label",
+        "label": "Checkpoint 3 Label",
+        "default": "Cadeau gratuit"
+      },
+      {
+        "type": "text",
+        "id": "shipping_checkpoint_3_icon",
+        "label": "Checkpoint 3 Icon (emoji)",
+        "default": "🎁"
+      }
+    ]
+  },
+  {
+    "name": "Features",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Product Features"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_wishlist",
+        "label": "Enable Wishlist",
+        "default": true,
+        "info": "Shows wishlist icon in header and allows customers to save products"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_quick_view",
+        "label": "Enable Product Quick View",
+        "default": true,
+        "info": "Allows customers to preview products in a modal without leaving the page"
+      },
+      {
+        "type": "header",
+        "content": "Compliance & Legal"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_age_verification",
+        "label": "Enable Age Verification",
+        "default": false,
+        "info": "Shows age gate for restricted products (alcohol, CBD, etc.)"
+      },
+      {
+        "type": "range",
+        "id": "age_verification_minimum",
+        "label": "Minimum Age Required",
+        "min": 18,
+        "max": 25,
+        "step": 1,
+        "default": 21,
+        "info": "Minimum age required to access restricted content"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_cookie_consent",
+        "label": "Enable Cookie Consent Banner",
+        "default": true,
+        "info": "GDPR/CCPA compliant cookie consent management"
+      },
+      {
+        "type": "header",
+        "content": "Reading Experience"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_scroll_progress",
+        "label": "Enable Scroll Progress Bar",
+        "default": false,
+        "info": "Shows reading progress at the top of the page"
+      },
+      {
+        "type": "color",
+        "id": "scroll_progress_color",
+        "label": "Progress Bar Color",
+        "default": "#2563eb"
+      },
+      {
+        "type": "range",
+        "id": "scroll_progress_height",
+        "label": "Progress Bar Height",
+        "min": 2,
+        "max": 8,
+        "step": 1,
+        "default": 3,
+        "unit": "px"
+      },
+      {
+        "type": "select",
+        "id": "scroll_progress_position",
+        "label": "Progress Bar Position",
+        "options": [
+          { "value": "top", "label": "Top of page" },
+          { "value": "below-header", "label": "Below header" },
+          { "value": "bottom", "label": "Bottom of page" }
+        ],
+        "default": "top"
+      }
+    ]
+  },
+  {
+    "name": "Newsletter",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "enable_newsletter_popup",
+        "label": "Enable Newsletter Popup",
+        "default": false
+      },
+      {
+        "type": "range",
+        "id": "newsletter_popup_delay",
+        "label": "Popup Delay (seconds)",
+        "min": 0,
+        "max": 60,
+        "step": 5,
+        "default": 10,
+        "info": "Time before popup appears"
+      },
+      {
+        "type": "checkbox",
+        "id": "newsletter_exit_intent",
+        "label": "Enable Exit Intent",
+        "default": true,
+        "info": "Show popup when user is about to leave"
+      }
+    ]
+  },
+  {
+    "name": "Custom Code",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Custom CSS & JavaScript"
+      },
+      {
+        "type": "paragraph",
+        "content": "⚠️ SECURITY WARNING: Only add code from trusted sources. Malicious code can compromise your store and customer data. For production sites, prefer uploading files to the assets folder instead of using these fields."
+      },
+      {
+        "type": "textarea",
+        "id": "custom_css",
+        "label": "Custom CSS",
+        "info": "⚠️ Security: Will be added to <head>. Only use trusted CSS. Prefer assets/custom.css file for production."
+      },
+      {
+        "type": "textarea",
+        "id": "custom_js",
+        "label": "Custom JavaScript",
+        "info": "⚠️ Security: Will be added before </body>. Only use trusted JavaScript. Prefer assets/custom.js file for production."
+      }
+    ]
+  },
+  {
+    "name": "Payment Icons",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Payment Methods"
+      },
+      {
+        "type": "paragraph",
+        "content": "Display accepted payment methods in your footer. Enable the payment methods you accept in your store."
+      },
+      {
+        "type": "checkbox",
+        "id": "show_payment_icons",
+        "label": "Show payment icons",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Credit Cards"
+      },
+      {
+        "type": "checkbox",
+        "id": "payment_visa",
+        "label": "Visa",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "payment_mastercard",
+        "label": "Mastercard",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "payment_amex",
+        "label": "American Express",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Digital Wallets"
+      },
+      {
+        "type": "checkbox",
+        "id": "payment_paypal",
+        "label": "PayPal",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "payment_apple_pay",
+        "label": "Apple Pay",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "payment_google_pay",
+        "label": "Google Pay",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "payment_shop_pay",
+        "label": "Shop Pay",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Other Payment Methods"
+      },
+      {
+        "type": "checkbox",
+        "id": "payment_klarna",
+        "label": "Klarna",
+        "default": false
+      },
+      {
+        "type": "checkbox",
+        "id": "payment_bancontact",
+        "label": "Bancontact",
+        "default": false
+      }
+    ]
+  }
+]

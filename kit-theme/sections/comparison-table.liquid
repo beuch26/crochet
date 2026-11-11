@@ -1,0 +1,688 @@
+{%- comment -%}
+  Comparison Table Section
+  LEFT: Title + Compact comparison table
+  RIGHT: Large product image with optional badge
+{%- endcomment -%}
+
+{%- render 'section-spacing', id: section.id, margin_top: section.settings.section_margin_top, margin_bottom: section.settings.section_margin_bottom -%}
+
+{%- assign row_blocks = section.blocks | where: "type", "row" -%}
+
+<section class="compare-section" style="--compare-accent: {{ section.settings.accent_color }}; --compare-bg: {{ section.settings.background_color }};">
+  <div class="compare-section__inner">
+
+    {%- comment -%} LEFT: Title + Comparison Table {%- endcomment -%}
+    <div class="compare-section__left">
+      {%- if section.settings.subtitle != blank or section.settings.title != blank -%}
+        <header class="compare-section__header">
+          {%- if section.settings.subtitle != blank -%}
+            <span class="compare-section__eyebrow">{{ section.settings.subtitle }}</span>
+          {%- endif -%}
+          {%- if section.settings.title != blank -%}
+            {%- if section.settings.enable_heading_style -%}
+              {%- render 'heading-styles',
+                text: section.settings.title,
+                tag: 'h2',
+                style: section.settings.heading_style,
+                color: section.settings.heading_style_color,
+                align: 'left',
+                size: 'xl',
+                typing_texts: section.settings.typing_texts
+              -%}
+            {%- else -%}
+              <h2 class="compare-section__title">{{ section.settings.title }}</h2>
+            {%- endif -%}
+          {%- endif -%}
+        </header>
+      {%- endif -%}
+
+      {%- if row_blocks.size > 0 -%}
+        <div class="compare-table">
+          <div class="compare-table__head">
+            <span class="compare-table__head-label"></span>
+            <span class="compare-table__head-col compare-table__head-col--other">
+              <span class="compare-table__head-icon">{{ section.settings.column_1_icon }}</span>
+              <span>{{ section.settings.column_1_title }}</span>
+            </span>
+            <span class="compare-table__head-col compare-table__head-col--us">
+              <span class="compare-table__head-icon">{{ section.settings.column_2_icon }}</span>
+              <span>{{ section.settings.column_2_title }}</span>
+            </span>
+          </div>
+          {%- for block in row_blocks -%}
+            <div class="compare-table__row" {{ block.shopify_attributes }}>
+              <span class="compare-table__feature">{{ block.settings.feature }}</span>
+              <span class="compare-table__val compare-table__val--other">
+                {%- if block.settings.other_value == 'yes' -%}
+                  <span class="compare-table__icon compare-table__icon--yes">✓</span>
+                {%- elsif block.settings.other_value == 'no' -%}
+                  <span class="compare-table__icon compare-table__icon--no">✗</span>
+                {%- else -%}
+                  <span class="compare-table__text">{{ block.settings.other_text }}</span>
+                {%- endif -%}
+              </span>
+              <span class="compare-table__val compare-table__val--us">
+                {%- if block.settings.us_value == 'yes' -%}
+                  <span class="compare-table__icon compare-table__icon--yes compare-table__icon--highlight">✓</span>
+                {%- elsif block.settings.us_value == 'no' -%}
+                  <span class="compare-table__icon compare-table__icon--no">✗</span>
+                {%- else -%}
+                  <span class="compare-table__text compare-table__text--highlight">{{ block.settings.us_text }}</span>
+                {%- endif -%}
+              </span>
+            </div>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.button_label != blank -%}
+        <a href="{{ section.settings.button_link | default: '#' }}" class="btn btn--primary btn--large compare-section__cta">
+          {{ section.settings.button_label }}
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M4 9h10m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} RIGHT: Product Image {%- endcomment -%}
+    <div class="compare-section__right">
+      {%- if section.settings.image != blank -%}
+        <div class="compare-section__image-wrap">
+          <img
+            src="{{ section.settings.image | image_url: width: 800 }}"
+            srcset="{{ section.settings.image | image_url: width: 400 }} 400w,
+                    {{ section.settings.image | image_url: width: 600 }} 600w,
+                    {{ section.settings.image | image_url: width: 800 }} 800w"
+            sizes="(max-width: 900px) 100vw, 50vw"
+            alt="{{ section.settings.image.alt | default: section.settings.title }}"
+            width="800"
+            height="{{ 800 | divided_by: section.settings.image.aspect_ratio | round }}"
+            loading="lazy"
+            class="compare-section__image"
+          >
+          {%- if section.settings.image_badge != blank -%}
+            <span class="compare-section__badge">{{ section.settings.image_badge }}</span>
+          {%- endif -%}
+        </div>
+      {%- else -%}
+        <div class="compare-section__image-placeholder">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none" aria-hidden="true">
+            <rect width="80" height="80" rx="8" fill="currentColor" opacity="0.1"/>
+            <path d="M28 52l8-10 6 7.5 10-12.5 10 15H18l10-10z" fill="currentColor" opacity="0.3"/>
+            <circle cx="30" cy="30" r="6" fill="currentColor" opacity="0.3"/>
+          </svg>
+          <span>Ajoutez une image</span>
+        </div>
+      {%- endif -%}
+    </div>
+
+  </div>
+</section>
+
+{%- comment -%} Chargement asynchrone de la police Quicksand pour éviter le blocage du rendu {%- endcomment -%}
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap"></noscript>
+
+<style>
+/* ========================================
+   COMPARISON SECTION - Cozy Craft
+   ======================================== */
+
+.compare-section {
+  --_accent: var(--compare-accent, #0369a1);
+  --_bg: var(--compare-bg, #FDF8F3);
+  --_text: #3D3229;
+  --_text-soft: #7A6F64;
+  --_cream: #FAF6F1;
+  --_warm-white: #FFFCF8;
+
+  background: var(--_bg);
+  padding: clamp(3rem, 8vw, 5rem) 0;
+  position: relative;
+}
+
+/* Subtle texture */
+.compare-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+}
+
+.compare-section__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(2rem, 5vw, 4rem);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 4vw, 2rem);
+  align-items: center;
+  position: relative;
+}
+
+@media (max-width: 900px) {
+  .compare-section__inner {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}
+
+/* ========================================
+   LEFT SIDE - Table
+   ======================================== */
+
+.compare-section__left {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.compare-section__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.compare-section__eyebrow {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--_accent);
+}
+
+.compare-section__title {
+  font-family: 'Quicksand', sans-serif;
+  font-size: clamp(1.625rem, 4vw, 2.25rem);
+  font-weight: 700;
+  color: var(--_text);
+  margin: 0;
+  line-height: 1.15;
+}
+
+/* Comparison Table */
+.compare-table {
+  background: var(--_warm-white);
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow:
+    0 2px 16px rgba(61, 50, 41, 0.06),
+    0 0 0 1px rgba(61, 50, 41, 0.04);
+}
+
+.compare-table__head {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  background: var(--_cream);
+  border-bottom: 1px solid rgba(61, 50, 41, 0.08);
+}
+
+.compare-table__head-label {
+  padding: 0.875rem 1rem;
+}
+
+.compare-table__head-col {
+  padding: 0.75rem 0.5rem;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.compare-table__head-icon {
+  font-size: 1.25rem;
+}
+
+.compare-table__head-col--other {
+  color: var(--_text-soft);
+}
+
+.compare-table__head-col--us {
+  background: var(--_accent);
+  color: white;
+}
+
+.compare-table__row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  border-bottom: 1px solid rgba(61, 50, 41, 0.05);
+  transition: background 0.2s ease;
+}
+
+.compare-table__row:last-child {
+  border-bottom: none;
+}
+
+.compare-table__row:hover {
+  background: rgba(3, 105, 161, 0.05);
+}
+
+.compare-table__feature {
+  padding: 0.75rem 1rem;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--_text);
+  display: flex;
+  align-items: center;
+}
+
+.compare-table__val {
+  padding: 0.75rem 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compare-table__val--other {
+  background: rgba(61, 50, 41, 0.015);
+}
+
+.compare-table__val--us {
+  background: rgba(3, 105, 161, 0.08);
+}
+
+.compare-table__icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.compare-table__icon--yes {
+  background: #E8E8E8;
+  color: #999;
+}
+
+.compare-table__icon--yes.compare-table__icon--highlight {
+  background: #10B981;
+  color: white;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.compare-table__icon--no {
+  background: #FEE2E2;
+  color: #EF4444;
+}
+
+.compare-table__text {
+  font-size: 0.8125rem;
+  color: var(--_text-soft);
+}
+
+.compare-table__text--highlight {
+  color: var(--_accent);
+  font-weight: 600;
+}
+
+/* CTA Button - uses global .btn .btn--primary styles */
+.compare-section__cta {
+  align-self: flex-start;
+}
+
+.compare-section__cta svg {
+  transition: transform 0.3s ease;
+}
+
+.compare-section__cta:hover svg {
+  transform: translateX(4px);
+}
+
+/* ========================================
+   RIGHT SIDE - Image
+   ======================================== */
+
+.compare-section__right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compare-section__image-wrap {
+  position: relative;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  box-shadow:
+    0 8px 40px rgba(61, 50, 41, 0.12),
+    0 0 0 1px rgba(61, 50, 41, 0.04);
+  transform: rotate(1deg);
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.compare-section__image-wrap:hover {
+  transform: rotate(0deg) scale(1.02);
+}
+
+.compare-section__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.compare-section__image-wrap:hover .compare-section__image {
+  transform: scale(1.05);
+}
+
+.compare-section__badge {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  background: var(--_accent);
+  color: white;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.625rem 1rem;
+  border-radius: 2rem;
+  box-shadow: 0 4px 12px rgba(3, 105, 161, 0.35);
+}
+
+/* Placeholder when no image */
+.compare-section__image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: var(--_cream);
+  border: 2px dashed rgba(61, 50, 41, 0.15);
+  border-radius: 1.25rem;
+  color: var(--_text-soft);
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.875rem;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 900px) {
+  .compare-section__right {
+    order: -1;
+  }
+
+  .compare-section__image-wrap {
+    transform: rotate(0);
+    max-width: 400px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 500px) {
+  .compare-table__head-col {
+    font-size: 0.5625rem;
+    padding: 0.625rem 0.25rem;
+  }
+
+  .compare-table__head-icon {
+    font-size: 1rem;
+  }
+
+  .compare-table__feature {
+    font-size: 0.8125rem;
+    padding: 0.625rem 0.75rem;
+  }
+
+  .compare-table__icon {
+    width: 20px;
+    height: 20px;
+    font-size: 0.625rem;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .compare-section__image-wrap,
+  .compare-section__image,
+  .compare-section__cta {
+    transition: none;
+  }
+
+  .compare-section__image-wrap {
+    transform: none;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Tableau comparatif",
+  "tag": "section",
+  "class": "section-comparison",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Contenu"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Sous-titre",
+      "default": "Pourquoi nous choisir"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre",
+      "default": "La différence Magic Crochet"
+    },
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image produit"
+    },
+    {
+      "type": "text",
+      "id": "image_badge",
+      "label": "Badge sur l'image",
+      "placeholder": "ex: Bestseller"
+    },
+    {
+      "type": "header",
+      "content": "Tableau comparatif"
+    },
+    {
+      "type": "text",
+      "id": "column_1_icon",
+      "label": "Icône colonne 1",
+      "default": "😕"
+    },
+    {
+      "type": "text",
+      "id": "column_1_title",
+      "label": "Titre colonne 1",
+      "default": "Seul"
+    },
+    {
+      "type": "text",
+      "id": "column_2_icon",
+      "label": "Icône colonne 2",
+      "default": "🧶"
+    },
+    {
+      "type": "text",
+      "id": "column_2_title",
+      "label": "Titre colonne 2",
+      "default": "Avec nous"
+    },
+    {
+      "type": "header",
+      "content": "Bouton"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Texte du bouton",
+      "default": "Découvrir nos kits"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Lien du bouton"
+    },
+    {
+      "type": "header",
+      "content": "Couleurs"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Couleur d'accent",
+      "default": "#0369a1"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Couleur de fond",
+      "default": "#FDF8F3"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "header",
+      "content": "Espacement de la section"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_top",
+      "label": "Marge en haut (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_bottom",
+      "label": "Marge en bas (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "row",
+      "name": "Ligne",
+      "settings": [
+        {
+          "type": "text",
+          "id": "feature",
+          "label": "Caractéristique",
+          "default": "Matériel inclus"
+        },
+        {
+          "type": "select",
+          "id": "other_value",
+          "label": "Valeur (Autres)",
+          "options": [
+            { "value": "yes", "label": "Oui (check)" },
+            { "value": "no", "label": "Non (croix)" },
+            { "value": "custom", "label": "Texte personnalisé" }
+          ],
+          "default": "no"
+        },
+        {
+          "type": "text",
+          "id": "other_text",
+          "label": "Texte personnalisé (Autres)"
+        },
+        {
+          "type": "select",
+          "id": "us_value",
+          "label": "Valeur (Nous)",
+          "options": [
+            { "value": "yes", "label": "Oui (check)" },
+            { "value": "no", "label": "Non (croix)" },
+            { "value": "custom", "label": "Texte personnalisé" }
+          ],
+          "default": "yes"
+        },
+        {
+          "type": "text",
+          "id": "us_text",
+          "label": "Texte personnalisé (Nous)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Tableau comparatif",
+      "blocks": [
+        { "type": "row", "settings": { "feature": "Matériel complet inclus", "other_value": "no", "us_value": "yes" } },
+        { "type": "row", "settings": { "feature": "Instructions pas à pas", "other_value": "no", "us_value": "yes" } },
+        { "type": "row", "settings": { "feature": "Vidéos tutoriels", "other_value": "no", "us_value": "yes" } },
+        { "type": "row", "settings": { "feature": "Support client", "other_value": "no", "us_value": "yes" } },
+        { "type": "row", "settings": { "feature": "Résultat garanti", "other_value": "no", "us_value": "yes" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

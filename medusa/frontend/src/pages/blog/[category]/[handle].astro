@@ -1,0 +1,385 @@
+---
+import Layout from '../../../layouts/Layout.astro'
+import { getBlogPosts, getBlogPost, getProducts, getProductPrice, getProductHoverImage, getThemeSettings } from '../../../lib/medusa'
+import { blogImageUrl, splitAuthor, blogPostPath } from '../../../lib/blog'
+import { normalizeInternalHrefsInHTML, slugify } from '../../../lib/url'
+import SchemaArticle from '../../../components/seo/SchemaArticle.astro'
+import SchemaBreadcrumb from '../../../components/seo/SchemaBreadcrumb.astro'
+import BlogSidebar from '../../../components/blog/BlogSidebar.astro'
+import ShareButtons from '../../../components/common/ShareButtons.astro'
+
+export async function getStaticPaths() {
+  let posts: any[] = []
+  try {
+    const data = await getBlogPosts(100)
+    posts = data.blog_posts || []
+  } catch (e) {
+    console.error('Failed to fetch blog posts for paths:', e)
+  }
+
+  return posts.map((post: any) => ({
+    params: {
+      category: slugify(post.category) || 'articles',
+      handle: post.handle,
+    },
+  }))
+}
+
+const { handle } = Astro.params
+let post: any = null
+let relatedPosts: any[] = []
+try {
+  const data = await getBlogPost(handle!)
+  post = data.blog_post
+
+  // Fetch related posts from same category
+  // Get all posts for sidebar + related
+  const allData = await getBlogPosts(100)
+  const allPosts = allData.blog_posts || []
+  if (post?.category) {
+    relatedPosts = allPosts
+      .filter((p: any) => p.category === post.category && p.handle !== post.handle)
+      .slice(0, 3)
+  }
+} catch (e) {
+  console.error('Failed to fetch post:', e)
+}
+
+// For sidebar
+let allPosts: any[] = []
+try {
+  const d = await getBlogPosts(100)
+  allPosts = d.blog_posts || []
+} catch {}
+const categories = [...new Set(allPosts.map((p: any) => p.category).filter(Boolean))] as string[]
+
+if (!post) {
+  return Astro.redirect('/blog/')
+}
+
+// Prev/next navigation
+const currentIndex = allPosts.findIndex((p: any) => p.handle === post.handle)
+const prevPost = currentIndex > 0 ? allPosts[currentIndex - 1] : null
+const nextPost = currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : null
+
+// Featured products (random 4 for cross-sell)
+let featuredProducts: any[] = []
+try {
+  const pData = await getProducts(20)
+  featuredProducts = (pData.products || []).sort(() => 0.5 - Math.random()).slice(0, 4)
+} catch {}
+
+// Blog theme settings (author, bio)
+let blogSettings: Record<string, any> = {}
+try {
+  const { settings } = await getThemeSettings()
+  blogSettings = settings?.blog || {}
+} catch {}
+const defaultAuthor = blogSettings.blog_default_author || 'Fanny'
+const authorBio = blogSettings.blog_author_bio || 'Elle crochète depuis plusieurs années et partage avec passion ses conseils, astuces et tutoriels pour vous accompagner dans tous vos projets, du tout premier point aux créations les plus ambitieuses.'
+const authorRole = blogSettings.blog_author_role || 'Passionnée de crochet'
+
+const stripHtml = (html: string) => html?.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() || ''
+const readingTime = Math.max(1, Math.ceil(stripHtml(post.content || '').split(/\s+/).length / 200))
+---
+
+<Layout
+  title={(() => {
+    const t = post.title
+    const custom = post.seo_title
+    if (custom && custom !== t) return custom
+    if (t.length < 42) return `${t} — Guide & conseils`
+    const cut = t.substring(0, 48)
+    const lastSpace = cut.lastIndexOf(' ')
+    return `${cut.substring(0, lastSpace > 20 ? lastSpace : 48)} | Guide`
+  })()}
+  description={post.seo_description || post.excerpt || ''}
+>
+  <SchemaArticle
+    slot="head"
+    title={post.title}
+    description={post.seo_description || post.excerpt || ''}
+    image={blogImageUrl(post.featured_image) || undefined}
+    url={blogPostPath(post)}
+    datePublished={post.published_at}
+    author={post.author || defaultAuthor}
+  />
+  <SchemaBreadcrumb
+    slot="head"
+    items={[
+      { name: 'Magic Crochet Kit', url: '/' },
+      { name: 'Blog', url: '/blog/' },
+      ...(post.category ? [{ name: post.category, url: `/blog/?cat=${slugify(post.category)}` }] : []),
+      { name: post.title, url: blogPostPath(post) },
+    ]}
+  />
+  <article class="py-6 lg:py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Breadcrumb -->
+      <nav class="mb-6 text-sm text-text-muted flex items-center gap-2 flex-wrap animate-fade-up">
+        <a href="/" class="hover:text-primary transition-colors">Magic Crochet Kit</a>
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <a href="/blog/" class="hover:text-primary transition-colors">Blog</a>
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        {post.category && (
+          <>
+            <a href={`/blog/?cat=${slugify(post.category)}`} class="hover:text-primary transition-colors">{post.category}</a>
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </>
+        )}
+        <span class="text-text truncate max-w-[260px] sm:max-w-none" title={post.title}>{post.title}</span>
+      </nav>
+
+      <!-- Featured image (full-width above grid) -->
+      {blogImageUrl(post.featured_image) && (
+        <div class="mb-8 animate-fade-up delay-1 -mx-4 sm:mx-0">
+          <img
+            src={blogImageUrl(post.featured_image)!}
+            alt={post.title}
+            width="1200"
+            height="675"
+            fetchpriority="high"
+            decoding="async"
+            class="w-full aspect-video object-cover sm:rounded-2xl shadow-lg"
+          />
+        </div>
+      )}
+
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 lg:gap-10">
+      <div class="min-w-0">
+      <!-- Header -->
+      <header class="mb-8 animate-fade-up delay-1">
+        {post.category && (
+          <span class="inline-block text-xs font-semibold text-primary uppercase tracking-widest mb-3">
+            {post.category}
+          </span>
+        )}
+        <h1 class="text-2xl lg:text-4xl leading-tight">{post.title}</h1>
+
+        {post.excerpt && (
+          <p class="mt-4 text-lg text-text-light leading-relaxed">{post.excerpt}</p>
+        )}
+
+        <div class="flex flex-wrap items-center gap-4 mt-5 text-sm text-text-muted">
+          {(() => { const a = splitAuthor(post.author || defaultAuthor, authorRole); return (
+          <div class="flex items-center gap-2">
+            <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm">
+              {a.name.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <span class="font-medium text-text block leading-tight">{a.name}</span>
+              <span class="text-xs text-text-muted">{a.role}</span>
+            </div>
+          </div>
+          ) })()}
+          <span class="text-border">|</span>
+          {post.published_at && (
+            <time datetime={post.published_at}>
+              {new Date(post.published_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </time>
+          )}
+          <span class="text-border">|</span>
+          <span>{readingTime} min de lecture</span>
+        </div>
+      </header>
+
+      <!-- Reading progress bar -->
+      <div id="reading-progress" class="fixed top-[48px] lg:top-[56px] left-0 h-0.5 bg-gradient-to-r from-primary to-secondary z-[40] transition-all" style="width: 0%"></div>
+
+      <!-- Table of contents (auto-generated, collapsible) -->
+      <details id="toc-container" class="hidden mb-8 bg-bg-light rounded-2xl animate-fade-up delay-2 group/toc">
+        <summary class="flex items-center justify-between p-5 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
+          <span class="text-base font-semibold font-['DM_Sans'] flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
+            Sommaire
+          </span>
+          <svg class="w-4 h-4 text-text-muted transition-transform group-open/toc:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </summary>
+        <nav id="toc-nav" class="px-5 pb-5 space-y-1.5 text-sm"></nav>
+      </details>
+
+      <!-- Content -->
+      <div id="article-content" class="prose prose-lg max-w-none animate-fade-up delay-3" set:html={normalizeInternalHrefsInHTML(post.content)} />
+
+      <!-- Tags -->
+      {post.tags && post.tags.length > 0 && (
+        <div class="mt-10 pt-6 border-t border-border-light flex flex-wrap items-center gap-2">
+          <span class="text-sm text-text-muted mr-2">Tags :</span>
+          {post.tags.map((tag: string) => (
+            <span class="px-3 py-1 bg-bg-light text-text-muted text-xs rounded-full">{tag}</span>
+          ))}
+        </div>
+      )}
+
+      <!-- Newsletter CTA -->
+      <div class="mt-12 p-8 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl text-center">
+        <h3 class="text-xl font-['DM_Serif_Display'] mb-2">Vous avez aimé cet article ?</h3>
+        <p class="text-text-light text-sm mb-5">Recevez nos conseils et offres exclusives directement dans votre boîte mail.</p>
+        <form data-newsletter-form class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+          <input
+            type="email"
+            name="email"
+            required
+            placeholder="Votre email"
+            class="flex-1 px-4 py-3 border border-border rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+          />
+          <button type="submit" class="btn btn-primary text-sm py-3 px-6 whitespace-nowrap">
+            S'inscrire
+          </button>
+        </form>
+      </div>
+
+      <!-- Share + Back -->
+      <div class="mt-8 pt-6 border-t border-border-light flex items-center justify-between flex-wrap gap-4">
+        <a href="/blog/" class="btn btn-outline text-sm py-2 px-5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Retour au blog
+        </a>
+        <ShareButtons url={blogPostPath(post)} title={post.title} />
+      </div>
+
+      <!-- Author E-E-A-T block -->
+      {(() => { const a = splitAuthor(post.author || defaultAuthor, authorRole); return (
+      <div class="mt-8 p-6 bg-bg-light rounded-2xl flex items-start gap-4">
+        <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl shrink-0">
+          {a.name.charAt(0).toUpperCase()}
+        </div>
+        <div>
+          <p class="font-semibold text-text">{a.name}</p>
+          <p class="text-sm text-text-muted mt-1">{a.role} — {authorBio}</p>
+          <a href="/a-propos/" class="text-sm text-[var(--color-primary-hover)] underline underline-offset-2 hover:no-underline mt-2 inline-block font-medium">En savoir plus</a>
+        </div>
+      </div>
+      ) })()}
+
+      <!-- Prev / Next navigation -->
+      {(prevPost || nextPost) && (
+        <div class="mt-8 pt-6 border-t border-border-light grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {prevPost ? (
+            <a href={blogPostPath(prevPost)} class="group p-4 rounded-xl border border-border-light hover:border-primary/30 transition-all">
+              <span class="text-xs text-text-muted uppercase tracking-wider">Précédent</span>
+              <p class="text-sm font-medium text-text group-hover:text-primary transition-colors mt-1 line-clamp-2">{prevPost.title}</p>
+            </a>
+          ) : <div />}
+          {nextPost && (
+            <a href={blogPostPath(nextPost)} class="group p-4 rounded-xl border border-border-light hover:border-primary/30 transition-all text-right">
+              <span class="text-xs text-text-muted uppercase tracking-wider">Suivant</span>
+              <p class="text-sm font-medium text-text group-hover:text-primary transition-colors mt-1 line-clamp-2">{nextPost.title}</p>
+            </a>
+          )}
+        </div>
+      )}
+      </div><!-- end main column -->
+
+      <!-- Sidebar (desktop only) -->
+      <div class="hidden lg:block">
+        <div class="sticky top-24">
+          <BlogSidebar categories={categories} recentPosts={allPosts} currentHandle={post.handle} />
+        </div>
+      </div>
+      </div><!-- end grid -->
+    </div><!-- end container -->
+
+    <!-- Related articles -->
+    {relatedPosts.length > 0 && (
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 pt-12 border-t border-border-light reveal">
+        <h2 class="mb-8">Articles similaires</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {relatedPosts.map((p: any) => (
+            <article class="group bg-white rounded-2xl overflow-hidden border border-border-light card-hover">
+              {blogImageUrl(p.featured_image) && (
+                <div class="aspect-video overflow-hidden">
+                  <img
+                    src={blogImageUrl(p.featured_image)!}
+                    alt={p.title}
+                    loading="lazy"
+                    width="400"
+                    height="250"
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+              )}
+              <div class="p-5">
+                <h3 class="text-base leading-snug group-hover:text-primary transition-colors">
+                  <a href={blogPostPath(p)}>{p.title}</a>
+                </h3>
+                {p.published_at && (
+                  <time datetime={p.published_at} class="block mt-2 text-xs text-text-muted">
+                    {new Date(p.published_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </time>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <!-- Featured products cross-sell -->
+    {featuredProducts.length > 0 && (
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 pt-12 border-t border-border-light reveal">
+        <div class="flex items-end justify-between mb-8">
+          <h2>Nos produits</h2>
+          <a href="/collections/" class="text-sm text-primary hover:underline">Voir la boutique</a>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+          {featuredProducts.map((p: any) => (
+            <a href={`/products/${p.handle}/`} class="group bg-white rounded-2xl overflow-hidden border border-border-light card-hover block">
+              <div class="aspect-square bg-bg-light overflow-hidden">
+                {p.thumbnail && (
+                  <img src={p.thumbnail} alt={p.title} loading="lazy" width="300" height="300" class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" />
+                )}
+              </div>
+              <div class="p-4">
+                <h3 class="text-sm font-medium text-text group-hover:text-primary transition-colors line-clamp-2">{p.title}</h3>
+                <p class="mt-1.5 text-base font-bold text-text font-['DM_Sans']">
+                  {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(getProductPrice(p))}
+                </p>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+  </article>
+
+  <script>
+    // Auto-generate Table of Contents
+    const content = document.getElementById('article-content')
+    const tocContainer = document.getElementById('toc-container')
+    const tocNav = document.getElementById('toc-nav')
+    if (content && tocNav) {
+      const headings = content.querySelectorAll('h2, h3')
+      if (headings.length >= 3) {
+        tocContainer?.classList.remove('hidden')
+        headings.forEach((h, i) => {
+          const id = `heading-${i}`
+          h.id = id
+          const link = document.createElement('a')
+          link.href = `#${id}`
+          link.textContent = h.textContent || ''
+          link.className = h.tagName === 'H3'
+            ? 'block pl-4 text-text-muted hover:text-primary transition-colors'
+            : 'block font-medium text-text hover:text-primary transition-colors'
+          tocNav.appendChild(link)
+        })
+      }
+    }
+
+    // Reading progress bar
+    const progressBar = document.getElementById('reading-progress')
+    if (progressBar && content) {
+      window.addEventListener('scroll', () => {
+        const rect = content.getBoundingClientRect()
+        const total = content.offsetHeight
+        const scrolled = Math.max(0, -rect.top)
+        const progress = Math.min(100, (scrolled / (total - window.innerHeight)) * 100)
+        progressBar.style.width = Math.max(0, progress) + '%'
+      })
+    }
+  </script>
+</Layout>

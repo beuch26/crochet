@@ -1,0 +1,247 @@
+---
+interface Props {
+  thumbnail?: string
+  images?: { url: string; id?: string }[]
+  title: string
+}
+
+const { thumbnail, images = [], title } = Astro.props
+
+// Build gallery: thumbnail first, then additional images (deduplicated)
+const allImages: string[] = []
+if (thumbnail) allImages.push(thumbnail)
+for (const img of images) {
+  if (img.url && !allImages.includes(img.url)) {
+    allImages.push(img.url)
+  }
+}
+const hasMultiple = allImages.length > 1
+---
+
+<div class="product-gallery sticky top-24">
+  <!-- Main image -->
+  <div class="aspect-square overflow-hidden rounded-2xl bg-bg-light border border-border-light relative group cursor-zoom-in" id="gallery-main-wrap">
+    {allImages.length > 0 ? (
+      <img
+        id="gallery-main-img"
+        src={allImages[0]}
+        alt={title}
+        width="600"
+        height="600"
+        class="w-full h-full object-contain p-0 sm:p-1 transition-transform duration-300"
+      />
+    ) : (
+      <div class="w-full h-full flex items-center justify-center text-text-muted">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+    )}
+
+    {hasMultiple && (
+      <>
+        <button type="button" id="gallery-prev" class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 backdrop-blur rounded-full shadow-md flex items-center justify-center text-text hover:bg-white transition-all opacity-0 group-hover:opacity-100" aria-label="Image précédente">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button type="button" id="gallery-next" class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 backdrop-blur rounded-full shadow-md flex items-center justify-center text-text hover:bg-white transition-all opacity-0 group-hover:opacity-100" aria-label="Image suivante">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+        <div class="absolute bottom-3 right-3 bg-black/50 text-white text-xs px-2.5 py-1 rounded-full backdrop-blur-sm" id="gallery-counter">
+          1 / {allImages.length}
+        </div>
+      </>
+    )}
+  </div>
+
+  <!-- Thumbnails (scrollable with arrows) -->
+  {hasMultiple && (
+    <div class="mt-3 relative">
+      <button type="button" id="thumbs-prev" aria-label="Miniatures precedentes" class="hidden sm:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 z-10 w-8 h-8 items-center justify-center bg-white border border-border rounded-full shadow-sm hover:shadow-md transition-all opacity-0 pointer-events-none">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+      </button>
+      <button type="button" id="thumbs-next" aria-label="Miniatures suivantes" class="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 z-10 w-8 h-8 items-center justify-center bg-white border border-border rounded-full shadow-sm hover:shadow-md transition-all">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+      </button>
+      <div class="-mx-1 px-1 overflow-hidden">
+        <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide snap-x snap-mandatory scroll-smooth" id="gallery-thumbs">
+          {allImages.map((src, i) => (
+            <button
+              type="button"
+              data-gallery-thumb={i}
+              class={`aspect-square rounded-xl overflow-hidden border-2 transition-all bg-bg-light shrink-0 snap-start w-16 h-16 sm:w-[72px] sm:h-[72px] ${i === 0 ? 'border-primary ring-1 ring-primary/20' : 'border-border-light hover:border-primary/40'}`}
+            >
+              <img
+                src={src}
+                alt={`${title} - ${i + 1}`}
+                loading="lazy"
+                width="72"
+                height="72"
+                class="w-full h-full object-contain p-1.5"
+              />
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )}
+
+  <!-- Zoom overlay with navigation -->
+  <div id="gallery-zoom" class="fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm items-center justify-center cursor-zoom-out" style="display:none;">
+    <button type="button" id="gallery-zoom-close" class="absolute top-5 right-5 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors z-10" aria-label="Fermer">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+    {hasMultiple && (
+      <>
+        <button type="button" id="zoom-prev" class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors z-10" aria-label="Précédent">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button type="button" id="zoom-next" class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors z-10" aria-label="Suivant">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </>
+    )}
+    <img id="gallery-zoom-img" src="" alt={title} width="1200" height="1200" class="max-w-[85vw] max-h-[85vh] object-contain select-none" />
+    <div id="zoom-counter" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm"></div>
+  </div>
+</div>
+
+<script define:vars={{ galleryImages: allImages, imageCount: allImages.length }}>
+  if (imageCount > 0) {
+    let currentIndex = 0
+    let currentImages = galleryImages.slice()
+    const mainImg = document.getElementById('gallery-main-img')
+    const counter = document.getElementById('gallery-counter')
+    let thumbs = document.querySelectorAll('[data-gallery-thumb]')
+    const thumbsContainer = document.getElementById('gallery-thumbs')
+    const thumbsPrev = document.getElementById('thumbs-prev')
+    const thumbsNext = document.getElementById('thumbs-next')
+    const zoomOverlay = document.getElementById('gallery-zoom')
+    const zoomImg = document.getElementById('gallery-zoom-img')
+    const mainWrap = document.getElementById('gallery-main-wrap')
+
+    // Thumb arrows scroll
+    function scrollThumbs(dir) {
+      if (!thumbsContainer) return
+      const amount = 160
+      thumbsContainer.scrollBy({ left: dir * amount, behavior: 'smooth' })
+    }
+    function updateThumbArrows() {
+      if (!thumbsContainer || !thumbsPrev || !thumbsNext) return
+      const max = thumbsContainer.scrollWidth - thumbsContainer.clientWidth
+      const pos = thumbsContainer.scrollLeft
+      const atStart = pos < 5
+      const atEnd = pos > max - 5
+      thumbsPrev.classList.toggle('opacity-0', atStart)
+      thumbsPrev.classList.toggle('pointer-events-none', atStart)
+      thumbsNext.classList.toggle('opacity-0', atEnd || max <= 0)
+      thumbsNext.classList.toggle('pointer-events-none', atEnd || max <= 0)
+    }
+    thumbsPrev?.addEventListener('click', () => scrollThumbs(-1))
+    thumbsNext?.addEventListener('click', () => scrollThumbs(1))
+    thumbsContainer?.addEventListener('scroll', updateThumbArrows)
+    setTimeout(updateThumbArrows, 100)
+
+    // Swap gallery images when variant changes
+    window.addEventListener('variant-images-change', (e) => {
+      const newImages = e.detail?.images
+      if (!Array.isArray(newImages) || newImages.length === 0) return
+      currentImages = newImages
+      currentIndex = 0
+      if (mainImg) mainImg.src = newImages[0]
+      if (counter) counter.textContent = `1 / ${newImages.length}`
+      // Rebuild thumbnails
+      if (thumbsContainer) {
+        thumbsContainer.innerHTML = newImages.map((src, i) => `
+          <button type="button" data-gallery-thumb="${i}" class="aspect-square rounded-xl overflow-hidden border-2 transition-all bg-bg-light shrink-0 snap-start w-16 h-16 sm:w-[72px] sm:h-[72px] ${i === 0 ? 'border-primary ring-1 ring-primary/20' : 'border-border-light hover:border-primary/40'}">
+            <img src="${src}" alt="img-${i+1}" loading="lazy" width="72" height="72" class="w-full h-full object-contain p-1.5" />
+          </button>
+        `).join('')
+        thumbs = document.querySelectorAll('[data-gallery-thumb]')
+        thumbs.forEach((t, i) => t.addEventListener('click', () => showImage(i)))
+        setTimeout(updateThumbArrows, 100)
+      }
+    })
+
+    function showImage(index) {
+      const len = currentImages.length
+    currentIndex = ((index % len) + len) % len
+      if (mainImg) mainImg.src = currentImages[currentIndex]
+      if (counter) counter.textContent = `${currentIndex + 1} / ${currentImages.length}`
+      thumbs.forEach((t, i) => {
+        if (i === currentIndex) {
+          t.classList.add('border-primary', 'ring-1', 'ring-primary/20')
+          t.classList.remove('border-border-light')
+        } else {
+          t.classList.remove('border-primary', 'ring-1', 'ring-primary/20')
+          t.classList.add('border-border-light')
+        }
+      })
+    }
+
+    // Prev/Next
+    document.getElementById('gallery-prev')?.addEventListener('click', (e) => {
+      e.stopPropagation()
+      showImage(currentIndex - 1)
+    })
+    document.getElementById('gallery-next')?.addEventListener('click', (e) => {
+      e.stopPropagation()
+      showImage(currentIndex + 1)
+    })
+
+    // Thumbnails
+    thumbs.forEach((t, i) => {
+      t.addEventListener('click', () => showImage(i))
+    })
+
+    // Zoom
+    const zoomCounter = document.getElementById('zoom-counter')
+
+    function openZoom() {
+      if (zoomOverlay && zoomImg) {
+        zoomImg.src = currentImages[currentIndex]
+        zoomImg.alt = mainImg?.alt || ''
+        if (zoomCounter) zoomCounter.textContent = `${currentIndex + 1} / ${currentImages.length}`
+        zoomOverlay.style.display = 'flex'
+        document.body.style.overflow = 'hidden'
+      }
+    }
+
+    function closeZoom() {
+      if (zoomOverlay) {
+        zoomOverlay.style.display = 'none'
+        document.body.style.overflow = ''
+      }
+    }
+
+    function zoomShowImage(idx) {
+      showImage(idx)
+      if (zoomImg) zoomImg.src = currentImages[currentIndex]
+      if (zoomCounter) zoomCounter.textContent = `${currentIndex + 1} / ${currentImages.length}`
+    }
+
+    mainWrap?.addEventListener('click', openZoom)
+    document.getElementById('gallery-zoom-close')?.addEventListener('click', closeZoom)
+    zoomOverlay?.addEventListener('click', (e) => {
+      if (e.target === zoomOverlay) closeZoom()
+    })
+
+    // Zoom navigation
+    document.getElementById('zoom-prev')?.addEventListener('click', (e) => {
+      e.stopPropagation()
+      zoomShowImage(currentIndex - 1)
+    })
+    document.getElementById('zoom-next')?.addEventListener('click', (e) => {
+      e.stopPropagation()
+      zoomShowImage(currentIndex + 1)
+    })
+
+    // Keyboard nav
+    document.addEventListener('keydown', (e) => {
+      if (zoomOverlay?.style.display === 'flex') {
+        if (e.key === 'Escape') closeZoom()
+        if (e.key === 'ArrowLeft') zoomShowImage(currentIndex - 1)
+        if (e.key === 'ArrowRight') zoomShowImage(currentIndex + 1)
+      }
+    })
+  }
+</script>

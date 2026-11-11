@@ -1,0 +1,532 @@
+{%- comment -%}
+  Testimonials Section
+  Display customer testimonials with star ratings
+  Redesigned for Magic Crochet Kit - warm, handcrafted feel
+{%- endcomment -%}
+
+{%- render 'section-spacing', id: section.id, margin_top: section.settings.section_margin_top, margin_bottom: section.settings.section_margin_bottom -%}
+
+<div class="testimonials section section--{{ section.settings.color_scheme }}">
+  <div class="container">
+
+    {%- if section.settings.title != blank or section.settings.subtitle != blank -%}
+      {%- liquid
+        assign heading_tag = section.settings.heading_tag | default: 'h2'
+      -%}
+      <header class="section-header text-center">
+        {%- if section.settings.subtitle != blank -%}
+          <p class="section-subtitle">{{ section.settings.subtitle }}</p>
+        {%- endif -%}
+        {%- if section.settings.title != blank -%}
+          {%- if section.settings.enable_heading_style -%}
+            {%- render 'heading-styles',
+              text: section.settings.title,
+              tag: heading_tag,
+              style: section.settings.heading_style,
+              color: section.settings.heading_style_color,
+              align: 'center',
+              size: 'xl',
+              typing_texts: section.settings.typing_texts
+            -%}
+          {%- else -%}
+            <{{ heading_tag }} class="section-title">{{ section.settings.title }}</{{ heading_tag }}>
+          {%- endif -%}
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <div class="testimonials-grid testimonials-grid--{{ section.settings.columns_desktop }}" style="--testimonial-count: {{ section.blocks.size }};">
+        {%- for block in section.blocks -%}
+          <div class="testimonial-card" {{ block.shopify_attributes }} style="--card-index: {{ forloop.index0 }};">
+            <div class="testimonial-card__inner">
+              {%- if block.settings.rating > 0 -%}
+                <div class="testimonial-card__rating" role="img" aria-label="{{ block.settings.rating }} étoiles sur 5">
+                  {%- for i in (1..5) -%}
+                    <svg class="star {% if i <= block.settings.rating %}filled{% endif %}" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                  {%- endfor -%}
+                </div>
+              {%- endif -%}
+
+              {%- if block.settings.quote != blank -%}
+                <blockquote class="testimonial-card__quote">
+                  <svg class="testimonial-card__quote-icon" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M6 17h3l2-4V7H5v6h3l-2 4zm8 0h3l2-4V7h-6v6h3l-2 4z" opacity="0.15"/>
+                  </svg>
+                  <p>{{ block.settings.quote }}</p>
+                </blockquote>
+              {%- endif -%}
+
+              <div class="testimonial-card__author">
+                {%- if block.settings.image != blank -%}
+                  <div class="testimonial-card__avatar">
+                    <img
+                      src="{{ block.settings.image | image_url: width: 100 }}"
+                      alt="{{ block.settings.author }}"
+                      width="50"
+                      height="50"
+                      loading="lazy"
+                    >
+                  </div>
+                {%- else -%}
+                  <div class="testimonial-card__avatar testimonial-card__avatar--placeholder">
+                    <span>{{ block.settings.author | slice: 0 | upcase }}</span>
+                  </div>
+                {%- endif -%}
+
+                <div class="testimonial-card__info">
+                  {%- if block.settings.author != blank -%}
+                    <p class="testimonial-card__name">{{ block.settings.author }}</p>
+                  {%- endif -%}
+                  {%- if block.settings.author_title != blank -%}
+                    <p class="testimonial-card__title">{{ block.settings.author_title }}</p>
+                  {%- endif -%}
+                </div>
+              </div>
+            </div>
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+  </div>
+</div>
+
+<style>
+.testimonials {
+  padding: clamp(3rem, 8vw, 6rem) 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.testimonials::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(80, 183, 241, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(80, 183, 241, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.section--light {
+  background-color: var(--color-background-light);
+}
+
+.section--accent {
+  background: linear-gradient(135deg, rgba(80, 183, 241, 0.1) 0%, var(--color-background-light) 100%);
+}
+
+/* Grid Layout - Auto-fit for any number of cards */
+.testimonials-grid {
+  display: grid;
+  gap: clamp(1rem, 3vw, 1.5rem);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .testimonials-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .testimonials-grid--2 {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .testimonials-grid--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .testimonials-grid--4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Card Design - Warm, handcrafted feel */
+.testimonial-card {
+  animation: fadeInUp 0.5s ease both;
+  animation-delay: calc(var(--card-index, 0) * 0.08s);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.testimonial-card__inner {
+  background: var(--color-background);
+  border-radius: 1rem;
+  padding: clamp(1.25rem, 4vw, 1.75rem);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: relative;
+  border: 2px solid var(--color-border);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.testimonial-card__inner::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 1.5rem;
+  right: 1.5rem;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary), #7DD3FC);
+  border-radius: 0 0 4px 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.testimonial-card:hover .testimonial-card__inner {
+  border-color: var(--color-primary);
+  box-shadow: 0 12px 32px rgba(80, 183, 241, 0.15);
+  transform: translateY(-4px);
+}
+
+.testimonial-card:hover .testimonial-card__inner::before {
+  opacity: 1;
+}
+
+/* Rating Stars */
+.testimonial-card__rating {
+  display: flex;
+  gap: 0.125rem;
+}
+
+.star {
+  color: #E5E7EB;
+  transition: transform 0.2s ease;
+}
+
+.star.filled {
+  color: #FBBF24;
+}
+
+.testimonial-card:hover .star.filled {
+  animation: starPop 0.4s ease;
+}
+
+@keyframes starPop {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* Quote */
+.testimonial-card__quote {
+  flex: 1;
+  margin: 0;
+  position: relative;
+  padding-left: 0;
+}
+
+.testimonial-card__quote-icon {
+  position: absolute;
+  top: -0.5rem;
+  left: -0.25rem;
+  color: var(--color-primary);
+  opacity: 0.3;
+}
+
+.testimonial-card__quote p {
+  margin: 0;
+  font-size: clamp(0.9rem, 2vw, 1rem);
+  line-height: 1.7;
+  color: var(--color-text);
+  font-style: italic;
+  position: relative;
+  z-index: 1;
+}
+
+/* Author Section */
+.testimonial-card__author {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding-top: 1rem;
+  margin-top: auto;
+  border-top: 1px dashed var(--color-border);
+}
+
+.testimonial-card__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid var(--color-primary);
+  padding: 2px;
+  background: var(--color-background);
+}
+
+.testimonial-card__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.testimonial-card__avatar--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-primary), #7DD3FC);
+  color: white;
+  font-weight: 700;
+  font-size: 1.125rem;
+  border: none;
+  padding: 0;
+}
+
+.testimonial-card__avatar--placeholder span {
+  line-height: 1;
+}
+
+.testimonial-card__info {
+  min-width: 0;
+}
+
+.testimonial-card__name {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  margin: 0 0 0.125rem 0;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.testimonial-card__title {
+  font-size: 0.8125rem;
+  color: var(--color-text-light);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Responsive adjustments for many cards */
+@media (max-width: 1023px) {
+  .testimonials-grid--4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 639px) {
+  .testimonials-grid--4,
+  .testimonials-grid--3,
+  .testimonials-grid--2 {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .testimonial-card__quote p {
+    font-size: 0.9375rem;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .testimonial-card {
+    animation: none;
+    opacity: 1;
+  }
+
+  .testimonial-card__inner {
+    transition: none;
+  }
+
+  .testimonial-card:hover .star.filled {
+    animation: none;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Temoignages",
+  "class": "section-testimonials",
+  "settings": [
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Sous-titre",
+      "default": "Ce que disent nos clients"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre",
+      "default": "Temoignages"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "SEO : Niveau de titre",
+      "options": [
+        {"value": "h1", "label": "H1"},
+        {"value": "h2", "label": "H2 (Recommande)"},
+        {"value": "h3", "label": "H3"},
+        {"value": "h4", "label": "H4"}
+      ],
+      "default": "h2",
+      "info": "Choisissez le niveau de titre pour cette section."
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "Colonnes (Bureau)",
+      "options": [
+        {"value": "2", "label": "2 colonnes"},
+        {"value": "3", "label": "3 colonnes"},
+        {"value": "4", "label": "4 colonnes"}
+      ],
+      "default": "3"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Schema de couleurs",
+      "options": [
+        {"value": "default", "label": "Par defaut"},
+        {"value": "light", "label": "Clair"},
+        {"value": "accent", "label": "Degrade accent"}
+      ],
+      "default": "light"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligne" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Separes par des virgules"
+    },
+    {
+      "type": "header",
+      "content": "Espacement de la section"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_top",
+      "label": "Marge en haut (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "section_margin_bottom",
+      "label": "Marge en bas (px)",
+      "min": 0,
+      "max": 120,
+      "step": 5,
+      "default": 0,
+      "unit": "px"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "testimonial",
+      "name": "Temoignage",
+      "settings": [
+        {
+          "type": "range",
+          "id": "rating",
+          "label": "Note",
+          "min": 0,
+          "max": 5,
+          "step": 1,
+          "default": 5
+        },
+        {
+          "type": "textarea",
+          "id": "quote",
+          "label": "Citation",
+          "default": "Ce produit a depasse mes attentes ! Je le recommande vivement."
+        },
+        {
+          "type": "text",
+          "id": "author",
+          "label": "Nom de l'auteur",
+          "default": "Marie Dupont"
+        },
+        {
+          "type": "text",
+          "id": "author_title",
+          "label": "Titre de l'auteur",
+          "default": "Cliente verifiee"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image de l'auteur"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Temoignages",
+      "blocks": [
+        {"type": "testimonial"},
+        {"type": "testimonial"},
+        {"type": "testimonial"}
+      ]
+    }
+  ]
+}
+{% endschema %}

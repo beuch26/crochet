@@ -1,0 +1,323 @@
+{%- comment -%}
+  CTA Banner Section
+  Simple banner with background image and call-to-action button
+{%- endcomment -%}
+
+<div class="cta-banner cta-banner--{{ section.settings.height }}"
+     style="{% if section.settings.background_image %}background-image: url({{ section.settings.background_image | image_url: width: 1600 }});{% endif %}{% if section.settings.background_color %}background-color: {{ section.settings.background_color }};{% endif %}">
+
+  {%- comment -%} Overlay {%- endcomment -%}
+  {%- if section.settings.overlay_opacity > 0 -%}
+    <div class="cta-banner__overlay" style="opacity: {{ section.settings.overlay_opacity | divided_by: 100.0 }}; background-color: {{ section.settings.overlay_color }};"></div>
+  {%- endif -%}
+
+  <div class="container">
+    <div class="cta-banner__content">
+
+      {%- comment -%} Optional Title {%- endcomment -%}
+      {%- if section.settings.title != blank -%}
+        {%- if section.settings.enable_heading_style -%}
+          {%- render 'heading-styles',
+            text: section.settings.title,
+            tag: 'h2',
+            style: section.settings.heading_style,
+            color: section.settings.heading_style_color,
+            align: 'center',
+            size: 'xl',
+            typing_texts: section.settings.typing_texts
+          -%}
+        {%- else -%}
+          <h2 class="cta-banner__title" style="{% if section.settings.text_color != blank %}color: {{ section.settings.text_color }};{% endif %}">
+            {{ section.settings.title }}
+          </h2>
+        {%- endif -%}
+      {%- endif -%}
+
+      {%- comment -%} Optional Description {%- endcomment -%}
+      {%- if section.settings.description != blank -%}
+        <p class="cta-banner__description" style="{% if section.settings.text_color != blank %}color: {{ section.settings.text_color }};{% endif %}">
+          {{ section.settings.description }}
+        </p>
+      {%- endif -%}
+
+      {%- comment -%} CTA Button {%- endcomment -%}
+      {%- if section.settings.button_label != blank -%}
+        <a href="{{ section.settings.button_link | default: '#' }}" class="btn btn--{{ section.settings.button_style }} btn--large cta-banner__button">
+          {{ section.settings.button_label }}
+        </a>
+      {%- endif -%}
+
+    </div>
+  </div>
+</div>
+
+<style>
+.section-cta-banner {
+  padding: 0 !important;
+}
+
+.cta-banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+.cta-banner--small {
+  min-height: 250px;
+}
+
+.cta-banner--medium {
+  min-height: 350px;
+}
+
+.cta-banner--large {
+  min-height: 450px;
+}
+
+.cta-banner__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.cta-banner > .container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+
+.cta-banner__content {
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: var(--spacing-xl) var(--spacing-md);
+}
+
+.cta-banner__title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: var(--spacing-md);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.cta-banner__description {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  margin-bottom: var(--spacing-lg);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.cta-banner__button {
+  min-width: 200px;
+}
+
+@media (max-width: 767px) {
+  .cta-banner--small {
+    min-height: 200px;
+  }
+
+  .cta-banner--medium {
+    min-height: 280px;
+  }
+
+  .cta-banner--large {
+    min-height: 350px;
+  }
+
+  .cta-banner__content {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+
+  .cta-banner__title {
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .cta-banner__description {
+    margin-bottom: var(--spacing-md);
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Banniere CTA",
+  "class": "section-cta-banner",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Mise en page"
+    },
+    {
+      "type": "select",
+      "id": "height",
+      "label": "Hauteur de la banniere",
+      "options": [
+        {
+          "value": "small",
+          "label": "Petite (250px)"
+        },
+        {
+          "value": "medium",
+          "label": "Moyenne (350px)"
+        },
+        {
+          "value": "large",
+          "label": "Grande (450px)"
+        }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "header",
+      "content": "Arriere-plan"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Image d'arriere-plan",
+      "info": "Recommande : 1600px de large"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Couleur de fond",
+      "default": "#f3f4f6",
+      "info": "Utilisee si aucune image n'est telechargee"
+    },
+    {
+      "type": "header",
+      "content": "Superposition"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Opacite de la superposition",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 40,
+      "info": "Assombrit l'arriere-plan pour une meilleure lisibilite du texte"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Couleur de la superposition",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Contenu"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre",
+      "default": "Pret a commencer ?"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Rejoignez des milliers de clients satisfaits aujourd'hui."
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Couleur du texte",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Bouton"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Texte du bouton",
+      "default": "Acheter maintenant"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Lien du bouton"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "Style du bouton",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Principal"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondaire"
+        },
+        {
+          "value": "outline",
+          "label": "Contour"
+        }
+      ],
+      "default": "primary"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Banniere CTA",
+      "category": "Promotionnel"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,938 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import ProductCard from '../../components/product/ProductCard.astro'
+import ProductGallery from '../../components/product/ProductGallery.astro'
+import ShareButtons from '../../components/common/ShareButtons.astro'
+import SizeGuide from '../../components/product/SizeGuide.astro'
+import { getProducts, getProduct, getProductPrice, getProductHoverImage, getCollectionProducts, getBlogPosts, getThemeSettings } from '../../lib/medusa'
+import { getFaqsForProduct } from '../../lib/product-faqs'
+import { normalizeInternalHrefsInHTML } from '../../lib/url'
+import ProductReviews from '../../components/product/ProductReviews.astro'
+import RecentlyViewed from '../../components/product/RecentlyViewed.astro'
+import SchemaProduct from '../../components/seo/SchemaProduct.astro'
+import SchemaBreadcrumb from '../../components/seo/SchemaBreadcrumb.astro'
+import SchemaFAQ from '../../components/seo/SchemaFAQ.astro'
+import { blogImageUrl, blogPostPath } from '../../lib/blog'
+
+export async function getStaticPaths() {
+  let products: any[] = []
+  try {
+    // Fetch up to 500 products to generate static pages for all
+    const data = await getProducts(500)
+    products = data.products || []
+  } catch (e) {
+    console.error('Failed to fetch products for paths:', e)
+  }
+
+  return products.map((p: any) => ({
+    params: { handle: p.handle },
+  }))
+}
+
+const { handle } = Astro.params
+let product: any = null
+let relatedProducts: any[] = []
+try {
+  const data = await getProduct(handle!)
+  product = data.products?.[0]
+
+  // Fetch related products from same collection
+  if (product?.collection_id) {
+    const relData = await getCollectionProducts(product.collection_id, 5)
+    relatedProducts = (relData.products || []).filter((p: any) => p.id !== product.id).slice(0, 4)
+  }
+} catch (e) {
+  console.error('Failed to fetch product:', e)
+}
+
+// Fetch blog posts for related articles
+let blogPosts: any[] = []
+try {
+  const bData = await getBlogPosts(3)
+  blogPosts = bData.blog_posts || []
+} catch {}
+
+// Theme settings for configurable strings
+let themeSettings: Record<string, Record<string, any>> = {}
+try {
+  const { settings } = await getThemeSettings()
+  themeSettings = settings || {}
+} catch {}
+
+const shippingSettings = themeSettings?.shipping || {}
+const shippingDelay = shippingSettings.shipping_delay || '3-5 jours ouvrés'
+const shippingFreeThreshold = shippingSettings.shipping_free_threshold || '50'
+const shippingReturnDays = shippingSettings.shipping_return_days || '30'
+const trustSettings = themeSettings?.trust || {}
+
+if (!product) {
+  return Astro.redirect('/collections/')
+}
+
+const variants = product.variants || []
+const variant = variants[0]
+const price = getProductPrice(product)
+const options = product.options || []
+const hasVariants = variants.length > 1
+// Affiliate detection: Shopify metafields are imported as metadata.custom__affiliate_url
+// during the migration. Fallback on the older Geniuz convention (affiliate_enabled flag).
+const metaAny = (product.metadata || {}) as any
+const affiliateUrl: string = metaAny.custom__affiliate_url || metaAny.affiliate_url || ''
+const affiliatePartner: string = metaAny.custom__affiliate_name || metaAny.affiliate_source || 'LoveCrafts'
+const isAffiliate = Boolean(affiliateUrl) || metaAny.affiliate_enabled === 'true'
+const affiliateLabel = `Acheter sur ${affiliatePartner}`
+const formatPrice = (amount: number) =>
+  amount === 0 ? 'Gratuit' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount)
+
+const stripHtml = (html: string) => html?.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F000}-\u{1FFFF}]/gu, '').trim() || ''
+const collectionTitle = product.collection?.title || ''
+const collectionHandle = product.collection?.handle || ''
+// FAQ: priority metadata > hardcoded fallback
+let productFaqItems = getFaqsForProduct(collectionHandle)
+try {
+  const metaFaqs = (product.metadata as any)?.faqs
+  if (metaFaqs) {
+    const parsed = typeof metaFaqs === 'string' ? JSON.parse(metaFaqs) : metaFaqs
+    if (Array.isArray(parsed) && parsed.length > 0) productFaqItems = parsed
+  }
+} catch {}
+
+const colorMap: Record<string, string> = {
+  'noir': '#000', 'black': '#000', 'blanc': '#fff', 'white': '#fff',
+  'rouge': '#dc2626', 'red': '#dc2626', 'bleu': '#2563eb', 'blue': '#2563eb',
+  'vert': '#16a34a', 'green': '#16a34a', 'rose': '#ec4899', 'pink': '#ec4899',
+  'jaune': '#eab308', 'yellow': '#eab308', 'orange': '#f97316',
+  'violet': '#8b5cf6', 'purple': '#8b5cf6', 'gris': '#6b7280', 'grey': '#6b7280', 'gray': '#6b7280',
+  'marron': '#92400e', 'brown': '#92400e', 'beige': '#d4b896', 'crème': '#fffdd0', 'cream': '#fffdd0',
+  'moutarde': '#c8a415', 'turquoise': '#06b6d4', 'bleu_turquoise': '#06b6d4',
+  'bleu_vert': '#0d9488', 'vert_fonce': '#166534', 'gris_beton': '#9ca3af', 'rose_clair': '#fbcfe8',
+  'vert_deau': '#7fd4b8',
+  'menthe': '#b8e5c8',
+  'rose_nude': '#e8c5c0',
+  'blanc_vert_deau': '#d5ece0',
+  'multicolore': '#e5c6ec',
+}
+---
+
+<Layout
+  title={(() => {
+    const t = product.title
+    const custom = product.metadata?.meta_title
+    if (custom && custom !== t) return custom
+    if (t.length < 42) return `${t} — Achat en ligne`
+    const cut = t.substring(0, 46)
+    const lastSpace = cut.lastIndexOf(' ')
+    return `${cut.substring(0, lastSpace > 20 ? lastSpace : 46)} | Avis`
+  })()}
+  description={product.metadata?.meta_description || stripHtml(product.subtitle || product.description || '').substring(0, 160)}
+>
+  <SchemaProduct
+    slot="head"
+    name={product.title}
+    description={product.description || product.subtitle || ''}
+    image={product.thumbnail}
+    price={price}
+    url={`/products/${product.handle}/`}
+    sku={variant?.sku}
+    brand={(product.metadata as any)?.affiliate_brand || 'Magic Crochet Kit'}
+  />
+  <SchemaBreadcrumb
+    slot="head"
+    items={[
+      { name: 'Magic Crochet Kit', url: '/' },
+      ...(collectionTitle ? [{ name: collectionTitle, url: `/collections/${collectionHandle}/` }] : []),
+      { name: product.title, url: `/products/${product.handle}/` },
+    ]}
+  />
+  {productFaqItems.length > 0 && (
+    <SchemaFAQ slot="head" items={productFaqItems.map((f: any) => ({ question: f.q, answer: f.a }))} />
+  )}
+  <div class="py-8 lg:py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Breadcrumb -->
+      <nav class="mb-8 text-sm text-text-light flex items-center gap-2 flex-wrap">
+        <a href="/" class="hover:text-primary transition-colors">Accueil</a>
+        {collectionTitle && (
+          <>
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            <a href={`/collections/${collectionHandle}/`} class="hover:text-primary transition-colors">{collectionTitle}</a>
+          </>
+        )}
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-text truncate max-w-[200px]">{product.title}</span>
+      </nav>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+        <!-- Gallery -->
+        <div class="animate-fade-up">
+          {(() => {
+            // If the default variant has its own image set (metadata.images), use it.
+            // Otherwise fall back to all product images.
+            let variantImgs: string[] | null = null
+            const meta = (variant?.metadata as any) || {}
+            if (Array.isArray(meta.images)) variantImgs = meta.images
+            else if (typeof meta.images === 'string') {
+              try { const p = JSON.parse(meta.images); if (Array.isArray(p)) variantImgs = p } catch {}
+            }
+            const imgs = variantImgs ? variantImgs.map((url: string) => ({ url })) : (product.images || [])
+            const thumb = meta.thumbnail || product.thumbnail
+            return <ProductGallery thumbnail={thumb} images={imgs} title={product.title} />
+          })()}
+        </div>
+
+        <!-- Product info -->
+        <div class="animate-fade-up delay-1">
+          {collectionTitle && (
+            <a href={`/collections/${collectionHandle}/`} class="inline-block text-xs font-semibold text-primary uppercase tracking-widest mb-3 hover:text-primary-hover transition-colors">
+              {collectionTitle}
+            </a>
+          )}
+
+          <h1 style="font-size: clamp(1.25rem, 3vw, 1.75rem);" class="leading-tight">{product.title}</h1>
+
+          {(() => {
+            const brandName = (product.metadata as any)?.affiliate_brand || (product.metadata as any)?.vendor
+            if (!brandName) return null
+            return (
+              <div class="mt-2 inline-flex items-center gap-2 text-sm text-text-light">
+                <span>Marque :</span>
+                <span class="font-semibold">{brandName}</span>
+              </div>
+            )
+          })()}
+
+          <div class="mt-4 flex items-baseline gap-3">
+            <span class="product-price-main text-3xl font-bold text-text font-['DM_Sans']">{formatPrice(price)}</span>
+            <span class="text-xs text-text-muted font-medium bg-bg-light px-2 py-0.5 rounded">TTC</span>
+          </div>
+
+          {(() => {
+            // Benefits: from metadata.benefits (array) OR auto-split from subtitle
+            let benefits: string[] = []
+            const metaBenefits = (product.metadata as any)?.benefits
+            if (Array.isArray(metaBenefits)) benefits = metaBenefits
+            else if (typeof metaBenefits === 'string') {
+              try { const p = JSON.parse(metaBenefits); if (Array.isArray(p)) benefits = p } catch {}
+            }
+            if (benefits.length === 0 && product.subtitle) {
+              // Auto-extract from subtitle parts split by "—" or "|" or "•"
+              const parts = stripHtml(product.subtitle).split(/[—|•]/).map((s: string) => s.trim()).filter((s: string) => s.length > 8 && s.length < 120)
+              if (parts.length >= 2) benefits = parts
+            }
+            // Fallback: show subtitle as paragraph if no benefits could be built
+            if (benefits.length === 0) {
+              if (!product.subtitle) return null
+              return <p class="mt-4 text-text-light leading-relaxed text-[15px]">{stripHtml(product.subtitle)}</p>
+            }
+            return (
+              <ul class="mt-4 space-y-2">
+                {benefits.slice(0, 5).map((b: string) => (
+                  <li class="flex items-start gap-2.5 text-[14px] text-text-light leading-snug">
+                    <svg class="w-4 h-4 shrink-0 text-success mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            )
+          })()}
+
+          <!-- Single compact line: stock + estimated delivery -->
+          <div class="mt-3 flex items-center flex-wrap gap-x-3 gap-y-1 text-[13px]">
+            <span class="inline-flex items-center gap-1.5 text-success font-medium">
+              <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
+              En stock
+            </span>
+            <span class="text-border">|</span>
+            <span class="inline-flex items-center gap-1.5 text-text-light" id="delivery-estimate">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h2m6-2a2 2 0 002 2h2a2 2 0 002-2m-6 0h6m-6 0l-2-2m8 2l2-2m-2 2v-3.586a1 1 0 00-.293-.707l-2-2A1 1 0 0016 9.414V14"/></svg>
+              Livraison <span id="delivery-date-value" class="text-text font-medium">{shippingDelay}</span>
+            </span>
+          </div>
+
+          <!-- Separator -->
+          <div class="my-5 border-t border-border-light"></div>
+
+          <!-- Size guide (context-aware by collection type) -->
+          {(() => {
+            const VETEMENT_HANDLES = [
+              'robe-allaitement', 'tunique-allaitement', 'pyjama-allaitement',
+              'pull-allaitement', 't-shirt-allaitement', 'salopette-allaitement',
+              'maillot-bain-allaitement', 'pantalon-allaitement', 'vetements-allaitement',
+            ]
+            let guideType: 'vetement' | 'soutien-gorge' | 'bout-de-sein' | 'casque' | null = null
+            if (collectionHandle === 'casque-anti-bruit-bebe') guideType = 'casque'
+            else if (collectionHandle === 'soutien-gorge-allaitement') guideType = 'soutien-gorge'
+            else if (collectionHandle === 'bout-de-sein') guideType = 'bout-de-sein'
+            else if (VETEMENT_HANDLES.includes(collectionHandle)) guideType = 'vetement'
+            // Only render if product has size-like variants and we have a matching guide
+            const hasSizeOption = options.some((o: any) => /taille|size/i.test(o.title || ''))
+            if (guideType && (hasSizeOption || guideType === 'casque')) {
+              return <SizeGuide type={guideType} productTitle={product.title} />
+            }
+            return null
+          })()}
+
+          <!-- Variant selector -->
+          {hasVariants && options.length > 0 && (
+            <div class="mb-6 space-y-4" id="variant-options">
+              {options.map((option: any) => {
+                const isColor = /couleur|color|colour/i.test(option.title)
+                return (
+                  <div>
+                    <label class="block text-sm font-medium text-text mb-2">
+                      {option.title} : <span id={`option-label-${option.id}`} class="font-normal text-text-muted">{option.values?.[0]?.value}</span>
+                    </label>
+                    <div class="flex flex-wrap gap-2">
+                      {option.values?.map((val: any, i: number) => {
+                        const valLower = val.value.toLowerCase().replace(/['\/]/g, '').replace(/\s+/g, '_').replace(/_+/g, '_')
+                        const hex = colorMap[valLower]
+                        if (isColor && hex) {
+                          return (
+                            <button
+                              type="button"
+                              data-option-id={option.id}
+                              data-option-value={val.value}
+                              data-option-label={val.value}
+                              title={val.value}
+                              class={`variant-option-btn w-9 h-9 rounded-full border-2 transition-all relative ${
+                                i === 0 ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-primary/40'
+                              }`}
+                              style={`background-color: ${hex};${hex === '#fff' || hex === '#fffdd0' ? ' box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);' : ''}`}
+                            >
+                              {i === 0 && <span class="absolute inset-0 flex items-center justify-center"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke={hex === '#fff' || hex === '#fffdd0' || hex === '#eab308' || hex === '#d4b896' ? '#000' : '#fff'} stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>}
+                            </button>
+                          )
+                        }
+                        return (
+                          <button
+                            type="button"
+                            data-option-id={option.id}
+                            data-option-value={val.value}
+                            data-option-label={val.value}
+                            class={`variant-option-btn px-4 py-2 text-sm border rounded-xl transition-all ${
+                              i === 0
+                                ? 'border-primary bg-primary/5 text-primary font-medium'
+                                : 'border-border text-text-muted hover:border-primary/40 hover:text-text'
+                            }`}
+                          >
+                            {val.value}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          <!-- Gift message option -->
+          <div class="mb-4">
+            <label class="flex items-center gap-2 cursor-pointer text-sm">
+              <input type="checkbox" id="gift-toggle" class="w-4 h-4 rounded border-border text-primary focus:ring-primary/20" />
+              <svg class="w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+              <span class="text-text-light">Ajouter un message cadeau</span>
+            </label>
+            <div id="gift-message-box" class="hidden mt-3">
+              <textarea
+                id="gift-message"
+                rows="2"
+                placeholder="Votre message personnalisé..."
+                class="w-full px-4 py-2.5 border border-border rounded-xl bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+                maxlength="200"
+              ></textarea>
+              <p class="text-xs text-text-muted mt-1">Max. 200 caractères</p>
+            </div>
+          </div>
+
+          <!-- Quantity + Add to cart / Affiliate link -->
+          {isAffiliate ? (
+            <a
+              href={affiliateUrl}
+              data-affiliate-link
+              data-affiliate-price={formatPrice(price)}
+              target="_blank"
+              rel="noopener nofollow sponsored"
+              class="block text-center w-full py-4 bg-primary text-white font-semibold rounded-2xl hover:bg-primary-hover transition-all text-base shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 active:translate-y-0"
+            >
+              {affiliateLabel} — {formatPrice(price)}
+            </a>
+          ) : (
+            <div class="flex items-stretch gap-3">
+              <div class="flex items-center border border-border rounded-xl overflow-hidden bg-bg-light shrink-0">
+                <button type="button" id="qty-minus" class="w-11 h-full text-text-muted hover:text-text hover:bg-white transition-colors flex items-center justify-center" aria-label="Diminuer">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M5 12h14"/></svg>
+                </button>
+                <input type="number" id="product-qty" name="quantity" aria-label="Quantite" value="1" min="1" max="99" class="w-12 text-center text-sm font-semibold bg-transparent border-x border-border py-3 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                <button type="button" id="qty-plus" class="w-11 h-full text-text-muted hover:text-text hover:bg-white transition-colors flex items-center justify-center" aria-label="Augmenter">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M12 5v14m-7-7h14"/></svg>
+                </button>
+              </div>
+              <button
+                type="button"
+                data-variant-id={variant?.id}
+                data-price={formatPrice(price)}
+                class="add-to-cart flex-1 py-4 bg-primary text-white font-semibold rounded-2xl hover:bg-primary-hover transition-all text-base shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 active:translate-y-0"
+              >
+                Ajouter au panier — {formatPrice(price)}
+              </button>
+            </div>
+          )}
+
+          <!-- Payment badges -->
+          <div class="mt-4 flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span class="text-xs text-text-muted">{trustSettings.trust_badge_3_text || 'Paiement 100% sécurisé'}</span>
+          </div>
+
+          <!-- Share -->
+          <div class="mt-6 pt-5 border-t border-border-light">
+            <ShareButtons url={`/products/${product.handle}`} title={product.title} />
+          </div>
+
+          <!-- Product tabs -->
+          <div class="mt-10 border-t border-border-light">
+            <div class="flex gap-0 border-b border-border-light" role="tablist">
+              <button role="tab" data-tab="description" aria-selected="true" class="product-tab px-5 py-3.5 text-sm font-semibold border-b-2 border-primary text-primary transition-all">
+                Description
+              </button>
+              <button role="tab" data-tab="shipping" aria-selected="false" class="product-tab px-5 py-3.5 text-sm font-semibold border-b-2 border-transparent text-text-muted hover:text-text transition-all">
+                Livraison
+              </button>
+              <button role="tab" data-tab="specs" aria-selected="false" class="product-tab px-5 py-3.5 text-sm font-semibold border-b-2 border-transparent text-text-muted hover:text-text transition-all">
+                Détails
+              </button>
+              <button role="tab" data-tab="faq" aria-selected="false" class="product-tab px-5 py-3.5 text-sm font-semibold border-b-2 border-transparent text-text-muted hover:text-text transition-all">
+                FAQ
+              </button>
+            </div>
+
+            <div id="tab-description" class="product-tab-content py-6">
+              {product.description ? (
+                <div class="prose max-w-none text-text-light" set:html={normalizeInternalHrefsInHTML(product.description)} />
+              ) : (
+                <p class="text-text-muted">Aucune description disponible.</p>
+              )}
+            </div>
+
+            <div id="tab-shipping" class="product-tab-content py-6 hidden">
+              <div class="space-y-4">
+                <div class="flex items-start gap-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+                  </svg>
+                  <div>
+                    <p class="font-medium text-text">Expédition sous 24-48h ouvrées</p>
+                    <p class="text-sm text-text-muted mt-0.5">Livraison en {shippingDelay} en France métropolitaine</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                  </svg>
+                  <div>
+                    <p class="font-medium text-text">Livraison gratuite dès {shippingFreeThreshold}€</p>
+                    <p class="text-sm text-text-muted mt-0.5">Offerte pour toute commande supérieure à {shippingFreeThreshold}€</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
+                  </svg>
+                  <div>
+                    <p class="font-medium text-text">Retours gratuits sous {shippingReturnDays} jours</p>
+                    <p class="text-sm text-text-muted mt-0.5">Remboursement après réception du retour</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="tab-specs" class="product-tab-content py-6 hidden">
+              <div class="space-y-4">
+                {product.weight && (
+                  <div class="flex items-center justify-between py-3 border-b border-border-light text-sm">
+                    <span class="text-text-muted">Poids</span>
+                    <span class="text-text font-medium">{product.weight}g</span>
+                  </div>
+                )}
+                {product.length && (
+                  <div class="flex items-center justify-between py-3 border-b border-border-light text-sm">
+                    <span class="text-text-muted">Dimensions (L)</span>
+                    <span class="text-text font-medium">{product.length}cm</span>
+                  </div>
+                )}
+                {product.material && (
+                  <div class="flex items-center justify-between py-3 border-b border-border-light text-sm">
+                    <span class="text-text-muted">Matière</span>
+                    <span class="text-text font-medium">{product.material}</span>
+                  </div>
+                )}
+                {product.origin_country && (
+                  <div class="flex items-center justify-between py-3 border-b border-border-light text-sm">
+                    <span class="text-text-muted">Pays d'origine</span>
+                    <span class="text-text font-medium">{product.origin_country}</span>
+                  </div>
+                )}
+                {collectionTitle && (
+                  <div class="flex items-center justify-between py-3 border-b border-border-light text-sm">
+                    <span class="text-text-muted">Catégorie</span>
+                    <a href={`/collections/${collectionHandle}/`} class="text-primary hover:underline font-medium">{collectionTitle}</a>
+                  </div>
+                )}
+                {product.type?.value && (
+                  <div class="flex items-center justify-between py-3 border-b border-border-light text-sm">
+                    <span class="text-text-muted">Type</span>
+                    <span class="text-text font-medium">{product.type.value}</span>
+                  </div>
+                )}
+                {hasVariants && (
+                  <div class="flex items-center justify-between py-3 border-b border-border-light text-sm">
+                    <span class="text-text-muted">Variantes</span>
+                    <span class="text-text font-medium">{variants.length} option{variants.length > 1 ? 's' : ''}</span>
+                  </div>
+                )}
+                <div class="flex items-center justify-between py-3 text-sm">
+                  <span class="text-text-muted">Référence</span>
+                  <span class="text-text font-medium font-mono text-xs">{product.id.slice(-12).toUpperCase()}</span>
+                </div>
+              </div>
+            </div>
+
+            <div id="tab-faq" class="product-tab-content py-6 hidden">
+              <div class="space-y-3">
+                {productFaqItems.map((faq) => (
+                  <details class="group bg-bg-light rounded-xl">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer text-sm font-medium text-text">
+                      {faq.q}
+                      <svg class="w-4 h-4 text-text-muted group-open:rotate-180 transition-transform shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    </summary>
+                    <p class="px-4 pb-4 text-sm text-text-light">{faq.a}</p>
+                  </details>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <script>
+            document.querySelectorAll('.product-tab').forEach(tab => {
+              tab.addEventListener('click', () => {
+                const target = tab.getAttribute('data-tab')
+                document.querySelectorAll('.product-tab').forEach(t => {
+                  t.classList.remove('border-primary', 'text-primary')
+                  t.classList.add('border-transparent', 'text-text-muted')
+                  t.setAttribute('aria-selected', 'false')
+                })
+                tab.classList.add('border-primary', 'text-primary')
+                tab.classList.remove('border-transparent', 'text-text-muted')
+                tab.setAttribute('aria-selected', 'true')
+                document.querySelectorAll('.product-tab-content').forEach(c => c.classList.add('hidden'))
+                document.getElementById('tab-' + target)?.classList.remove('hidden')
+              })
+            })
+          </script>
+        </div>
+      </div>
+
+      <!-- Reviews -->
+      <ProductReviews productId={product.id} productTitle={product.title} />
+
+      <!-- Buy with / Cross-sell -->
+      {relatedProducts.length >= 2 && (
+        <section class="mt-20 pt-12 border-t border-border-light reveal">
+          <h2 class="mb-8">Fréquemment achetés ensemble</h2>
+          <div class="flex flex-col sm:flex-row sm:items-center gap-4 lg:gap-6 bg-bg-light rounded-2xl p-5 lg:p-8">
+            <!-- Current product -->
+            <div class="flex items-center gap-4 flex-1 min-w-0 w-full">
+              <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-white border border-border-light overflow-hidden shrink-0">
+                {product.thumbnail && <img src={product.thumbnail} alt={product.title} width="80" height="80" class="w-full h-full object-contain p-2" />}
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-text line-clamp-2">{product.title}</p>
+                <p class="text-sm font-bold text-primary mt-0.5">{formatPrice(price)}</p>
+              </div>
+            </div>
+
+            <span class="text-2xl text-text-muted font-light text-center sm:self-center">+</span>
+
+            <!-- Suggested product -->
+            <a href={`/products/${relatedProducts[0].handle}/`} class="flex items-center gap-4 flex-1 min-w-0 group w-full">
+              <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-white border border-border-light overflow-hidden shrink-0">
+                {relatedProducts[0].thumbnail && <img src={relatedProducts[0].thumbnail} alt={relatedProducts[0].title} width="80" height="80" class="w-full h-full object-contain p-2" />}
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-text group-hover:text-primary transition-colors line-clamp-2">{relatedProducts[0].title}</p>
+                <p class="text-sm font-bold text-primary mt-0.5">{formatPrice(getProductPrice(relatedProducts[0]))}</p>
+              </div>
+            </a>
+
+            <span class="text-2xl text-text-muted font-light text-center sm:self-center">=</span>
+
+            <!-- Total -->
+            <div class="text-center sm:shrink-0 pt-2 sm:pt-0 border-t sm:border-0 border-border-light">
+              <p class="text-xs text-text-muted mb-1">Les 2 articles</p>
+              <p class="text-xl font-bold text-text">{formatPrice(price + getProductPrice(relatedProducts[0]))}</p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      <!-- Related products -->
+      {relatedProducts.length > 0 && (
+        <section class="mt-20 pt-12 border-t border-border-light reveal">
+          <h2 class="mb-8">Vous aimerez aussi</h2>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
+            {relatedProducts.map((p: any) => (
+              <ProductCard
+                id={p.id}
+                title={p.title}
+                handle={p.handle}
+                price={getProductPrice(p)}
+                thumbnail={p.thumbnail}
+                hoverImage={getProductHoverImage(p)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+<!-- Related blog articles -->
+      {blogPosts.length > 0 && (
+        <section class="mt-20 pt-12 border-t border-border-light reveal">
+          <div class="flex items-end justify-between mb-8">
+            <h2>Nos conseils</h2>
+            <a href="/blog/" class="text-sm text-primary hover:underline">Voir le blog</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {blogPosts.map((post: any) => (
+              <article class="group bg-white rounded-2xl overflow-hidden border border-border-light card-hover">
+                {blogImageUrl(post.featured_image) && (
+                  <div class="aspect-video overflow-hidden">
+                    <img
+                      src={blogImageUrl(post.featured_image)!}
+                      alt={post.title}
+                      loading="lazy"
+                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                )}
+                <div class="p-5">
+                  {post.category && (
+                    <span class="text-xs font-semibold text-primary uppercase tracking-widest">{post.category}</span>
+                  )}
+                  <h3 class="mt-2 text-sm leading-snug group-hover:text-primary transition-colors">
+                    <a href={blogPostPath(post)}>{post.title}</a>
+                  </h3>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  </div>
+
+  <!-- Recently viewed tracking data -->
+  <div id="rv-tracker" class="hidden" data-product-id={product.id} data-product-title={product.title} data-product-handle={product.handle} data-product-price={price} data-product-thumbnail={product.thumbnail || ''}></div>
+
+  <!-- Recently viewed products -->
+  <RecentlyViewed />
+
+  <!-- Sticky add-to-cart bar (mobile + desktop) -->
+  <div id="sticky-atc" class="fixed bottom-0 left-0 right-0 z-[60] bg-white/95 backdrop-blur-md border-t border-border-light py-2.5 sm:py-3 px-3 sm:px-4 translate-y-full transition-transform duration-300 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+    <div class="flex items-center gap-3 sm:gap-4 max-w-7xl mx-auto">
+      <div class="hidden sm:block w-12 h-12 rounded-lg bg-bg-light border border-border-light overflow-hidden shrink-0">
+        {product.thumbnail && <img src={product.thumbnail} alt={product.title} width="48" height="48" class="w-full h-full object-contain p-1" />}
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="hidden sm:block text-sm font-medium text-text truncate">{product.title}</p>
+        <p class="text-lg sm:text-base font-bold text-text font-['DM_Sans']">{formatPrice(price)}</p>
+      </div>
+      {isAffiliate ? (
+        <a
+          href={affiliateUrl}
+          data-affiliate-link
+          target="_blank"
+          rel="noopener nofollow sponsored"
+          class="shrink-0 px-5 sm:px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-hover transition-all text-sm shadow-lg shadow-primary/20 whitespace-nowrap"
+        >
+          Acheter sur {affiliatePartner}
+        </a>
+      ) : (
+        <button
+          type="button"
+          data-variant-id={variant?.id}
+          data-price={formatPrice(price)}
+          class="add-to-cart shrink-0 px-5 sm:px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-hover transition-all text-sm shadow-lg shadow-primary/20 whitespace-nowrap"
+        >
+          Ajouter au panier
+        </button>
+      )}
+    </div>
+  </div>
+
+  <script define:vars={{ productId: product.id, productHandle: product.handle, productTitle: product.title, productThumbnail: product.thumbnail || '', productPrice: price, productBrand: (product.metadata as any)?.affiliate_brand || 'Magic Crochet Kit', productCategory: collectionTitle, productVariants: JSON.stringify(variants.map((v: any) => ({ id: v.id, title: v.title, options: v.options, calculated_price: v.calculated_price, metadata: v.metadata }))), productOptions: JSON.stringify(options) }}>
+    // GA4 + TikTok Pixel — view_item / ViewContent
+    var __viewItemPayload = {
+      currency: 'EUR',
+      value: productPrice,
+      items: [{
+        item_id: productId,
+        item_name: productTitle,
+        item_brand: productBrand,
+        item_category: productCategory || undefined,
+        price: productPrice,
+        quantity: 1,
+      }],
+    }
+    if (window.gaTrack) window.gaTrack('view_item', __viewItemPayload)
+    if (window.ttqTrack) window.ttqTrack('view_item', __viewItemPayload)
+
+    // GA4 add_to_cart — fire on Ajouter au panier (alongside the real cart
+    // API call done by CartDrawer's handler) and on affiliate "Acheter" clicks.
+    function fireAddToCart(opts) {
+      const price = (opts && opts.price !== undefined) ? opts.price : productPrice
+      const payload = {
+        currency: 'EUR',
+        value: price,
+        items: [{
+          item_id: productId,
+          item_name: productTitle,
+          item_brand: productBrand,
+          item_category: productCategory || undefined,
+          item_variant: (opts && opts.variantTitle) || undefined,
+          affiliation: (opts && opts.affiliate) ? 'affiliate-' + productBrand : 'storefront',
+          price: price,
+          quantity: (opts && opts.quantity) || 1,
+        }],
+      }
+      if (window.gaTrack) window.gaTrack('add_to_cart', payload)
+      if (window.ttqTrack) window.ttqTrack('add_to_cart', payload)
+    }
+    document.querySelectorAll('.add-to-cart').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if (btn.hasAttribute('disabled')) return
+        const qtyInput = document.getElementById('product-qty')
+        const quantity = qtyInput ? Math.max(1, parseInt(qtyInput.value) || 1) : 1
+        fireAddToCart({ quantity: quantity, affiliate: false })
+      })
+    })
+    document.querySelectorAll('a[data-affiliate-link]').forEach(function(a) {
+      a.addEventListener('click', function() {
+        fireAddToCart({ affiliate: true })
+      })
+    })
+
+    // Estimated delivery date — inline, compact
+    ;(function() {
+      const el = document.getElementById('delivery-date-value')
+      if (!el) return
+      const now = new Date()
+      const minDays = 3, maxDays = 5
+      function addBusinessDays(date, days) {
+        const result = new Date(date)
+        let added = 0
+        while (added < days) {
+          result.setDate(result.getDate() + 1)
+          if (result.getDay() !== 0 && result.getDay() !== 6) added++
+        }
+        return result
+      }
+      const minDate = addBusinessDays(now, minDays)
+      const maxDate = addBusinessDays(now, maxDays)
+      const fmt = (d) => d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+      el.textContent = `entre le ${fmt(minDate)} et le ${fmt(maxDate)}`
+    })()
+
+    // Variant selector
+    const allVariants = JSON.parse(productVariants)
+    const allOptions = JSON.parse(productOptions)
+    const selectedOptions = {}
+
+    // Initialize with first values
+    allOptions.forEach((opt) => {
+      if (opt.values?.length > 0) {
+        selectedOptions[opt.id] = opt.values[0].value
+      }
+    })
+
+    function findMatchingVariant() {
+      return allVariants.find((v) => {
+        if (!v.options || v.options.length === 0) return false
+        return v.options.every((vo) => selectedOptions[vo.option_id] === vo.value)
+      })
+    }
+
+    function updateVariantUI() {
+      const matched = findMatchingVariant()
+      if (!matched) return
+
+      // Update add-to-cart buttons
+      document.querySelectorAll('.add-to-cart').forEach(btn => {
+        btn.setAttribute('data-variant-id', matched.id)
+        const newPrice = matched.calculated_price?.calculated_amount || productPrice
+        const formatted = (newPrice === 0 ? 'Gratuit' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(newPrice))
+        btn.setAttribute('data-price', formatted)
+        if (btn.textContent?.includes('Ajouter')) {
+          btn.textContent = `Ajouter au panier — ${formatted}`
+        }
+      })
+
+      // Update price display
+      const priceEl = document.querySelector('.product-price-main')
+      if (priceEl) {
+        const newPrice = matched.calculated_price?.calculated_amount || productPrice
+        priceEl.textContent = (newPrice === 0 ? 'Gratuit' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(newPrice))
+      }
+
+      // Update gallery image if variant has a specific image (via metadata.image_url)
+      const variantImage = matched.metadata?.image_url || matched.metadata?.thumbnail
+      if (variantImage) {
+        const mainImg = document.getElementById('gallery-main-img')
+        if (mainImg) mainImg.setAttribute('src', variantImage)
+      }
+
+      // Swap gallery images if variant has its own image set
+      let variantImages = matched.metadata?.images
+      if (typeof variantImages === 'string') {
+        try { variantImages = JSON.parse(variantImages) } catch { variantImages = null }
+      }
+      if (Array.isArray(variantImages) && variantImages.length > 0) {
+        window.dispatchEvent(new CustomEvent('variant-images-change', { detail: { images: variantImages } }))
+      }
+
+      // Update affiliate button href + price label
+      const variantAffiliate = matched.metadata?.affiliate_url
+      const newPrice = matched.calculated_price?.calculated_amount || productPrice
+      const formattedPrice = (newPrice === 0 ? 'Gratuit' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(newPrice))
+      document.querySelectorAll('a[data-affiliate-link]').forEach((a) => {
+        if (variantAffiliate) a.setAttribute('href', variantAffiliate)
+        if (a.getAttribute('data-affiliate-price') !== null) {
+          a.textContent = `Acheter — ${formattedPrice}`
+        }
+      })
+    }
+
+    document.querySelectorAll('.variant-option-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const optionId = btn.getAttribute('data-option-id')
+        const optionValue = btn.getAttribute('data-option-value')
+        const optionLabel = btn.getAttribute('data-option-label')
+        selectedOptions[optionId] = optionValue
+
+        // Update label text
+        const labelEl = document.getElementById(`option-label-${optionId}`)
+        if (labelEl && optionLabel) labelEl.textContent = optionLabel
+
+        // Update button styles within same option group
+        const isColorSwatch = btn.classList.contains('rounded-full') && btn.style.backgroundColor
+        document.querySelectorAll(`.variant-option-btn[data-option-id="${optionId}"]`).forEach(b => {
+          if (isColorSwatch || (b.classList.contains('rounded-full') && b.style && b.style.backgroundColor)) {
+            b.classList.remove('border-primary', 'ring-2', 'ring-primary/20')
+            b.classList.add('border-border')
+            const check = b.querySelector('svg')?.parentElement
+            if (check) check.remove()
+          } else {
+            b.classList.remove('border-primary', 'bg-primary/5', 'text-primary', 'font-medium')
+            b.classList.add('border-border', 'text-text-muted')
+          }
+        })
+
+        if (isColorSwatch) {
+          btn.classList.add('border-primary', 'ring-2', 'ring-primary/20')
+          btn.classList.remove('border-border')
+        } else {
+          btn.classList.add('border-primary', 'bg-primary/5', 'text-primary', 'font-medium')
+          btn.classList.remove('border-border', 'text-text-muted')
+        }
+
+        updateVariantUI()
+      })
+    })
+
+    // Social proof: random viewer count
+    const viewerEl = document.getElementById('viewer-count')
+    if (viewerEl) {
+      const base = 3 + Math.floor(Math.random() * 12)
+      viewerEl.textContent = `${base} personnes regardent ce produit`
+      setInterval(() => {
+        const delta = Math.random() > 0.5 ? 1 : -1
+        const current = parseInt(viewerEl.textContent || '0')
+        const next = Math.max(2, Math.min(20, current + delta))
+        viewerEl.textContent = `${next} personnes regardent ce produit`
+      }, 8000 + Math.random() * 7000)
+    }
+
+    // Gift message toggle
+    document.getElementById('gift-toggle')?.addEventListener('change', (e) => {
+      const box = document.getElementById('gift-message-box')
+      if (e.target.checked) {
+        box?.classList.remove('hidden')
+      } else {
+        box?.classList.add('hidden')
+      }
+    })
+
+    // Dynamic delivery date estimate
+    const deliveryEl = document.getElementById('delivery-estimate')
+    if (deliveryEl) {
+      const now = new Date()
+      const addBusinessDays = (date, days) => {
+        let result = new Date(date)
+        let added = 0
+        while (added < days) {
+          result.setDate(result.getDate() + 1)
+          if (result.getDay() !== 0 && result.getDay() !== 6) added++
+        }
+        return result
+      }
+      const minDate = addBusinessDays(now, 3)
+      const maxDate = addBusinessDays(now, 5)
+      const fmt = (d) => d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
+      const span = deliveryEl.querySelector('span')
+      if (span) span.textContent = `Livraison ${fmt(minDate)} — ${fmt(maxDate)}`
+    }
+
+    // Quantity selector: handled in separate <script> module below
+
+    // Recently viewed is handled by the <RecentlyViewed /> component (single source of truth)
+
+    // Sticky add-to-cart bar — appears when main button scrolls out of view
+    const stickyBar = document.getElementById('sticky-atc')
+    // Target the main CTA (cart button, quantity row, or affiliate link), not sticky one
+    const mainAtc = document.querySelector('.add-to-cart:not(#sticky-atc .add-to-cart)')?.closest('.flex.items-stretch')
+      || document.querySelector('a[data-affiliate-link]:not(#sticky-atc a)')
+    if (stickyBar && mainAtc) {
+      const mobileNav = document.getElementById('mobile-nav')
+      const observer = new IntersectionObserver(([entry]) => {
+        if (entry.isIntersecting) {
+          stickyBar.classList.add('translate-y-full')
+          mobileNav?.classList.remove('translate-y-full')
+        } else {
+          stickyBar.classList.remove('translate-y-full')
+          // Hide mobile nav when sticky CTA is showing (cleaner UI)
+          mobileNav?.classList.add('translate-y-full')
+        }
+      }, { threshold: 0, rootMargin: '0px' })
+      observer.observe(mainAtc)
+    }
+  </script>
+
+  <!-- Quantity selector (separate module script — guaranteed DOM ready) -->
+  <script>
+    const qtyInput = document.getElementById('product-qty')
+    const minusBtn = document.getElementById('qty-minus')
+    const plusBtn = document.getElementById('qty-plus')
+
+    if (qtyInput && minusBtn && plusBtn) {
+      minusBtn.addEventListener('click', () => {
+        const v = parseInt(qtyInput.value) || 1
+        if (v > 1) qtyInput.value = String(v - 1)
+      })
+      plusBtn.addEventListener('click', () => {
+        const v = parseInt(qtyInput.value) || 1
+        if (v < 99) qtyInput.value = String(v + 1)
+      })
+    }
+  </script>
+</Layout>

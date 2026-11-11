@@ -1,0 +1,328 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import ProductCard from '../../components/product/ProductCard.astro'
+import { getProducts, getCollections, getProductPrice, getProductHoverImage } from '../../lib/medusa'
+
+let products: any[] = []
+let collections: any[] = []
+try {
+  // Fetch enough products to cover all collections (200+ products total)
+  const [pData, cData] = await Promise.all([
+    getProducts(500),
+    getCollections(),
+  ])
+  products = pData.products || []
+  collections = cData.collections || []
+} catch (e) {
+  console.error('Failed to fetch:', e)
+}
+---
+
+<Layout title="Boutique" description="Découvrez tous nos produits pour bébé et maman — Magic Crochet Kit">
+  <section class="py-12 lg:py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Breadcrumb -->
+      <nav class="mb-6 text-sm text-text-muted flex items-center gap-2 animate-fade-up">
+        <a href="/" class="hover:text-primary transition-colors">Magic Crochet Kit</a>
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-text">Boutique</span>
+      </nav>
+
+      <!-- Header -->
+      <div class="text-center mb-10 animate-fade-up">
+        <h1>Notre boutique</h1>
+        <p id="product-count" class="mt-3 text-text-light text-lg">
+          {products.length} produit{products.length > 1 ? 's' : ''}
+        </p>
+      </div>
+
+      <!-- Toolbar: Categories + Sort -->
+      <div class="flex flex-col gap-4 mb-8 animate-fade-up delay-1">
+        <!-- Category filters (priority families only; full list via "Toutes les catégories") -->
+        {collections.length > 0 && (() => {
+          const PRIMARY_HANDLES = [
+            'vetements-allaitement', 'soutien-gorge-allaitement',
+            'tire-lait', 'soins-allaitement',
+            'biberons-tetines', 'vaisselle-bebe',
+            'tresse-de-lit-bebe', 'bola-de-grossesse',
+          ]
+          const primary = PRIMARY_HANDLES
+            .map((h) => collections.find((c: any) => c.handle === h))
+            .filter(Boolean)
+          const others = collections.filter((c: any) =>
+            !PRIMARY_HANDLES.includes(c.handle) && !['bebe', 'pour-maman', 'bijoux'].includes(c.handle)
+          )
+          return (
+            <div class="-mx-4 px-4 sm:mx-0 sm:px-0">
+              <div class="flex sm:flex-wrap sm:justify-center gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide snap-x snap-mandatory">
+                <button data-collection="all" class="collection-filter active px-5 py-2 bg-primary text-white rounded-full text-sm font-medium shadow-sm transition-all shrink-0 snap-start">
+                  Tout
+                </button>
+                {primary.map((col: any) => (
+                  <button
+                    data-collection={col.id}
+                    data-collection-name={col.title}
+                    class="collection-filter px-5 py-2 bg-white border border-border rounded-full text-sm font-medium text-text-light hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:shadow-primary/20 transition-all duration-300 shrink-0 snap-start whitespace-nowrap"
+                  >
+                    {col.title}
+                  </button>
+                ))}
+                {others.length > 0 && (
+                  <button
+                    type="button"
+                    id="show-more-cats"
+                    class="px-5 py-2 bg-bg-light border border-dashed border-border rounded-full text-sm font-medium text-text-muted hover:bg-primary/5 hover:text-primary hover:border-primary transition-all shrink-0 snap-start whitespace-nowrap"
+                  >
+                    + {others.length} autres
+                  </button>
+                )}
+              </div>
+              {others.length > 0 && (
+                <div id="more-cats" class="hidden mt-3 flex flex-wrap justify-center gap-2">
+                  {others.map((col: any) => (
+                    <button
+                      data-collection={col.id}
+                      data-collection-name={col.title}
+                      class="collection-filter px-4 py-1.5 bg-white border border-border rounded-full text-xs font-medium text-text-light hover:bg-primary hover:text-white hover:border-primary transition-all whitespace-nowrap"
+                    >
+                      {col.title}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })()}
+
+        <!-- Sort + view -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <label for="sort-select" class="text-sm text-text-muted">Trier par :</label>
+            <select id="sort-select" class="text-sm bg-white border border-border rounded-xl px-3 py-2 text-text focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer">
+              <option value="default">Pertinence</option>
+              <option value="price-asc">Prix croissant</option>
+              <option value="price-desc">Prix décroissant</option>
+              <option value="name-asc">Nom A-Z</option>
+              <option value="name-desc">Nom Z-A</option>
+            </select>
+          </div>
+
+          <!-- Search within collection -->
+          <div class="hidden sm:flex items-center gap-2">
+            <div class="relative">
+              <input
+                id="collection-search"
+                type="search"
+                placeholder="Filtrer..."
+                class="text-sm bg-white border border-border rounded-xl pl-9 pr-3 py-2 w-48 focus:w-64 text-text focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              />
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products grid -->
+      <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+        {products.map((product: any) => (
+          <div
+            class="product-item"
+            data-title={product.title.toLowerCase()}
+            data-price={getProductPrice(product)}
+            data-collection={product.collection_id || ''}
+          >
+            <ProductCard
+              id={product.id}
+              title={product.title}
+              handle={product.handle}
+              price={getProductPrice(product)}
+              thumbnail={product.thumbnail}
+              hoverImage={getProductHoverImage(product)}
+            />
+          </div>
+        ))}
+      </div>
+
+      <!-- Pagination -->
+      <nav id="pagination" class="hidden mt-10 flex items-center justify-center gap-2" aria-label="Pagination"></nav>
+
+      <!-- No results -->
+      <div id="no-results" class="hidden text-center py-16">
+        <p class="text-text-light text-lg mb-4">Aucun produit trouvé</p>
+        <button id="reset-filters" class="btn btn-outline text-sm">Réinitialiser les filtres</button>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const items = document.querySelectorAll('.product-item') as NodeListOf<HTMLElement>
+  const grid = document.getElementById('products-grid')!
+  const noResults = document.getElementById('no-results')!
+  const countEl = document.getElementById('product-count')!
+  const sortSelect = document.getElementById('sort-select') as HTMLSelectElement
+  const searchInput = document.getElementById('collection-search') as HTMLInputElement
+  const paginationEl = document.getElementById('pagination')!
+
+  const PER_PAGE = 12
+  let activeCollection = 'all'
+  let searchQuery = ''
+  let currentPage = 1
+
+  function getFilteredItems() {
+    return Array.from(items).filter(item => {
+      const matchCollection = activeCollection === 'all' || item.dataset.collection === activeCollection
+      const matchSearch = !searchQuery || item.dataset.title?.includes(searchQuery.toLowerCase())
+      return matchCollection && matchSearch
+    })
+  }
+
+  function applyFilters() {
+    const filtered = getFilteredItems()
+    const totalPages = Math.ceil(filtered.length / PER_PAGE)
+    if (currentPage > totalPages) currentPage = 1
+
+    // Hide all, then show current page
+    items.forEach(item => item.style.display = 'none')
+    const start = (currentPage - 1) * PER_PAGE
+    filtered.slice(start, start + PER_PAGE).forEach(item => item.style.display = '')
+
+    noResults.classList.toggle('hidden', filtered.length > 0)
+    grid.classList.toggle('hidden', filtered.length === 0)
+    countEl.textContent = `${filtered.length} produit${filtered.length > 1 ? 's' : ''}`
+
+    renderPagination(totalPages)
+  }
+
+  function renderPagination(totalPages: number) {
+    if (totalPages <= 1) {
+      paginationEl.classList.add('hidden')
+      return
+    }
+    paginationEl.classList.remove('hidden')
+
+    let html = ''
+    // Prev
+    html += `<button data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''} class="w-10 h-10 rounded-xl border border-border flex items-center justify-center text-text-muted hover:bg-primary hover:text-white hover:border-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    </button>`
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (totalPages > 7 && i > 2 && i < totalPages - 1 && Math.abs(i - currentPage) > 1) {
+        if (i === 3 || i === totalPages - 2) html += `<span class="px-2 text-text-muted">...</span>`
+        continue
+      }
+      html += `<button data-page="${i}" class="w-10 h-10 rounded-xl border text-sm font-medium transition-all ${
+        i === currentPage
+          ? 'bg-primary text-white border-primary shadow-sm'
+          : 'border-border text-text-muted hover:bg-primary hover:text-white hover:border-primary'
+      }">${i}</button>`
+    }
+
+    // Next
+    html += `<button data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''} class="w-10 h-10 rounded-xl border border-border flex items-center justify-center text-text-muted hover:bg-primary hover:text-white hover:border-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+    </button>`
+
+    paginationEl.innerHTML = html
+
+    paginationEl.querySelectorAll('button[data-page]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = parseInt(btn.getAttribute('data-page') || '1')
+        if (p >= 1 && p <= totalPages) {
+          currentPage = p
+          applyFilters()
+          window.scrollTo({ top: grid.offsetTop - 100, behavior: 'smooth' })
+        }
+      })
+    })
+  }
+
+  function applySorting() {
+    const sorted = Array.from(items)
+    const value = sortSelect.value
+
+    sorted.sort((a, b) => {
+      const priceA = Number(a.dataset.price) || 0
+      const priceB = Number(b.dataset.price) || 0
+      const nameA = a.dataset.title || ''
+      const nameB = b.dataset.title || ''
+
+      switch (value) {
+        case 'price-asc': return priceA - priceB
+        case 'price-desc': return priceB - priceA
+        case 'name-asc': return nameA.localeCompare(nameB)
+        case 'name-desc': return nameB.localeCompare(nameA)
+        default: return 0
+      }
+    })
+
+    sorted.forEach(item => grid.appendChild(item))
+  }
+
+  // Collection filter
+  document.querySelectorAll('.collection-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeCollection = btn.getAttribute('data-collection') || 'all'
+      currentPage = 1
+
+      document.querySelectorAll('.collection-filter').forEach(b => {
+        b.classList.remove('active', 'bg-primary', 'text-white', 'shadow-sm')
+        b.classList.add('bg-white', 'text-text-light', 'border', 'border-border')
+      })
+      btn.classList.add('active', 'bg-primary', 'text-white', 'shadow-sm')
+      btn.classList.remove('bg-white', 'text-text-light')
+
+      applyFilters()
+    })
+  })
+
+  // Sort
+  sortSelect?.addEventListener('change', () => {
+    applySorting()
+    currentPage = 1
+    applyFilters()
+  })
+
+  // Search within collection
+  searchInput?.addEventListener('input', () => {
+    searchQuery = searchInput.value.trim()
+    currentPage = 1
+    applyFilters()
+  })
+
+  // Reset
+  document.getElementById('reset-filters')?.addEventListener('click', () => {
+    activeCollection = 'all'
+    searchQuery = ''
+    currentPage = 1
+    if (searchInput) searchInput.value = ''
+    sortSelect.value = 'default'
+
+    document.querySelectorAll('.collection-filter').forEach(b => {
+      b.classList.remove('active', 'bg-primary', 'text-white', 'shadow-sm')
+      b.classList.add('bg-white', 'text-text-light', 'border', 'border-border')
+    })
+    const allBtn = document.querySelector('[data-collection="all"]')
+    allBtn?.classList.add('active', 'bg-primary', 'text-white', 'shadow-sm')
+    allBtn?.classList.remove('bg-white', 'text-text-light')
+
+    applyFilters()
+  })
+
+  // Toggle "+ N autres" overflow row
+  document.getElementById('show-more-cats')?.addEventListener('click', (e) => {
+    const btn = e.currentTarget as HTMLButtonElement
+    const panel = document.getElementById('more-cats')
+    if (!panel) return
+    panel.classList.toggle('hidden')
+    const isOpen = !panel.classList.contains('hidden')
+    btn.textContent = isOpen ? 'Moins de catégories' : btn.dataset.defaultLabel || btn.textContent
+    if (!btn.dataset.defaultLabel) btn.dataset.defaultLabel = btn.textContent || ''
+  })
+
+  // Initial render with pagination
+  applyFilters()
+</script>

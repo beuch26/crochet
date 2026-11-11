@@ -1,0 +1,121 @@
+{%- comment -%}
+  Schema.org Organization/LocalBusiness JSON-LD
+  Critical for Knowledge Graph, Local SEO, and brand identity
+{%- endcomment -%}
+
+{%- liquid
+  # Determine if this is a local business or just an organization
+  assign is_local_business = false
+  if settings.enable_local_business and settings.business_address != blank
+    assign is_local_business = true
+  endif
+-%}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": {% if is_local_business %}"LocalBusiness"{% else %}"Organization"{% endif %},
+  "name": {{ shop.name | json }},
+  "legalName": {{ settings.legal_business_name | default: shop.name | json }},
+  "url": {{ shop.url | json }},
+  {% if settings.logo %}
+  "logo": {
+    "@type": "ImageObject",
+    "url": {{ settings.logo | image_url: width: 600 | prepend: 'https:' | json }},
+    "width": "600",
+    "height": "600"
+  },
+  {% endif %}
+  {% if shop.description != blank %}
+  "description": {{ shop.description | strip_html | json }},
+  {% endif %}
+  "email": {{ settings.contact_email | default: shop.email | json }},
+  "telephone": {{ settings.contact_phone | json }},
+  {% if is_local_business %}
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": {{ settings.business_address | json }},
+    "addressLocality": {{ settings.business_city | json }},
+    "addressRegion": {{ settings.business_region | json }},
+    "postalCode": {{ settings.business_postal_code | json }},
+    "addressCountry": {{ settings.business_country | json }}
+  },
+  {% if settings.business_latitude and settings.business_longitude %}
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": {{ settings.business_latitude | json }},
+    "longitude": {{ settings.business_longitude | json }}
+  },
+  {% endif %}
+  {% if settings.business_opening_hours %}
+  "openingHoursSpecification": [
+    {% assign opening_hours = settings.business_opening_hours | split: '|' %}
+    {% for hours in opening_hours %}
+      {% assign hour_parts = hours | split: ':' %}
+      {% if hour_parts.size == 2 %}
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": {{ hour_parts[0] | strip | json }},
+        "opens": {{ hour_parts[1] | split: '-' | first | strip | json }},
+        "closes": {{ hour_parts[1] | split: '-' | last | strip | json }}
+      }{% unless forloop.last %},{% endunless %}
+      {% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  "priceRange": {{ settings.business_price_range | default: '$$' | json }},
+  {% endif %}
+  "sameAs": [
+    {% if settings.social_facebook_url != blank %}{{ settings.social_facebook_url | json }},{% endif %}
+    {% if settings.social_instagram_url != blank %}{{ settings.social_instagram_url | json }},{% endif %}
+    {% if settings.social_twitter_url != blank %}{{ settings.social_twitter_url | json }},{% endif %}
+    {% if settings.social_pinterest_url != blank %}{{ settings.social_pinterest_url | json }},{% endif %}
+    {% if settings.social_youtube_url != blank %}{{ settings.social_youtube_url | json }},{% endif %}
+    {% if settings.social_linkedin_url != blank %}{{ settings.social_linkedin_url | json }},{% endif %}
+    {% if settings.social_tiktok_url != blank %}{{ settings.social_tiktok_url | json }}{% endif %}
+  ],
+  "contactPoint": [
+    {
+      "@type": "ContactPoint",
+      "telephone": {{ settings.contact_phone | json }},
+      "contactType": "customer service",
+      "email": {{ settings.contact_email | default: shop.email | json }},
+      "availableLanguage": [
+        {% for locale in shop.published_locales %}
+          {{ locale.iso_code | json }}{% unless forloop.last %},{% endunless %}
+        {% endfor %}
+      ]
+    }
+  ]
+  {% if settings.enable_store_reviews and settings.store_rating %}
+  ,
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": {{ settings.store_rating | json }},
+    "reviewCount": {{ settings.store_review_count | json }},
+    "bestRating": "5",
+    "worstRating": "1"
+  }
+  {% endif %}
+}
+</script>
+
+{%- comment -%} WebSite Schema for Search Box {%- endcomment -%}
+{% if template.name == 'index' %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": {{ shop.name | json }},
+  "url": {{ shop.url | json }},
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "{{ shop.url }}/search?q={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+{% endif %}

@@ -1,0 +1,249 @@
+---
+interface Props {
+  productId: string
+  productTitle: string
+}
+
+const { productId, productTitle } = Astro.props
+---
+
+<section id="reviews" class="mt-16 pt-12 border-t border-border-light" data-product-id={productId} data-product-title={productTitle}>
+  <div class="flex items-center justify-between mb-8">
+    <h2 class="text-xl font-semibold font-['DM_Sans']">Avis clients</h2>
+    <button type="button" id="review-write-btn" class="btn btn-primary text-sm px-5 py-2.5">Donner mon avis</button>
+  </div>
+
+  <!-- Aggregate summary -->
+  <div id="review-summary" class="hidden mb-10">
+    <div class="flex flex-col sm:flex-row gap-8 items-start">
+      <!-- Big rating -->
+      <div class="text-center shrink-0">
+        <div class="text-5xl font-bold text-text" id="review-avg">0</div>
+        <div id="review-stars-avg" class="flex justify-center mt-2"></div>
+        <p class="text-sm text-text-muted mt-1">sur <span id="review-count">0</span> avis</p>
+      </div>
+      <!-- Distribution bars -->
+      <div class="flex-1 w-full space-y-1.5" id="review-distribution"></div>
+    </div>
+  </div>
+
+  <!-- Write review form (hidden by default) -->
+  <div id="review-form-container" class="hidden mb-10 p-6 bg-bg-light rounded-2xl border border-border">
+    <h3 class="text-base font-semibold mb-4 font-['DM_Sans']">Donnez votre avis sur {productTitle}</h3>
+    <form id="review-form" class="space-y-4">
+      <!-- Stars selector -->
+      <div>
+        <label class="block text-sm font-medium text-text mb-2">Note *</label>
+        <div id="review-star-select" class="flex gap-1 cursor-pointer">
+          {[1,2,3,4,5].map(s => (
+            <svg data-star={s} class="review-star w-8 h-8 text-gray-300 hover:text-amber-400 transition-colors" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+            </svg>
+          ))}
+          <input type="hidden" id="review-rating" value="0" />
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-text mb-1.5">Nom *</label>
+          <input type="text" id="review-name" required class="w-full px-4 py-2.5 border border-border rounded-xl bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-text mb-1.5">Email *</label>
+          <input type="email" id="review-email" required class="w-full px-4 py-2.5 border border-border rounded-xl bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary" placeholder="Ne sera pas publie" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text mb-1.5">Titre</label>
+        <input type="text" id="review-title" class="w-full px-4 py-2.5 border border-border rounded-xl bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary" placeholder="Resumez votre experience" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text mb-1.5">Votre avis *</label>
+        <textarea id="review-body" rows={4} required class="w-full px-4 py-2.5 border border-border rounded-xl bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary" placeholder="Partagez votre experience avec ce produit..."></textarea>
+      </div>
+      <div id="review-form-error" class="hidden text-sm text-error bg-error/10 p-3 rounded-xl"></div>
+      <div id="review-form-success" class="hidden text-sm text-success bg-success/10 p-3 rounded-xl"></div>
+      <div class="flex gap-3">
+        <button type="submit" id="review-submit" class="btn btn-primary px-6 py-2.5 text-sm">Envoyer mon avis</button>
+        <button type="button" id="review-cancel" class="btn btn-outline px-6 py-2.5 text-sm">Annuler</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Reviews list -->
+  <div id="review-list" class="space-y-6"></div>
+  <div id="review-empty" class="hidden text-center py-12">
+    <svg class="w-12 h-12 mx-auto text-text-muted mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+    <p class="text-text-muted">Aucun avis pour ce produit</p>
+    <p class="text-sm text-text-muted mt-1">Soyez le premier a donner votre avis !</p>
+  </div>
+</section>
+
+<script>
+  const MEDUSA_URL = document.querySelector('meta[name="medusa-url"]')?.getAttribute('content') || ''
+  const API_KEY = document.querySelector('meta[name="medusa-key"]')?.getAttribute('content') || ''
+  const section = document.getElementById('reviews')!
+  const productId = section.dataset.productId || ''
+
+  function renderStars(rating: number, size = 16): string {
+    return [1,2,3,4,5].map(s =>
+      `<svg width="${size}" height="${size}" viewBox="0 0 20 20" fill="${s <= rating ? '#f59e0b' : '#e5e7eb'}"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>`
+    ).join('')
+  }
+
+  function formatDate(d: string) {
+    return new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  }
+
+  async function loadReviews() {
+    try {
+      const res = await fetch(`${MEDUSA_URL}/store/reviews?product_id=${productId}`, {
+        headers: { 'x-publishable-api-key': API_KEY },
+      })
+      const data = await res.json()
+      const { reviews, aggregate } = data
+
+      if (aggregate.count > 0) {
+        document.getElementById('review-summary')!.classList.remove('hidden')
+        document.getElementById('review-avg')!.textContent = String(aggregate.avg_rating)
+        document.getElementById('review-count')!.textContent = String(aggregate.count)
+        document.getElementById('review-stars-avg')!.innerHTML = renderStars(Math.round(aggregate.avg_rating), 20)
+
+        // Distribution bars
+        const maxCount = Math.max(...aggregate.distribution.map((d: any) => d.count), 1)
+        document.getElementById('review-distribution')!.innerHTML = aggregate.distribution
+          .reverse()
+          .map((d: any) => {
+            const pct = (d.count / maxCount) * 100
+            return `<div class="flex items-center gap-2">
+              <span class="text-xs text-text-muted w-8 text-right">${d.star} ★</span>
+              <div class="flex-1 bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                <div class="bg-amber-400 h-full rounded-full transition-all" style="width:${pct}%"></div>
+              </div>
+              <span class="text-xs text-text-muted w-6">${d.count}</span>
+            </div>`
+          }).join('')
+      }
+
+      if (reviews.length > 0) {
+        document.getElementById('review-empty')!.classList.add('hidden')
+        document.getElementById('review-list')!.innerHTML = reviews.map((r: any) => `
+          <article class="border border-border-light rounded-xl p-5">
+            <div class="flex items-start justify-between mb-2">
+              <div>
+                <div class="flex items-center gap-2">
+                  ${renderStars(r.rating)}
+                  ${r.is_verified ? '<span class="text-[10px] font-semibold text-success bg-success/10 px-2 py-0.5 rounded-full">Achat verifie</span>' : ''}
+                </div>
+                <div class="flex items-center gap-2 mt-1.5">
+                  <span class="text-sm font-medium text-text">${r.customer_name}</span>
+                  <span class="text-xs text-text-muted">${formatDate(r.created_at)}</span>
+                </div>
+              </div>
+            </div>
+            ${r.title ? `<p class="font-medium text-text mt-2">${r.title}</p>` : ''}
+            ${r.body ? `<p class="text-sm text-text-light mt-1 leading-relaxed">${r.body}</p>` : ''}
+            ${r.admin_reply ? `
+              <div class="mt-4 ml-4 pl-4 border-l-2 border-primary/30">
+                <p class="text-xs font-semibold text-primary mb-1">Reponse de Magic Crochet Kit</p>
+                <p class="text-sm text-text-light">${r.admin_reply}</p>
+              </div>
+            ` : ''}
+          </article>
+        `).join('')
+      } else {
+        document.getElementById('review-empty')!.classList.remove('hidden')
+      }
+    } catch (e) {
+      console.error('Failed to load reviews:', e)
+    }
+  }
+
+  loadReviews()
+
+  // Star selector
+  let selectedRating = 0
+  document.querySelectorAll('.review-star').forEach(star => {
+    star.addEventListener('click', () => {
+      selectedRating = Number((star as HTMLElement).dataset.star)
+      ;(document.getElementById('review-rating') as HTMLInputElement).value = String(selectedRating)
+      document.querySelectorAll('.review-star').forEach((s, i) => {
+        s.classList.toggle('text-amber-400', i < selectedRating)
+        s.classList.toggle('text-gray-300', i >= selectedRating)
+      })
+    })
+    star.addEventListener('mouseenter', () => {
+      const hover = Number((star as HTMLElement).dataset.star)
+      document.querySelectorAll('.review-star').forEach((s, i) => {
+        s.classList.toggle('text-amber-400', i < hover)
+        s.classList.toggle('text-gray-300', i >= hover)
+      })
+    })
+  })
+  document.getElementById('review-star-select')?.addEventListener('mouseleave', () => {
+    document.querySelectorAll('.review-star').forEach((s, i) => {
+      s.classList.toggle('text-amber-400', i < selectedRating)
+      s.classList.toggle('text-gray-300', i >= selectedRating)
+    })
+  })
+
+  // Show/hide form
+  document.getElementById('review-write-btn')?.addEventListener('click', () => {
+    document.getElementById('review-form-container')!.classList.remove('hidden')
+    document.getElementById('review-write-btn')!.classList.add('hidden')
+    document.getElementById('review-form-container')!.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  })
+  document.getElementById('review-cancel')?.addEventListener('click', () => {
+    document.getElementById('review-form-container')!.classList.add('hidden')
+    document.getElementById('review-write-btn')!.classList.remove('hidden')
+  })
+
+  // Submit review
+  document.getElementById('review-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const errorEl = document.getElementById('review-form-error')!
+    const successEl = document.getElementById('review-form-success')!
+    errorEl.classList.add('hidden')
+    successEl.classList.add('hidden')
+
+    const rating = Number((document.getElementById('review-rating') as HTMLInputElement).value)
+    if (rating < 1) { errorEl.textContent = 'Veuillez selectionner une note'; errorEl.classList.remove('hidden'); return }
+
+    const name = (document.getElementById('review-name') as HTMLInputElement).value.trim()
+    const email = (document.getElementById('review-email') as HTMLInputElement).value.trim()
+    const title = (document.getElementById('review-title') as HTMLInputElement).value.trim()
+    const body = (document.getElementById('review-body') as HTMLTextAreaElement).value.trim()
+
+    if (!name || !email || !body) { errorEl.textContent = 'Veuillez remplir les champs obligatoires'; errorEl.classList.remove('hidden'); return }
+
+    const btn = document.getElementById('review-submit') as HTMLButtonElement
+    btn.disabled = true
+    btn.textContent = 'Envoi en cours...'
+
+    try {
+      const res = await fetch(`${MEDUSA_URL}/store/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-publishable-api-key': API_KEY },
+        body: JSON.stringify({ product_id: productId, customer_name: name, customer_email: email, rating, title, body }),
+      })
+      const data = await res.json()
+
+      if (res.ok) {
+        successEl.textContent = data.message || 'Merci ! Votre avis sera publie apres moderation.'
+        successEl.classList.remove('hidden')
+        ;(document.getElementById('review-form') as HTMLFormElement).reset()
+        selectedRating = 0
+        document.querySelectorAll('.review-star').forEach(s => { s.classList.add('text-gray-300'); s.classList.remove('text-amber-400') })
+      } else {
+        errorEl.textContent = data.message || 'Erreur lors de l\'envoi'
+        errorEl.classList.remove('hidden')
+      }
+    } catch {
+      errorEl.textContent = 'Erreur de connexion'
+      errorEl.classList.remove('hidden')
+    }
+
+    btn.disabled = false
+    btn.textContent = 'Envoyer mon avis'
+  })
+</script>

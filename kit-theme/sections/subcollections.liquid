@@ -1,0 +1,252 @@
+{%- comment -%}
+  Subcollections Section
+  Display subcollections as small compact bubbles with horizontal scroll
+  Designed for collection pages - shows nothing if no blocks
+{%- endcomment -%}
+
+{%- if section.blocks.size > 0 -%}
+  {%- liquid
+    assign bubble_size = section.settings.bubble_size | default: 60
+    assign show_product_count = section.settings.show_product_count
+  -%}
+
+  <div class="subcollections" style="--bubble-size: {{ bubble_size }}px;">
+    <div class="container">
+      <div class="subcollections__wrapper">
+        <div class="subcollections__list">
+          {%- for block in section.blocks -%}
+            {%- assign collection = collections[block.settings.collection] -%}
+            {%- if collection != blank -%}
+              <a href="{{ collection.url }}" class="subcollection" {{ block.shopify_attributes }}>
+                <div class="subcollection__bubble">
+                  {%- if block.settings.custom_image != blank -%}
+                    <img
+                      src="{{ block.settings.custom_image | image_url: width: 150 }}"
+                      alt="{{ block.settings.custom_title | default: collection.title }}"
+                      width="75"
+                      height="75"
+                      loading="lazy"
+                    >
+                  {%- elsif collection.image -%}
+                    <img
+                      src="{{ collection.image | image_url: width: 150 }}"
+                      alt="{{ collection.title }}"
+                      width="75"
+                      height="75"
+                      loading="lazy"
+                    >
+                  {%- elsif collection.products.first and collection.products.first.featured_image -%}
+                    <img
+                      src="{{ collection.products.first.featured_image | image_url: width: 150 }}"
+                      alt="{{ collection.title }}"
+                      width="75"
+                      height="75"
+                      loading="lazy"
+                    >
+                  {%- else -%}
+                    <span class="subcollection__placeholder">
+                      {{ collection.title | slice: 0 | upcase }}
+                    </span>
+                  {%- endif -%}
+                </div>
+                <span class="subcollection__name">
+                  {{ block.settings.custom_title | default: collection.title }}
+                  {%- if show_product_count -%}
+                    <span class="subcollection__count">({{ collection.products_count }})</span>
+                  {%- endif -%}
+                </span>
+              </a>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+<style>
+  .subcollections {
+    padding: var(--spacing-md) 0;
+    background: var(--color-background);
+  }
+
+  .subcollections__wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .subcollections__wrapper::-webkit-scrollbar {
+    display: none;
+  }
+
+  .subcollections__list {
+    display: flex;
+    gap: var(--spacing-md);
+    padding: var(--spacing-xs) 0;
+    min-width: min-content;
+  }
+
+  .subcollection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+    flex: 0 0 auto;
+    min-width: var(--bubble-size, 60px);
+    max-width: calc(var(--bubble-size, 60px) + 20px);
+    transition: transform 0.2s ease;
+  }
+
+  .subcollection:hover {
+    transform: translateY(-2px);
+  }
+
+  .subcollection__bubble {
+    width: var(--bubble-size, 60px);
+    height: var(--bubble-size, 60px);
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--color-background-light);
+    border: 2px solid var(--color-border);
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .subcollection:hover .subcollection__bubble {
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .subcollection__bubble img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .subcollection:hover .subcollection__bubble img {
+    transform: scale(1.1);
+  }
+
+  .subcollection__placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary, #a855f7) 100%);
+    color: white;
+    font-weight: 600;
+    font-size: calc(var(--bubble-size, 60px) * 0.35);
+  }
+
+  .subcollection__name {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-text);
+    text-align: center;
+    line-height: 1.2;
+    word-break: break-word;
+    hyphens: auto;
+    transition: color 0.2s ease;
+  }
+
+  .subcollection:hover .subcollection__name {
+    color: var(--color-primary);
+  }
+
+  .subcollection__count {
+    font-size: 0.625rem;
+    color: var(--color-text-light);
+    font-weight: 400;
+  }
+
+  /* Center if few items */
+  @media (min-width: 768px) {
+    .subcollections__list {
+      justify-content: center;
+    }
+
+    /* Allow scroll if many items */
+    .subcollections__list:has(.subcollection:nth-child(8)) {
+      justify-content: flex-start;
+    }
+  }
+
+  /* Smaller gap on mobile */
+  @media (max-width: 767px) {
+    .subcollections__list {
+      gap: var(--spacing-sm);
+      padding-left: var(--spacing-xs);
+      padding-right: var(--spacing-xs);
+    }
+
+    .subcollection {
+      max-width: calc(var(--bubble-size, 60px) + 10px);
+    }
+
+    .subcollection__name {
+      font-size: 0.6875rem;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Sous-collections",
+  "class": "section-subcollections",
+  "settings": [
+    {
+      "type": "range",
+      "id": "bubble_size",
+      "label": "Taille des bulles",
+      "min": 40,
+      "max": 100,
+      "step": 5,
+      "default": 60,
+      "unit": "px"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_count",
+      "label": "Afficher le nombre de produits",
+      "default": false
+    }
+  ],
+  "blocks": [
+    {
+      "type": "subcollection",
+      "name": "Sous-collection",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        },
+        {
+          "type": "text",
+          "id": "custom_title",
+          "label": "Titre personnalisé",
+          "info": "Optionnel - remplace le nom de la collection"
+        },
+        {
+          "type": "image_picker",
+          "id": "custom_image",
+          "label": "Image personnalisée",
+          "info": "Optionnel - remplace l'image de la collection"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Sous-collections"
+    }
+  ]
+}
+{% endschema %}

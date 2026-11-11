@@ -1,0 +1,706 @@
+{%- comment -%}
+  Promo Popup Section
+  Exit intent + timed popup for special offers and newsletter
+
+  Features:
+  - Exit intent trigger
+  - Timed delay trigger
+  - Cookie-based frequency control
+  - Newsletter signup integration
+  - Countdown timer option
+
+  Usage: Add to theme.liquid via Theme Editor
+{%- endcomment -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign enabled = section.settings.enabled
+  assign trigger_type = section.settings.trigger_type
+  assign delay_seconds = section.settings.delay_seconds
+  assign show_once_per_session = section.settings.show_once_per_session
+  assign days_between_shows = section.settings.days_between_shows
+  assign heading = section.settings.heading
+  assign subheading = section.settings.subheading
+  assign offer_code = section.settings.offer_code
+  assign show_countdown = section.settings.show_countdown
+  assign countdown_end = section.settings.countdown_end
+-%}
+
+{%- if enabled -%}
+  <div class="promo-popup"
+       id="promo-popup-{{ section_id }}"
+       data-promo-popup
+       data-trigger="{{ trigger_type }}"
+       data-delay="{{ delay_seconds }}"
+       data-session-once="{{ show_once_per_session }}"
+       data-days-between="{{ days_between_shows }}"
+       style="display: none;"
+       role="dialog"
+       aria-modal="true"
+       aria-labelledby="promo-popup-title-{{ section_id }}">
+
+    <div class="promo-popup__overlay" data-popup-close></div>
+
+    <div class="promo-popup__content">
+      <button type="button" class="promo-popup__close" data-popup-close aria-label="Fermer la popup">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M6 6l12 12M6 18L18 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <div class="promo-popup__layout">
+        {%- if section.settings.image != blank -%}
+          <div class="promo-popup__image">
+            <img
+              src="{{ section.settings.image | image_url: width: 600 }}"
+              alt="{{ heading | default: 'Special offer' }}"
+              loading="lazy"
+            >
+          </div>
+        {%- endif -%}
+
+        <div class="promo-popup__body">
+          {%- if section.settings.badge != blank -%}
+            <span class="promo-popup__badge">{{ section.settings.badge }}</span>
+          {%- endif -%}
+
+          {%- if heading != blank -%}
+            <h2 class="promo-popup__title" id="promo-popup-title-{{ section_id }}">{{ heading }}</h2>
+          {%- endif -%}
+
+          {%- if subheading != blank -%}
+            <p class="promo-popup__subtitle">{{ subheading }}</p>
+          {%- endif -%}
+
+          {%- if show_countdown and countdown_end != blank -%}
+            <div class="promo-popup__countdown" data-countdown="{{ countdown_end }}">
+              <div class="countdown-item">
+                <span class="countdown-value" data-days>00</span>
+                <span class="countdown-label">{{ 'general.countdown.days' | t | default: 'Jours' }}</span>
+              </div>
+              <span class="countdown-separator">:</span>
+              <div class="countdown-item">
+                <span class="countdown-value" data-hours>00</span>
+                <span class="countdown-label">{{ 'general.countdown.hours' | t | default: 'Heures' }}</span>
+              </div>
+              <span class="countdown-separator">:</span>
+              <div class="countdown-item">
+                <span class="countdown-value" data-minutes>00</span>
+                <span class="countdown-label">{{ 'general.countdown.minutes' | t | default: 'Min.' }}</span>
+              </div>
+              <span class="countdown-separator">:</span>
+              <div class="countdown-item">
+                <span class="countdown-value" data-seconds>00</span>
+                <span class="countdown-label">{{ 'general.countdown.seconds' | t | default: 'Sec.' }}</span>
+              </div>
+            </div>
+          {%- endif -%}
+
+          {%- if offer_code != blank -%}
+            <div class="promo-popup__code">
+              <span class="promo-popup__code-label">{{ 'general.popup.use_code' | t | default: 'Code promo :' }}</span>
+              <button type="button" class="promo-popup__code-value" data-copy-code="{{ offer_code }}">
+                {{ offer_code }}
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <rect x="5" y="5" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M3 11V3a1 1 0 011-1h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+          {%- endif -%}
+
+          {%- if section.settings.show_newsletter -%}
+            <form class="promo-popup__form" method="post" action="/contact#contact_form" data-popup-form>
+              <input type="hidden" name="form_type" value="customer">
+              <input type="hidden" name="utf8" value="✓">
+              <input type="hidden" name="contact[tags]" value="newsletter, popup">
+
+              <div class="promo-popup__input-wrapper">
+                <input
+                  type="email"
+                  name="contact[email]"
+                  class="promo-popup__input"
+                  placeholder="{{ 'general.popup.email_placeholder' | t | default: 'Entrez votre email' }}"
+                  required
+                  autocomplete="email"
+                >
+                <button type="submit" class="promo-popup__submit btn btn--primary">
+                  {{ section.settings.button_text | default: 'Obtenir ma reduction' }}
+                </button>
+              </div>
+
+              <p class="promo-popup__privacy">
+                {{ 'general.popup.privacy' | t | default: 'En vous inscrivant, vous acceptez notre politique de confidentialité.' }}
+              </p>
+            </form>
+
+            <div class="promo-popup__success" data-popup-success style="display: none;">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                <circle cx="24" cy="24" r="20" fill="var(--color-success)" opacity="0.1"/>
+                <path d="M16 24l6 6 12-14" stroke="var(--color-success)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <p>{{ section.settings.success_message | default: 'Merci pour votre inscription !' }}</p>
+            </div>
+          {%- else -%}
+            {%- if section.settings.button_url != blank -%}
+              <a href="{{ section.settings.button_url }}" class="promo-popup__cta btn btn--primary btn--large">
+                {{ section.settings.button_text | default: 'Acheter maintenant' }}
+              </a>
+            {%- endif -%}
+          {%- endif -%}
+
+          {%- if section.settings.decline_text != blank -%}
+            <button type="button" class="promo-popup__decline" data-popup-close>
+              {{ section.settings.decline_text }}
+            </button>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .promo-popup {
+      position: fixed;
+      inset: 0;
+      z-index: 1001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-md);
+    }
+
+    .promo-popup__overlay {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+    }
+
+    .promo-popup__content {
+      position: relative;
+      width: 100%;
+      max-width: 700px;
+      background-color: var(--color-background);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      animation: popup-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes popup-in {
+      from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .promo-popup__close {
+      position: absolute;
+      top: var(--spacing-sm);
+      right: var(--spacing-sm);
+      z-index: 10;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(0, 0, 0, 0.1);
+      border: none;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      color: var(--color-text);
+      transition: all 0.2s ease;
+    }
+
+    .promo-popup__close:hover {
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+
+    .promo-popup__layout {
+      display: flex;
+    }
+
+    .promo-popup__image {
+      flex: 0 0 45%;
+      max-width: 300px;
+    }
+
+    .promo-popup__image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .promo-popup__body {
+      flex: 1;
+      padding: var(--spacing-xl);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .promo-popup__badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background-color: var(--color-error);
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      border-radius: var(--radius-full);
+      margin-bottom: var(--spacing-sm);
+      align-self: flex-start;
+    }
+
+    .promo-popup__title {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: var(--spacing-xs);
+      color: var(--color-text);
+    }
+
+    .promo-popup__subtitle {
+      font-size: 1rem;
+      color: var(--color-text-light);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .promo-popup__countdown {
+      display: flex;
+      gap: var(--spacing-xs);
+      align-items: center;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .countdown-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 50px;
+      padding: var(--spacing-xs);
+      background-color: var(--color-text);
+      color: white;
+      border-radius: var(--radius-sm);
+    }
+
+    .countdown-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .countdown-label {
+      font-size: 0.625rem;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+
+    .countdown-separator {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+
+    .promo-popup__code {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .promo-popup__code-label {
+      font-size: 0.875rem;
+      color: var(--color-text-light);
+    }
+
+    .promo-popup__code-value {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background-color: var(--color-background-light);
+      border: 2px dashed var(--color-primary);
+      border-radius: var(--radius-sm);
+      font-family: monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .promo-popup__code-value:hover {
+      background-color: var(--color-primary);
+      color: white;
+    }
+
+    .promo-popup__input-wrapper {
+      display: flex;
+      gap: var(--spacing-xs);
+    }
+
+    .promo-popup__input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      transition: border-color 0.2s ease;
+    }
+
+    .promo-popup__input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+
+    .promo-popup__submit {
+      flex-shrink: 0;
+    }
+
+    .promo-popup__privacy {
+      font-size: 0.75rem;
+      color: var(--color-text-light);
+      margin-top: var(--spacing-xs);
+    }
+
+    .promo-popup__success {
+      text-align: center;
+      padding: var(--spacing-lg) 0;
+    }
+
+    .promo-popup__success p {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--color-success);
+      margin-top: var(--spacing-sm);
+    }
+
+    .promo-popup__cta {
+      text-align: center;
+    }
+
+    .promo-popup__decline {
+      margin-top: var(--spacing-sm);
+      padding: 0.5rem;
+      background: none;
+      border: none;
+      font-size: 0.875rem;
+      color: var(--color-text-light);
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .promo-popup__decline:hover {
+      color: var(--color-text);
+    }
+
+    @media (max-width: 767px) {
+      .promo-popup__layout {
+        flex-direction: column;
+      }
+
+      .promo-popup__image {
+        flex: none;
+        max-width: 100%;
+        max-height: 200px;
+        overflow: hidden;
+      }
+
+      .promo-popup__body {
+        padding: var(--spacing-lg);
+      }
+
+      .promo-popup__input-wrapper {
+        flex-direction: column;
+      }
+    }
+  </style>
+
+  <script>
+    (function() {
+      const popup = document.querySelector('[data-promo-popup]');
+      if (!popup) return;
+
+      const triggerType = popup.dataset.trigger;
+      const delaySeconds = parseInt(popup.dataset.delay) || 5;
+      const sessionOnce = popup.dataset.sessionOnce === 'true';
+      const daysBetween = parseInt(popup.dataset.daysBetween) || 7;
+      const closeButtons = popup.querySelectorAll('[data-popup-close]');
+      const form = popup.querySelector('[data-popup-form]');
+      const successEl = popup.querySelector('[data-popup-success]');
+      const copyBtn = popup.querySelector('[data-copy-code]');
+      const countdownEl = popup.querySelector('[data-countdown]');
+
+      const STORAGE_KEY = 'promo_popup_shown';
+      const SESSION_KEY = 'promo_popup_session';
+
+      function shouldShow() {
+        if (sessionOnce && sessionStorage.getItem(SESSION_KEY)) {
+          return false;
+        }
+
+        const lastShown = localStorage.getItem(STORAGE_KEY);
+        if (lastShown) {
+          const daysSince = (Date.now() - parseInt(lastShown)) / (1000 * 60 * 60 * 24);
+          if (daysSince < daysBetween) {
+            return false;
+          }
+        }
+
+        return true;
+      }
+
+      function showPopup() {
+        if (!shouldShow()) return;
+
+        popup.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        localStorage.setItem(STORAGE_KEY, Date.now().toString());
+        sessionStorage.setItem(SESSION_KEY, 'true');
+
+        if (countdownEl) {
+          startCountdown();
+        }
+      }
+
+      function closePopup() {
+        popup.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      function startCountdown() {
+        const endDate = new Date(countdownEl.dataset.countdown).getTime();
+
+        const update = () => {
+          const now = Date.now();
+          const diff = endDate - now;
+
+          if (diff <= 0) {
+            countdownEl.style.display = 'none';
+            return;
+          }
+
+          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+          countdownEl.querySelector('[data-days]').textContent = String(days).padStart(2, '0');
+          countdownEl.querySelector('[data-hours]').textContent = String(hours).padStart(2, '0');
+          countdownEl.querySelector('[data-minutes]').textContent = String(minutes).padStart(2, '0');
+          countdownEl.querySelector('[data-seconds]').textContent = String(seconds).padStart(2, '0');
+        };
+
+        update();
+        setInterval(update, 1000);
+      }
+
+      closeButtons.forEach(btn => {
+        btn.addEventListener('click', closePopup);
+      });
+
+      popup.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closePopup();
+      });
+
+      if (form) {
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const formData = new FormData(form);
+
+          try {
+            await fetch('/contact', {
+              method: 'POST',
+              body: formData
+            });
+
+            form.style.display = 'none';
+            successEl.style.display = 'block';
+
+            setTimeout(closePopup, 3000);
+          } catch (error) {
+            console.error('Form submission error:', error);
+          }
+        });
+      }
+
+      if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+          const code = copyBtn.dataset.copyCode;
+          navigator.clipboard.writeText(code).then(() => {
+            const originalText = copyBtn.innerHTML;
+            copyBtn.textContent = '✓ Copié !';
+            setTimeout(() => {
+              copyBtn.innerHTML = originalText;
+            }, 2000);
+          });
+        });
+      }
+
+      if (triggerType === 'exit_intent') {
+        document.addEventListener('mouseout', (e) => {
+          if (e.clientY <= 0) {
+            showPopup();
+          }
+        }, { once: true });
+      } else if (triggerType === 'delay') {
+        setTimeout(showPopup, delaySeconds * 1000);
+      } else if (triggerType === 'both') {
+        const timeoutId = setTimeout(showPopup, delaySeconds * 1000);
+
+        document.addEventListener('mouseout', (e) => {
+          if (e.clientY <= 0) {
+            clearTimeout(timeoutId);
+            showPopup();
+          }
+        }, { once: true });
+      }
+    })();
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Popup Promotionnel",
+  "tag": "section",
+  "class": "section-promo-popup",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Activer la popup",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "trigger_type",
+      "label": "Type de déclenchement",
+      "options": [
+        { "value": "exit_intent", "label": "Intention de sortie" },
+        { "value": "delay", "label": "Délai" },
+        { "value": "both", "label": "Les deux (premier déclenché)" }
+      ],
+      "default": "both"
+    },
+    {
+      "type": "range",
+      "id": "delay_seconds",
+      "label": "Délai (secondes)",
+      "min": 1,
+      "max": 60,
+      "step": 1,
+      "default": 5
+    },
+    {
+      "type": "checkbox",
+      "id": "show_once_per_session",
+      "label": "Afficher une fois par session",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "days_between_shows",
+      "label": "Jours entre les affichages",
+      "min": 1,
+      "max": 30,
+      "step": 1,
+      "default": 7
+    },
+    {
+      "type": "header",
+      "content": "Contenu"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "badge",
+      "label": "Texte du badge",
+      "default": "Offre limitée"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre",
+      "default": "Obtenez 10% de réduction"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Sous-titre",
+      "default": "Inscrivez-vous à notre newsletter et recevez votre code de réduction !"
+    },
+    {
+      "type": "text",
+      "id": "offer_code",
+      "label": "Code promo",
+      "default": "PROMO10"
+    },
+    {
+      "type": "header",
+      "content": "Compte à rebours"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_countdown",
+      "label": "Afficher le compte à rebours",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "countdown_end",
+      "label": "Date de fin du compte à rebours",
+      "info": "Format : AAAA-MM-JJ HH:MM",
+      "placeholder": "2024-12-31 23:59"
+    },
+    {
+      "type": "header",
+      "content": "Newsletter"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_newsletter",
+      "label": "Afficher le formulaire newsletter",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Texte du bouton",
+      "default": "Obtenir ma réduction"
+    },
+    {
+      "type": "url",
+      "id": "button_url",
+      "label": "URL du bouton",
+      "info": "Utilisé quand la newsletter est désactivée"
+    },
+    {
+      "type": "text",
+      "id": "success_message",
+      "label": "Message de succès",
+      "default": "Merci ! Vérifiez votre email pour le code."
+    },
+    {
+      "type": "text",
+      "id": "decline_text",
+      "label": "Texte de refus",
+      "default": "Non merci, je préfère payer le prix fort"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Popup Promotionnel"
+    }
+  ]
+}
+{% endschema %}

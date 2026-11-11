@@ -1,0 +1,97 @@
+---
+interface Props {
+  collections: any[]
+}
+
+const { collections } = Astro.props
+
+// For MCK, collection thumbnails come from Medusa metadata.image_url (imported from Shopify).
+// If no thumbnail is set, we don't render a fallback - the bubble just shows the title.
+function getImageForCollection(_handle: string, _title: string): string | null {
+  return null
+}
+---
+
+{(() => {
+  const items = collections.slice(0, 12).map((col: any) => ({
+    ...col,
+    resolvedImage: col.thumbnail || col.metadata?.image_url || getImageForCollection(col.handle, col.title),
+  }))
+  const loop = [...items, ...items]
+  return (
+    <section class="py-12 lg:py-16 overflow-hidden reveal">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-10">
+          <h2>Nos univers</h2>
+        </div>
+
+        <div class="bubbles-marquee" aria-label="Collections">
+          <div class="bubbles-track">
+            {loop.map((col: any, i: number) => (
+              <a
+                href={`/collections/${col.handle}/`}
+                class="group bubbles-item"
+                aria-hidden={i >= items.length ? 'true' : 'false'}
+                tabindex={i >= items.length ? -1 : 0}
+              >
+                <div class="w-24 h-24 lg:w-28 lg:h-28 rounded-full overflow-hidden border-2 border-border-light bg-bg-light group-hover:scale-110 group-hover:border-primary group-hover:shadow-xl group-hover:shadow-primary/20 transition-all duration-300">
+                  {col.resolvedImage ? (
+                    <img
+                      src={col.resolvedImage}
+                      alt={col.title}
+                      loading="lazy"
+                      width="112"
+                      height="112"
+                      class="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div class="w-full h-full flex items-center justify-center bg-blue-50">
+                      <span class="text-3xl font-['DM_Serif_Display'] text-primary">{col.title.charAt(0)}</span>
+                    </div>
+                  )}
+                </div>
+                <span class="text-xs sm:text-sm font-medium text-text-light group-hover:text-primary transition-colors leading-tight mt-3 max-w-[7rem] text-center">
+                  {col.title}
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+})()}
+
+<style>
+  .bubbles-marquee {
+    position: relative;
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+  }
+  .bubbles-track {
+    display: flex;
+    gap: 2rem;
+    width: max-content;
+    animation: bubbles-scroll 40s linear infinite;
+  }
+  .bubbles-track:hover {
+    animation-play-state: paused;
+  }
+  .bubbles-item {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  @keyframes bubbles-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bubbles-track { animation: none; }
+    .bubbles-marquee { overflow-x: auto; scroll-snap-type: x mandatory; }
+    .bubbles-item { scroll-snap-align: center; }
+  }
+</style>

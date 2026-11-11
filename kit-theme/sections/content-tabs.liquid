@@ -1,0 +1,488 @@
+{%- comment -%}
+  Content Tabs Section
+  Tabbed content for organizing information
+
+  Usage: Add via Theme Editor
+{%- endcomment -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign heading = section.settings.heading
+  assign tab_style = section.settings.tab_style | default: 'underline'
+  assign tab_alignment = section.settings.tab_alignment | default: 'left'
+-%}
+
+<section class="content-tabs section section--{{ section_id }}" id="content-tabs-{{ section_id }}">
+  <div class="container">
+    {%- if heading != blank -%}
+      <div class="section-header">
+        {%- if section.settings.enable_heading_style -%}
+          {%- render 'heading-styles',
+            text: heading,
+            tag: 'h2',
+            style: section.settings.heading_style,
+            color: section.settings.heading_style_color,
+            align: 'center',
+            size: 'xl',
+            typing_texts: section.settings.typing_texts
+          -%}
+        {%- else -%}
+          <h2 class="section-header__title">{{ heading }}</h2>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <div class="content-tabs__wrapper" data-content-tabs>
+        {%- comment -%} Tab Buttons {%- endcomment -%}
+        <div class="content-tabs__nav content-tabs__nav--{{ tab_style }} content-tabs__nav--{{ tab_alignment }}" role="tablist">
+          {%- for block in section.blocks -%}
+            <button
+              type="button"
+              class="content-tabs__tab{% if forloop.first %} is-active{% endif %}"
+              role="tab"
+              id="tab-{{ block.id }}"
+              aria-controls="panel-{{ block.id }}"
+              aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+              data-tab-button
+              {{ block.shopify_attributes }}
+            >
+              {%- if block.settings.icon != blank -%}
+                <span class="content-tabs__tab-icon">{{ block.settings.icon }}</span>
+              {%- endif -%}
+              {{ block.settings.title | default: 'Tab' }}
+            </button>
+          {%- endfor -%}
+        </div>
+
+        {%- comment -%} Tab Panels {%- endcomment -%}
+        <div class="content-tabs__panels">
+          {%- for block in section.blocks -%}
+            <div
+              class="content-tabs__panel{% if forloop.first %} is-active{% endif %}"
+              role="tabpanel"
+              id="panel-{{ block.id }}"
+              aria-labelledby="tab-{{ block.id }}"
+              data-tab-panel
+              {% unless forloop.first %}hidden{% endunless %}
+            >
+              {%- if block.settings.image != blank -%}
+                <div class="content-tabs__panel-image">
+                  <img
+                    src="{{ block.settings.image | image_url: width: 800 }}"
+                    alt="{{ block.settings.title }}"
+                    width="{{ block.settings.image.width }}"
+                    height="{{ block.settings.image.height }}"
+                    loading="lazy"
+                  >
+                </div>
+              {%- endif -%}
+
+              <div class="content-tabs__panel-content rte">
+                {{ block.settings.content }}
+              </div>
+
+              {%- if block.settings.button_text != blank and block.settings.button_url != blank -%}
+                <a href="{{ block.settings.button_url }}" class="content-tabs__panel-button btn btn--outline">
+                  {{ block.settings.button_text }}
+                </a>
+              {%- endif -%}
+            </div>
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<style>
+  .content-tabs {
+    padding: var(--spacing-2xl) 0;
+  }
+
+  .content-tabs__wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .content-tabs__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .content-tabs__nav--left {
+    justify-content: flex-start;
+  }
+
+  .content-tabs__nav--center {
+    justify-content: center;
+  }
+
+  .content-tabs__nav--stretch {
+    justify-content: stretch;
+  }
+
+  .content-tabs__nav--stretch .content-tabs__tab {
+    flex: 1;
+  }
+
+  .content-tabs__tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: none;
+    border: none;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text-light);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+
+  .content-tabs__tab-icon {
+    font-size: 1.25em;
+  }
+
+  /* Underline Style */
+  .content-tabs__nav--underline {
+    border-bottom: 2px solid var(--color-border);
+    gap: 0;
+  }
+
+  .content-tabs__nav--underline .content-tabs__tab {
+    margin-bottom: -2px;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+  }
+
+  .content-tabs__nav--underline .content-tabs__tab:hover {
+    color: var(--color-text);
+  }
+
+  .content-tabs__nav--underline .content-tabs__tab.is-active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+  }
+
+  /* Filled Style */
+  .content-tabs__nav--filled .content-tabs__tab {
+    background-color: var(--color-background-light);
+    border-radius: var(--radius-md);
+  }
+
+  .content-tabs__nav--filled .content-tabs__tab:hover {
+    background-color: var(--color-border);
+    color: var(--color-text);
+  }
+
+  .content-tabs__nav--filled .content-tabs__tab.is-active {
+    background-color: var(--color-primary);
+    color: white;
+  }
+
+  /* Outline Style */
+  .content-tabs__nav--outline .content-tabs__tab {
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  .content-tabs__nav--outline .content-tabs__tab:hover {
+    border-color: var(--color-text-light);
+    color: var(--color-text);
+  }
+
+  .content-tabs__nav--outline .content-tabs__tab.is-active {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background-color: rgba(var(--color-primary-rgb, 37, 99, 235), 0.05);
+  }
+
+  /* Pills Style */
+  .content-tabs__nav--pills .content-tabs__tab {
+    border-radius: var(--radius-full);
+    background-color: var(--color-background-light);
+  }
+
+  .content-tabs__nav--pills .content-tabs__tab:hover {
+    background-color: var(--color-border);
+    color: var(--color-text);
+  }
+
+  .content-tabs__nav--pills .content-tabs__tab.is-active {
+    background-color: var(--color-primary);
+    color: white;
+  }
+
+  /* Panels */
+  .content-tabs__panel {
+    display: none;
+    animation: tabFadeIn 0.3s ease-out;
+  }
+
+  .content-tabs__panel.is-active {
+    display: block;
+  }
+
+  @keyframes tabFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .content-tabs__panel-image {
+    margin-bottom: var(--spacing-md);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .content-tabs__panel-image img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .content-tabs__panel-content {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--color-text);
+  }
+
+  .content-tabs__panel-content h3 {
+    margin-top: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .content-tabs__panel-content ul,
+  .content-tabs__panel-content ol {
+    margin: var(--spacing-sm) 0;
+    padding-left: 1.5rem;
+  }
+
+  .content-tabs__panel-button {
+    margin-top: var(--spacing-md);
+  }
+
+  @media (max-width: 767px) {
+    .content-tabs__nav {
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: var(--spacing-xs);
+    }
+
+    .content-tabs__nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .content-tabs__tab {
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+  }
+</style>
+
+<script>
+  (function() {
+    'use strict';
+
+    function initContentTabs(container) {
+      const tabs = container.querySelectorAll('[data-tab-button]');
+      const panels = container.querySelectorAll('[data-tab-panel]');
+
+      if (!tabs.length) return;
+
+      tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => {
+            t.classList.remove('is-active');
+            t.setAttribute('aria-selected', 'false');
+          });
+
+          panels.forEach(p => {
+            p.classList.remove('is-active');
+            p.hidden = true;
+          });
+
+          tab.classList.add('is-active');
+          tab.setAttribute('aria-selected', 'true');
+          panels[index].classList.add('is-active');
+          panels[index].hidden = false;
+        });
+
+        tab.addEventListener('keydown', (e) => {
+          let newIndex = index;
+
+          if (e.key === 'ArrowRight') {
+            newIndex = (index + 1) % tabs.length;
+          } else if (e.key === 'ArrowLeft') {
+            newIndex = (index - 1 + tabs.length) % tabs.length;
+          } else if (e.key === 'Home') {
+            newIndex = 0;
+          } else if (e.key === 'End') {
+            newIndex = tabs.length - 1;
+          } else {
+            return;
+          }
+
+          e.preventDefault();
+          tabs[newIndex].click();
+          tabs[newIndex].focus();
+        });
+      });
+    }
+
+    document.querySelectorAll('[data-content-tabs]').forEach(initContentTabs);
+
+    if (Shopify.designMode) {
+      document.addEventListener('shopify:section:load', (e) => {
+        const tabs = e.target.querySelector('[data-content-tabs]');
+        if (tabs) initContentTabs(tabs);
+      });
+
+      document.addEventListener('shopify:block:select', (e) => {
+        const tab = e.target.querySelector('[data-tab-button]');
+        if (tab) tab.click();
+      });
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Onglets de Contenu",
+  "tag": "section",
+  "class": "section-content-tabs",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "select",
+      "id": "tab_style",
+      "label": "Style des onglets",
+      "options": [
+        { "value": "underline", "label": "Souligné" },
+        { "value": "filled", "label": "Rempli" },
+        { "value": "outline", "label": "Contour" },
+        { "value": "pills", "label": "Pilules" }
+      ],
+      "default": "underline"
+    },
+    {
+      "type": "select",
+      "id": "tab_alignment",
+      "label": "Alignement des onglets",
+      "options": [
+        { "value": "left", "label": "Gauche" },
+        { "value": "center", "label": "Centre" },
+        { "value": "stretch", "label": "Étiré" }
+      ],
+      "default": "left"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "tab",
+      "name": "Onglet",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Titre de l'onglet",
+          "default": "Onglet"
+        },
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "Icône (emoji)",
+          "info": "Emoji optionnel"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Contenu",
+          "default": "<p>Ajoutez votre contenu ici. Utilisez le texte enrichi pour formater avec des titres, listes et liens.</p>"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "Texte du bouton"
+        },
+        {
+          "type": "url",
+          "id": "button_url",
+          "label": "Lien du bouton"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Onglets de Contenu",
+      "blocks": [
+        { "type": "tab", "settings": { "title": "Caractéristiques", "content": "<p>Décrivez les caractéristiques du produit ici.</p>" } },
+        { "type": "tab", "settings": { "title": "Spécifications", "content": "<p>Listez les spécifications techniques ici.</p>" } },
+        { "type": "tab", "settings": { "title": "Livraison", "content": "<p>Expliquez les options de livraison et délais.</p>" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

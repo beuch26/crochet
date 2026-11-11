@@ -1,0 +1,392 @@
+---
+// Cart Drawer - Ajax slide-out panel
+---
+
+<!-- Cart drawer overlay -->
+<div id="cart-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] hidden opacity-0 transition-opacity duration-300"></div>
+
+<!-- Cart drawer panel -->
+<aside id="cart-drawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-white z-[70] shadow-2xl translate-x-full transition-transform duration-300 ease-out flex flex-col">
+  <!-- Header -->
+  <div class="flex items-center justify-between px-6 py-4 border-b border-border-light">
+    <div class="text-lg font-semibold font-['DM_Sans'] flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+      </svg>
+      Panier
+      <span id="drawer-cart-count" class="text-sm font-normal text-text-muted">(0)</span>
+    </div>
+    <button id="close-cart" type="button" aria-label="Fermer le panier" class="p-2 text-text-muted hover:text-text rounded-lg hover:bg-bg-light transition-all">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Free shipping progress -->
+  <div id="shipping-progress" class="px-6 py-3 bg-bg-light border-b border-border-light">
+    <div class="flex items-center justify-between text-xs text-text-muted mb-1.5">
+      <span id="shipping-msg">Plus que <strong class="text-text">50,00 €</strong> pour la livraison gratuite</span>
+    </div>
+    <div class="w-full h-1.5 bg-border rounded-full overflow-hidden">
+      <div id="shipping-bar" class="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-500" style="width: 0%"></div>
+    </div>
+  </div>
+
+  <!-- Cart items -->
+  <div id="drawer-cart-items" class="flex-1 overflow-y-auto px-6 py-4">
+    <!-- Empty state -->
+    <div id="drawer-empty" class="flex flex-col items-center justify-center h-full text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-border mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+      </svg>
+      <p class="text-text-light mb-4">Votre panier est vide</p>
+      <a href="/collections/" class="btn btn-primary text-sm" id="continue-shopping">Continuer mes achats</a>
+    </div>
+
+    <!-- Items container (populated by JS) -->
+    <div id="drawer-items-list" class="hidden space-y-4"></div>
+  </div>
+
+  <!-- Upsell suggestions -->
+  <div id="cart-upsell" class="hidden border-t border-border-light px-6 py-4 bg-bg-light/50">
+    <p class="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">Vous aimerez aussi</p>
+    <div id="cart-upsell-items" class="flex gap-3 overflow-x-auto pb-1 scrollbar-hide"></div>
+  </div>
+
+  <!-- Footer with total + checkout -->
+  <div id="drawer-cart-footer" class="hidden border-t border-border-light px-6 py-5 bg-white">
+    <div class="flex items-center justify-between mb-4">
+      <span class="text-text-light">Sous-total</span>
+      <span id="drawer-cart-total" class="text-xl font-bold text-text font-['DM_Sans']">0,00 €</span>
+    </div>
+    <p class="text-xs text-text-muted mb-4">Frais de livraison calculés à l'étape suivante</p>
+    <a href="/checkout/" id="drawer-checkout-btn" class="block w-full py-3.5 bg-primary text-white font-semibold rounded-2xl hover:bg-primary-hover transition-all shadow-lg shadow-primary/20 text-base text-center">
+      Passer commande
+    </a>
+  </div>
+</aside>
+
+<script>
+const MEDUSA_URL = document.querySelector('meta[name="medusa-url"]')?.getAttribute('content') || ''
+const API_KEY = document.querySelector('meta[name="medusa-key"]')?.getAttribute('content') || ''
+const REGION_ID = document.querySelector('meta[name="medusa-region-id"]')?.getAttribute('content') || 'reg_01KNMDW1PJAW5BV63ARBR3V1XH'
+const FREE_SHIPPING_THRESHOLD = parseInt(document.querySelector('meta[name="free-shipping-threshold"]')?.getAttribute('content') || '50')
+
+// Cart state
+let cartId = localStorage.getItem('mck_cart_id') || ''
+
+function formatPrice(amount: number) {
+  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount)
+}
+
+// Open/close drawer
+function openCart() {
+  document.getElementById('cart-drawer')?.classList.remove('translate-x-full')
+  document.getElementById('cart-overlay')?.classList.remove('hidden')
+  setTimeout(() => document.getElementById('cart-overlay')?.classList.remove('opacity-0'), 10)
+  document.body.style.overflow = 'hidden'
+}
+
+function closeCart() {
+  document.getElementById('cart-drawer')?.classList.add('translate-x-full')
+  document.getElementById('cart-overlay')?.classList.add('opacity-0')
+  setTimeout(() => document.getElementById('cart-overlay')?.classList.add('hidden'), 300)
+  document.body.style.overflow = ''
+}
+
+document.getElementById('close-cart')?.addEventListener('click', closeCart)
+document.getElementById('cart-overlay')?.addEventListener('click', closeCart)
+document.getElementById('continue-shopping')?.addEventListener('click', closeCart)
+
+// Cart icon click opens drawer
+document.querySelectorAll('[data-open-cart]').forEach(el => {
+  el.addEventListener('click', (e) => {
+    e.preventDefault()
+    openCart()
+    refreshCart()
+  })
+})
+
+// Add to cart with animation
+function showAddToCartSuccess(btn: Element) {
+  const originalText = btn.textContent
+  const originalBg = btn.classList.contains('bg-primary')
+
+  // Button success state
+  btn.classList.remove('bg-primary', 'hover:bg-primary-hover')
+  btn.classList.add('bg-success')
+  btn.innerHTML = '<svg class="w-5 h-5 inline-block mr-1 -mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Ajouté !'
+
+  // Bounce cart badge
+  const cartBadge = document.getElementById('cart-count')
+  if (cartBadge) {
+    cartBadge.classList.add('animate-bounce')
+    setTimeout(() => cartBadge.classList.remove('animate-bounce'), 1000)
+  }
+
+  // Toast notification
+  const toast = document.createElement('div')
+  toast.className = 'fixed top-20 right-4 z-[100] bg-white border border-border-light rounded-2xl shadow-xl p-4 flex items-center gap-3 animate-slide-in-toast max-w-sm'
+  toast.innerHTML = `
+    <div class="w-8 h-8 rounded-full bg-success/10 flex items-center justify-center shrink-0">
+      <svg class="w-4 h-4 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+    </div>
+    <div class="min-w-0">
+      <p class="text-sm font-semibold text-text">Article ajouté au panier</p>
+      <button type="button" class="text-xs text-primary hover:underline mt-0.5 toast-view-cart">Voir le panier</button>
+    </div>
+  `
+  document.body.appendChild(toast)
+  toast.querySelector('.toast-view-cart')?.addEventListener('click', () => { openCart(); toast.remove() })
+
+  // Auto remove toast
+  setTimeout(() => {
+    toast.classList.add('animate-slide-out-toast')
+    setTimeout(() => toast.remove(), 300)
+  }, 3000)
+
+  // Reset button after delay
+  setTimeout(() => {
+    btn.classList.remove('bg-success')
+    btn.classList.add('bg-primary', 'hover:bg-primary-hover')
+    const price = btn.getAttribute('data-price')
+    if (btn.closest('#sticky-atc')) {
+      btn.textContent = 'Ajouter'
+    } else {
+      btn.textContent = price ? `Ajouter au panier — ${price}` : 'Ajouter au panier'
+    }
+  }, 2000)
+}
+
+document.querySelectorAll('.add-to-cart').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const variantId = btn.getAttribute('data-variant-id')
+    if (!variantId || btn.hasAttribute('disabled')) return
+
+    btn.textContent = 'Ajout en cours...'
+    btn.setAttribute('disabled', 'true')
+
+    try {
+      if (!cartId) {
+        const res = await fetch(`${MEDUSA_URL}/store/carts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-publishable-api-key': API_KEY },
+          body: JSON.stringify({ region_id: REGION_ID }),
+        })
+        const data = await res.json()
+        cartId = data.cart.id
+        localStorage.setItem('mck_cart_id', cartId)
+      }
+
+      const qtyInput = document.getElementById('product-qty') as HTMLInputElement | null
+      const quantity = qtyInput ? Math.max(1, parseInt(qtyInput.value) || 1) : 1
+
+      await fetch(`${MEDUSA_URL}/store/carts/${cartId}/line-items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-publishable-api-key': API_KEY },
+        body: JSON.stringify({ variant_id: variantId, quantity }),
+      })
+
+      await refreshCart()
+      showAddToCartSuccess(btn)
+    } catch (e) {
+      console.error('Add to cart error:', e)
+      btn.textContent = 'Erreur — Réessayer'
+      setTimeout(() => {
+        const price = btn.getAttribute('data-price')
+        btn.textContent = price ? `Ajouter au panier — ${price}` : 'Ajouter au panier'
+      }, 2000)
+    }
+
+    btn.removeAttribute('disabled')
+  })
+})
+
+async function refreshCart() {
+  if (!cartId) return
+
+  try {
+    const res = await fetch(`${MEDUSA_URL}/store/carts/${cartId}?fields=+items,+items.variant,+items.product`, {
+      headers: { 'x-publishable-api-key': API_KEY },
+    })
+    const { cart } = await res.json()
+    renderCart(cart)
+  } catch (e) {
+    console.error('Refresh cart error:', e)
+  }
+}
+
+function renderCart(cart: any) {
+  const items = cart.items || []
+  const count = items.reduce((sum: number, i: any) => sum + i.quantity, 0)
+  const total = cart.total || 0
+
+  // Update count badges
+  document.querySelectorAll('#cart-count, #drawer-cart-count').forEach(el => {
+    if (el.id === 'drawer-cart-count') {
+      el.textContent = `(${count})`
+    } else {
+      el.textContent = String(count)
+      el.classList.toggle('hidden', count === 0)
+    }
+  })
+
+  // Shipping progress
+  const progress = Math.min(100, (total / FREE_SHIPPING_THRESHOLD) * 100)
+  const bar = document.getElementById('shipping-bar')
+  const msg = document.getElementById('shipping-msg')
+  if (bar) bar.style.width = progress + '%'
+  if (msg) {
+    if (total >= FREE_SHIPPING_THRESHOLD) {
+      msg.innerHTML = '✓ <strong class="text-success">Livraison gratuite !</strong>'
+    } else {
+      const remaining = FREE_SHIPPING_THRESHOLD - total
+      msg.innerHTML = `Plus que <strong class="text-text">${formatPrice(remaining)}</strong> pour la livraison gratuite`
+    }
+  }
+
+  // Toggle empty/full
+  const emptyEl = document.getElementById('drawer-empty')
+  const listEl = document.getElementById('drawer-items-list')
+  const footerEl = document.getElementById('drawer-cart-footer')
+
+  if (items.length === 0) {
+    emptyEl?.classList.remove('hidden')
+    listEl?.classList.add('hidden')
+    footerEl?.classList.add('hidden')
+    return
+  }
+
+  emptyEl?.classList.add('hidden')
+  listEl?.classList.remove('hidden')
+  footerEl?.classList.remove('hidden')
+
+  // Render items
+  if (listEl) {
+    listEl.innerHTML = items.map((item: any) => `
+      <div class="flex gap-4 p-3 rounded-xl bg-bg-light" data-line-id="${item.id}">
+        <div class="w-20 h-20 rounded-lg bg-white border border-border-light overflow-hidden shrink-0">
+          ${item.thumbnail ? `<img src="${item.thumbnail}" alt="${item.title}" class="w-full h-full object-contain p-1" />` : '<div class="w-full h-full flex items-center justify-center text-text-muted text-xs">Photo</div>'}
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-sm font-medium text-text truncate">${item.title}</h3>
+          <p class="text-sm font-bold text-text mt-1 font-['DM_Sans']">${formatPrice(item.unit_price)}</p>
+          <div class="flex items-center justify-between mt-2">
+            <div class="flex items-center border border-border rounded-lg overflow-hidden">
+              <button type="button" class="qty-btn px-2.5 py-1 text-text-muted hover:bg-bg-light text-sm" data-action="decrease" data-line-id="${item.id}">−</button>
+              <span class="px-3 py-1 text-sm font-medium">${item.quantity}</span>
+              <button type="button" class="qty-btn px-2.5 py-1 text-text-muted hover:bg-bg-light text-sm" data-action="increase" data-line-id="${item.id}">+</button>
+            </div>
+            <button type="button" class="remove-item p-1.5 text-text-muted hover:text-error transition-colors" data-line-id="${item.id}" aria-label="Supprimer">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('')
+  }
+
+  // Total
+  const totalEl = document.getElementById('drawer-cart-total')
+  if (totalEl) totalEl.textContent = formatPrice(total)
+
+  // Load upsells
+  loadUpsells(items)
+
+  // Bind quantity/remove buttons
+  listEl?.querySelectorAll('.qty-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const lineId = btn.getAttribute('data-line-id')!
+      const action = btn.getAttribute('data-action')
+      const item = items.find((i: any) => i.id === lineId)
+      if (!item) return
+
+      const newQty = action === 'increase' ? item.quantity + 1 : item.quantity - 1
+      if (newQty <= 0) {
+        await fetch(`${MEDUSA_URL}/store/carts/${cartId}/line-items/${lineId}`, {
+          method: 'DELETE', headers: { 'x-publishable-api-key': API_KEY },
+        })
+      } else {
+        await fetch(`${MEDUSA_URL}/store/carts/${cartId}/line-items/${lineId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-publishable-api-key': API_KEY },
+          body: JSON.stringify({ quantity: newQty }),
+        })
+      }
+      await refreshCart()
+    })
+  })
+
+  listEl?.querySelectorAll('.remove-item').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const lineId = btn.getAttribute('data-line-id')!
+      await fetch(`${MEDUSA_URL}/store/carts/${cartId}/line-items/${lineId}`, {
+        method: 'DELETE', headers: { 'x-publishable-api-key': API_KEY },
+      })
+      await refreshCart()
+    })
+  })
+}
+
+// Upsell: load random products not in cart
+async function loadUpsells(cartItems: any[]) {
+  const upsellContainer = document.getElementById('cart-upsell')
+  const upsellItems = document.getElementById('cart-upsell-items')
+  if (!upsellContainer || !upsellItems) return
+
+  try {
+    const cartProductIds = cartItems.map((i: any) => i.product_id).filter(Boolean)
+    const res = await fetch(`${MEDUSA_URL}/store/products?limit=20&region_id=${REGION_ID}&fields=+variants.calculated_price`, {
+      headers: { 'x-publishable-api-key': API_KEY },
+    })
+    const { products } = await res.json()
+
+    // Filter out products already in cart, pick 4 random
+    const available = products.filter((p: any) => !cartProductIds.includes(p.id))
+    const shuffled = available.sort(() => 0.5 - Math.random()).slice(0, 4)
+
+    if (shuffled.length === 0) {
+      upsellContainer.classList.add('hidden')
+      return
+    }
+
+    upsellContainer.classList.remove('hidden')
+    upsellItems.innerHTML = shuffled.map((p: any) => {
+      const price = p.variants?.[0]?.calculated_price?.calculated_amount || 0
+      const variantId = p.variants?.[0]?.id
+      return `
+        <div class="shrink-0 w-32 bg-white rounded-xl border border-border-light overflow-hidden">
+          <a href="/products/${p.handle}/" class="block">
+            <div class="aspect-square bg-bg-light overflow-hidden">
+              ${p.thumbnail ? `<img src="${p.thumbnail}" alt="${p.title}" loading="lazy" class="w-full h-full object-contain p-2" />` : ''}
+            </div>
+          </a>
+          <div class="p-2">
+            <p class="text-xs text-text line-clamp-2 leading-tight mb-1">${p.title}</p>
+            <p class="text-xs font-bold text-text">${formatPrice(price)}</p>
+            ${variantId ? `<button type="button" class="upsell-add mt-1.5 w-full py-1 bg-primary text-white text-[10px] font-semibold rounded-lg hover:bg-primary-hover transition-colors" data-variant-id="${variantId}">+ Ajouter</button>` : ''}
+          </div>
+        </div>
+      `
+    }).join('')
+
+    // Bind upsell add buttons
+    upsellItems.querySelectorAll('.upsell-add').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const vid = btn.getAttribute('data-variant-id')!
+        btn.textContent = '...'
+        await fetch(`${MEDUSA_URL}/store/carts/${cartId}/line-items`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-publishable-api-key': API_KEY },
+          body: JSON.stringify({ variant_id: vid, quantity: 1 }),
+        })
+        await refreshCart()
+      })
+    })
+  } catch {}
+}
+
+// Initial load
+refreshCart()
+</script>

@@ -1,0 +1,417 @@
+{%- comment -%}
+  Product Card - Reusable product grid item
+  Usage: {% render 'product-card', product: product %}
+{%- endcomment -%}
+
+{%- comment -%} Collect all option values for filtering {%- endcomment -%}
+{%- assign product_colors = '' -%}
+{%- assign product_sizes = '' -%}
+{%- for variant in product.variants -%}
+  {%- if variant.option1 and variant.option1 != '' -%}
+    {%- unless product_colors contains variant.option1 -%}
+      {%- assign product_colors = product_colors | append: variant.option1 | append: ',' -%}
+    {%- endunless -%}
+  {%- endif -%}
+  {%- if variant.option2 and variant.option2 != '' -%}
+    {%- unless product_sizes contains variant.option2 -%}
+      {%- assign product_sizes = product_sizes | append: variant.option2 | append: ',' -%}
+    {%- endunless -%}
+  {%- endif -%}
+  {%- if variant.option3 and variant.option3 != '' -%}
+    {%- unless product_sizes contains variant.option3 -%}
+      {%- assign product_sizes = product_sizes | append: variant.option3 | append: ',' -%}
+    {%- endunless -%}
+  {%- endif -%}
+{%- endfor -%}
+
+<div class="product-card" data-product-colors="{{ product_colors | downcase }}" data-product-sizes="{{ product_sizes | downcase }}">
+  <a href="{{ product.url }}" class="product-card__link">
+
+    {%- comment -%} Product Image/Video {%- endcomment -%}
+    {%- assign has_video = false -%}
+    {%- assign video_media = nil -%}
+    {%- for media in product.media limit: 5 -%}
+      {%- if media.media_type == 'video' or media.media_type == 'external_video' -%}
+        {%- assign has_video = true -%}
+        {%- assign video_media = media -%}
+        {%- break -%}
+      {%- endif -%}
+    {%- endfor -%}
+
+    <div class="product-card__image-wrapper {% if has_video %}has-video{% endif %}" data-product-media>
+      {%- if product.featured_image -%}
+        <img
+          src="{{ product.featured_image | image_url: width: 400 }}"
+          alt="{{ product.featured_image.alt | default: product.title }}"
+          width="400"
+          height="auto"
+          loading="lazy"
+          class="product-card__image"
+          data-main-image
+        >
+
+        {%- comment -%} Video (shown on hover) {%- endcomment -%}
+        {%- if has_video -%}
+          <div class="product-card__video" data-video-container>
+            {%- if video_media.media_type == 'video' -%}
+              {{ video_media | video_tag: controls: false, autoplay: true, loop: true, muted: true, class: 'product-card__video-element' }}
+            {%- elsif video_media.media_type == 'external_video' -%}
+              {%- if video_media.host == 'youtube' -%}
+                <iframe
+                  src="https://www.youtube-nocookie.com/embed/{{ video_media.external_id }}?autoplay=1&mute=1&loop=1&controls=0&playlist={{ video_media.external_id }}"
+                  frameborder="0"
+                  allow="autoplay; encrypted-media"
+                  class="product-card__video-element"
+                ></iframe>
+              {%- elsif video_media.host == 'vimeo' -%}
+                <iframe
+                  src="https://player.vimeo.com/video/{{ video_media.external_id }}?autoplay=1&muted=1&loop=1&background=1"
+                  frameborder="0"
+                  allow="autoplay"
+                  class="product-card__video-element"
+                ></iframe>
+              {%- endif -%}
+            {%- endif -%}
+          </div>
+
+          {%- comment -%} Video Play Icon {%- endcomment -%}
+          <div class="product-card__video-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="white">
+              <circle cx="16" cy="16" r="16" fill="rgba(0,0,0,0.6)"/>
+              <path d="M12 10l10 6-10 6z" fill="white"/>
+            </svg>
+          </div>
+        {%- endif -%}
+      {%- else -%}
+        <div class="product-card__image-placeholder">{{ 'image' | placeholder_svg_tag }}</div>
+      {%- endif -%}
+
+      {%- comment -%} Product Badges {%- endcomment -%}
+      <div class="product-card__badges">
+        {%- if product.available == false -%}
+          <span class="badge badge--error">{{ 'products.product.sold_out' | t }}</span>
+        {%- elsif product.compare_at_price > product.price -%}
+          {%- assign discount = product.compare_at_price | minus: product.price | times: 100 | divided_by: product.compare_at_price -%}
+          <span class="badge badge--primary">-{{ discount }}%</span>
+        {%- endif -%}
+        {%- if product.tags contains 'new' -%}
+          <span class="badge badge--success">{{ 'products.product.new' | t | default: 'New' }}</span>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} Wishlist Button - Moved here for top-right positioning {%- endcomment -%}
+      <button
+        type="button"
+        class="product-card__wishlist wishlist-button"
+        data-wishlist-toggle="{{ product.id }}"
+        data-product-title="{{ product.title | escape }}"
+        data-product-url="{{ product.url }}"
+        data-product-image="{{ product.featured_image | image_url: width: 300 }}"
+        data-product-price="{{ product.price | money }}"
+        aria-label="{{ 'products.product.add_to_wishlist' | t }}"
+      >
+        <svg class="wishlist-button__icon wishlist-button__icon--empty" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M17.3651 3.84172C16.9395 3.41589 16.4342 3.0781 15.8779 2.84763C15.3217 2.61716 14.7255 2.49854 14.1235 2.49854C13.5214 2.49854 12.9252 2.61716 12.369 2.84763C11.8128 3.0781 11.3074 3.41589 10.8818 3.84172L9.99847 4.72506L9.11514 3.84172C8.25539 2.98198 7.08933 2.49898 5.87347 2.49898C4.65761 2.49898 3.49155 2.98198 2.6318 3.84172C1.77206 4.70147 1.28906 5.86753 1.28906 7.08339C1.28906 8.29925 1.77206 9.46531 2.6318 10.3251L3.51514 11.2084L9.99847 17.6917L16.4818 11.2084L17.3651 10.3251C17.791 9.89943 18.1288 9.39407 18.3592 8.83785C18.5897 8.28164 18.7083 7.68546 18.7083 7.08339C18.7083 6.48132 18.5897 5.88514 18.3592 5.32893C18.1288 4.77271 17.791 4.26735 17.3651 3.84172Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg class="wishlist-button__icon wishlist-button__icon--filled" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" style="display:none;">
+          <path d="M17.3651 3.84172C16.9395 3.41589 16.4342 3.0781 15.8779 2.84763C15.3217 2.61716 14.7255 2.49854 14.1235 2.49854C13.5214 2.49854 12.9252 2.61716 12.369 2.84763C11.8128 3.0781 11.3074 3.41589 10.8818 3.84172L9.99847 4.72506L9.11514 3.84172C8.25539 2.98198 7.08933 2.49898 5.87347 2.49898C4.65761 2.49898 3.49155 2.98198 2.6318 3.84172C1.77206 4.70147 1.28906 5.86753 1.28906 7.08339C1.28906 8.29925 1.77206 9.46531 2.6318 10.3251L3.51514 11.2084L9.99847 17.6917L16.4818 11.2084L17.3651 10.3251C17.791 9.89943 18.1288 9.39407 18.3592 8.83785C18.5897 8.28164 18.7083 7.68546 18.7083 7.08339C18.7083 6.48132 18.5897 5.88514 18.3592 5.32893C18.1288 4.77271 17.791 4.26735 17.3651 3.84172Z"/>
+        </svg>
+      </button>
+    </div>
+
+    {%- comment -%} Product Info {%- endcomment -%}
+    <div class="product-card__info">
+      {%- if show_vendor and product.vendor != blank -%}
+        <p class="product-card__vendor">{{ product.vendor }}</p>
+      {%- endif -%}
+
+      <div class="product-card__title">{{ product.title }}</div>
+
+      {%- comment -%} Product Reviews/Rating {%- endcomment -%}
+      {%- if product.metafields.reviews.rating.value -%}
+        <div class="product-card__rating">
+          {%- assign rating = product.metafields.reviews.rating.value | round: 1 -%}
+          {%- assign rating_count = product.metafields.reviews.rating_count | default: 0 -%}
+
+          <div class="star-rating" aria-label="{{ rating }} out of 5 stars">
+            {%- assign full_stars = rating | floor -%}
+            {%- assign has_half = rating | modulo: 1 -%}
+            {%- assign next_star = full_stars | plus: 1 -%}
+
+            {%- for i in (1..5) -%}
+              {%- if i <= full_stars -%}
+                <span class="star star--full" aria-hidden="true">★</span>
+              {%- elsif i == next_star and has_half >= 0.3 -%}
+                <span class="star star--half" aria-hidden="true">★</span>
+              {%- else -%}
+                <span class="star star--empty" aria-hidden="true">☆</span>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+
+          <span class="rating-count">({{ rating_count }})</span>
+        </div>
+      {%- endif -%}
+
+      <div class="product-card__price">
+        {%- if product.compare_at_price > product.price -%}
+          <span class="product-card__price--compare">{{ product.compare_at_price | money }}</span>
+        {%- endif -%}
+        <span class="product-card__price--current {% if product.compare_at_price > product.price %}on-sale{% endif %}">
+          {%- if product.price == 0 -%}
+            <span class="price-free-badge">{{ 'products.product.free' | t | default: 'Gratuit' }}</span>
+          {%- else -%}
+            {{ product.price | money }}
+          {%- endif -%}
+        </span>
+      </div>
+    </div>
+
+  </a>
+</div>
+
+<style>
+.product-card {
+  position: relative;
+  transition: transform var(--transition-speed);
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+}
+
+.product-card__link {
+  display: block;
+  text-decoration: none !important;
+  color: inherit;
+}
+
+.product-card__link:hover,
+.product-card__link:focus,
+.product-card__link:active {
+  text-decoration: none !important;
+}
+
+.product-card__image-wrapper {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: var(--spacing-sm);
+  background-color: var(--color-background-light);
+  aspect-ratio: 1/1;
+}
+
+.product-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-speed);
+}
+
+.product-card:hover .product-card__image {
+  transform: scale(1.05);
+}
+
+/* Video on Hover */
+.product-card__video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.product-card__image-wrapper.has-video:hover .product-card__video {
+  opacity: 1;
+}
+
+.product-card__image-wrapper.has-video:hover .product-card__image {
+  opacity: 0.3;
+}
+
+.product-card__video-element {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-card__video-icon {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  z-index: 2;
+  opacity: 0.9;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+.product-card__image-wrapper.has-video:hover .product-card__video-icon {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.product-card__badges {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  z-index: 1;
+}
+
+.product-card__info {
+  padding: 0 0.5rem;
+}
+
+.product-card__title {
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
+  text-decoration: none !important;
+  transition: color 0.2s ease;
+}
+
+.product-card:hover .product-card__title {
+  color: var(--color-primary);
+}
+
+.product-card__vendor {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  margin-bottom: 0.375rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.product-card__rating {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-bottom: 0.5rem;
+}
+
+.star-rating {
+  display: flex;
+  gap: 2px;
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.star {
+  color: #ddd;
+  transition: color 0.2s ease;
+}
+
+.star--full {
+  color: #fbbf24;
+}
+
+.star--half {
+  background: linear-gradient(90deg, #fbbf24 50%, #ddd 50%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.star--empty {
+  color: #ddd;
+}
+
+.rating-count {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  font-weight: 500;
+}
+
+.product-card__price {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.product-card__price--current {
+  color: var(--color-price, var(--color-primary));
+}
+
+.product-card__price--current.on-sale {
+  color: var(--color-price-sale, var(--color-price, var(--color-primary)));
+}
+
+.product-card__price--compare {
+  text-decoration: line-through;
+  color: var(--color-price-compare, var(--color-text-light));
+  font-size: 0.875rem;
+}
+
+.product-card__wishlist {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 36px;
+  height: 36px;
+  background-color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all var(--transition-speed);
+  z-index: 2;
+}
+
+.product-card__wishlist:hover,
+.product-card__wishlist.active {
+  background-color: var(--color-error);
+  color: white;
+}
+
+.product-card__wishlist.active svg {
+  fill: currentColor;
+}
+
+/* Mobile Improvements */
+@media (max-width: 768px) {
+  /* Keep square aspect ratio on mobile */
+  .product-card__image-wrapper {
+    aspect-ratio: 1/1;
+    margin-bottom: var(--spacing-md);
+  }
+
+  /* Adjust title size for mobile */
+  .product-card__title {
+    font-size: 0.9375rem;
+    line-height: 1.3;
+  }
+
+  /* Slightly smaller vendor text on mobile */
+  .product-card__vendor {
+    font-size: 0.6875rem;
+  }
+
+  /* Better spacing for product info on mobile */
+  .product-card__info {
+    padding: 0 0.375rem;
+  }
+
+  /* Make wishlist button more visible on mobile */
+  .product-card__wishlist {
+    width: 40px;
+    height: 40px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+
+  .product-card__wishlist svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+</style>

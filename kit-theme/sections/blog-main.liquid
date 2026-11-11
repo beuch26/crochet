@@ -1,0 +1,680 @@
+{%- comment -%}
+  Blog Main Section - List of Articles
+  Optimized for SEO with pagination and configurable sidebar
+{%- endcomment -%}
+
+{%- liquid
+  assign articles_per_page = section.settings.articles_per_page | default: 12
+  assign columns = section.settings.columns | default: 2
+  assign show_sidebar = section.settings.show_sidebar | default: true
+-%}
+
+{%- paginate blog.articles by articles_per_page -%}
+
+<div class="blog-page section">
+  <div class="container">
+
+    <header class="blog-header text-center mb-xl">
+      <h1>{{ blog.title }}</h1>
+      {%- if blog.description != blank -%}
+        <p class="blog-description">{{ blog.description }}</p>
+      {%- endif -%}
+    </header>
+
+    <div class="blog-layout{% unless show_sidebar %} blog-layout--no-sidebar{% endunless %}">
+
+      {%- comment -%} Main Content {%- endcomment -%}
+      <div class="blog-main">
+
+        {%- if blog.articles.size > 0 -%}
+          <div class="blog-grid blog-grid--{{ columns }}-cols">
+            {%- for article in blog.articles -%}
+              <article class="blog-card">
+
+                {%- if article.image -%}
+                  <a href="{{ article.url }}" class="blog-card__image-wrapper">
+                    <img
+                      src="{{ article.image | image_url: width: 600 }}"
+                      alt="{{ article.image.alt | default: article.title }}"
+                      width="600"
+                      height="400"
+                      loading="lazy"
+                      class="blog-card__image"
+                    >
+                  </a>
+                {%- endif -%}
+
+                <div class="blog-card__content">
+
+                  {%- comment -%} Article Meta {%- endcomment -%}
+                  {%- assign month_num = article.published_at | date: '%m' | plus: 0 -%}
+                  {%- case month_num -%}
+                    {%- when 1 -%}{%- assign month_fr = 'janvier' -%}
+                    {%- when 2 -%}{%- assign month_fr = 'février' -%}
+                    {%- when 3 -%}{%- assign month_fr = 'mars' -%}
+                    {%- when 4 -%}{%- assign month_fr = 'avril' -%}
+                    {%- when 5 -%}{%- assign month_fr = 'mai' -%}
+                    {%- when 6 -%}{%- assign month_fr = 'juin' -%}
+                    {%- when 7 -%}{%- assign month_fr = 'juillet' -%}
+                    {%- when 8 -%}{%- assign month_fr = 'août' -%}
+                    {%- when 9 -%}{%- assign month_fr = 'septembre' -%}
+                    {%- when 10 -%}{%- assign month_fr = 'octobre' -%}
+                    {%- when 11 -%}{%- assign month_fr = 'novembre' -%}
+                    {%- when 12 -%}{%- assign month_fr = 'décembre' -%}
+                  {%- endcase -%}
+                  <div class="blog-card__meta">
+                    <time datetime="{{ article.published_at | date: '%Y-%m-%d' }}">
+                      {{ article.published_at | date: '%d' }} {{ month_fr }} {{ article.published_at | date: '%Y' }}
+                    </time>
+
+                    {%- if article.comments_count > 0 -%}
+                      <span class="blog-card__separator">•</span>
+                      <span class="blog-card__comments">
+                        {{ article.comments_count }} commentaire{% if article.comments_count > 1 %}s{% endif %}
+                      </span>
+                    {%- endif -%}
+
+                    {%- comment -%} Reading Time {%- endcomment -%}
+                    {%- assign word_count = article.content | strip_html | split: ' ' | size -%}
+                    {%- assign reading_time = word_count | divided_by: 200 | at_least: 1 -%}
+                    <span class="blog-card__separator">•</span>
+                    <span class="blog-card__reading-time">{{ reading_time }} min de lecture</span>
+                  </div>
+
+                  {%- comment -%} Article Title {%- endcomment -%}
+                  <h2 class="blog-card__title">
+                    <a href="{{ article.url }}">{{ article.title }}</a>
+                  </h2>
+
+                  {%- comment -%} Article Excerpt {%- endcomment -%}
+                  {%- if article.excerpt != blank -%}
+                    <div class="blog-card__excerpt">
+                      {{ article.excerpt | strip_html | truncate: 150 }}
+                    </div>
+                  {%- else -%}
+                    <div class="blog-card__excerpt">
+                      {{ article.content | strip_html | truncate: 150 }}
+                    </div>
+                  {%- endif -%}
+
+                  {%- comment -%} Article Tags {%- endcomment -%}
+                  {%- if article.tags.size > 0 and section.settings.show_tags -%}
+                    <div class="blog-card__tags">
+                      {%- for tag in article.tags limit: 3 -%}
+                        <a href="{{ blog.url }}/tagged/{{ tag | handle }}" class="tag">{{ tag }}</a>
+                      {%- endfor -%}
+                    </div>
+                  {%- endif -%}
+
+                  {%- comment -%} Read More Link {%- endcomment -%}
+                  <a href="{{ article.url }}" class="blog-card__link">
+                    Lire la suite →
+                  </a>
+                </div>
+
+              </article>
+            {%- endfor -%}
+          </div>
+
+          {%- comment -%} Pagination {%- endcomment -%}
+          {%- if paginate.pages > 1 -%}
+            {%- render 'pagination', paginate: paginate -%}
+          {%- endif -%}
+
+        {%- else -%}
+          <div class="blog-empty text-center">
+            <p>Aucun article pour le moment.</p>
+          </div>
+        {%- endif -%}
+
+      </div>
+
+      {%- comment -%} Sidebar {%- endcomment -%}
+      {%- if show_sidebar -%}
+      <aside class="blog-sidebar">
+
+        {%- comment -%} Search Widget {%- endcomment -%}
+        {%- if section.settings.show_search -%}
+        <div class="blog-widget">
+          <h3 class="blog-widget__title">Rechercher</h3>
+          <form action="{{ routes.search_url }}" method="get" role="search">
+            <input type="hidden" name="type" value="article">
+            <div class="blog-search">
+              <input
+                type="search"
+                name="q"
+                placeholder="Rechercher..."
+                aria-label="Rechercher dans le blog"
+              >
+              <button type="submit" class="btn btn--primary btn--small">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="2"/>
+                  <path d="M11 11l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
+        {%- endif -%}
+
+        {%- comment -%} Categories (Tags) {%- endcomment -%}
+        {%- if section.settings.show_categories and blog.all_tags.size > 0 -%}
+          <div class="blog-widget">
+            <h3 class="blog-widget__title">Catégories</h3>
+            <ul class="blog-categories">
+              {%- for tag in blog.all_tags -%}
+                {%- if current_tags contains tag -%}
+                  <li class="active">
+                    <a href="{{ blog.url }}">{{ tag }}</a>
+                  </li>
+                {%- else -%}
+                  <li>
+                    <a href="{{ blog.url }}/tagged/{{ tag | handle }}">{{ tag }}</a>
+                  </li>
+                {%- endif -%}
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} Recent Posts {%- endcomment -%}
+        {%- if section.settings.show_recent_posts -%}
+          {%- assign recent_count = section.settings.recent_posts_count | default: 5 -%}
+          {%- assign recent_articles = blog.articles | limit: recent_count -%}
+          {%- if recent_articles.size > 0 -%}
+            <div class="blog-widget">
+              <h3 class="blog-widget__title">Articles récents</h3>
+              <ul class="blog-recent-posts">
+                {%- for article in recent_articles -%}
+                  {%- assign sidebar_month_num = article.published_at | date: '%m' | plus: 0 -%}
+                  {%- case sidebar_month_num -%}
+                    {%- when 1 -%}{%- assign sidebar_month_fr = 'jan.' -%}
+                    {%- when 2 -%}{%- assign sidebar_month_fr = 'fév.' -%}
+                    {%- when 3 -%}{%- assign sidebar_month_fr = 'mars' -%}
+                    {%- when 4 -%}{%- assign sidebar_month_fr = 'avr.' -%}
+                    {%- when 5 -%}{%- assign sidebar_month_fr = 'mai' -%}
+                    {%- when 6 -%}{%- assign sidebar_month_fr = 'juin' -%}
+                    {%- when 7 -%}{%- assign sidebar_month_fr = 'juil.' -%}
+                    {%- when 8 -%}{%- assign sidebar_month_fr = 'août' -%}
+                    {%- when 9 -%}{%- assign sidebar_month_fr = 'sept.' -%}
+                    {%- when 10 -%}{%- assign sidebar_month_fr = 'oct.' -%}
+                    {%- when 11 -%}{%- assign sidebar_month_fr = 'nov.' -%}
+                    {%- when 12 -%}{%- assign sidebar_month_fr = 'déc.' -%}
+                  {%- endcase -%}
+                  <li>
+                    <a href="{{ article.url }}" class="blog-recent-post">
+                      {%- if article.image -%}
+                        <img
+                          src="{{ article.image | image_url: width: 100 }}"
+                          alt="{{ article.title }}"
+                          width="100"
+                          height="56"
+                          loading="lazy"
+                        >
+                      {%- endif -%}
+                      <div class="blog-recent-post__content">
+                        <h4>{{ article.title | truncate: 50 }}</h4>
+                        <time datetime="{{ article.published_at | date: '%Y-%m-%d' }}">
+                          {{ article.published_at | date: '%d' }} {{ sidebar_month_fr }} {{ article.published_at | date: '%Y' }}
+                        </time>
+                      </div>
+                    </a>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </div>
+          {%- endif -%}
+        {%- endif -%}
+
+        {%- comment -%} Newsletter {%- endcomment -%}
+        {%- if section.settings.show_newsletter -%}
+        <div class="blog-widget blog-widget--newsletter">
+          <h3 class="blog-widget__title">Newsletter</h3>
+          <p>Restez informé de nos derniers articles</p>
+          {%- form 'customer', class: 'blog-newsletter-form' -%}
+            <input type="hidden" name="contact[tags]" value="newsletter">
+            <input
+              type="email"
+              name="contact[email]"
+              placeholder="Votre email"
+              required
+            >
+            <button type="submit" class="btn btn--primary btn--full btn--small">
+              S'abonner
+            </button>
+          {%- endform -%}
+        </div>
+        {%- endif -%}
+
+      </aside>
+      {%- endif -%}
+
+    </div>
+
+  </div>
+</div>
+
+{%- endpaginate -%}
+
+<style>
+/* Blog Layout */
+.blog-page {
+  padding: var(--spacing-xl) 0;
+}
+
+.blog-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-2xl);
+  margin-top: var(--spacing-xl);
+}
+
+@media (min-width: 1024px) {
+  .blog-layout {
+    grid-template-columns: 2fr 1fr;
+  }
+
+  .blog-layout--no-sidebar {
+    grid-template-columns: 1fr;
+  }
+}
+
+.blog-header {
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.blog-header h1 {
+  margin: 0 0 var(--spacing-sm);
+}
+
+.blog-description {
+  color: var(--color-text-light);
+  font-size: 1.125rem;
+  margin: 0;
+}
+
+/* Blog Grid */
+.blog-grid {
+  display: grid;
+  gap: var(--spacing-xl);
+}
+
+.blog-grid--1-cols {
+  grid-template-columns: 1fr;
+}
+
+.blog-grid--2-cols {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .blog-grid--2-cols {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.blog-grid--3-cols {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .blog-grid--3-cols {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .blog-grid--3-cols {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Blog Card */
+.blog-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  transition: all var(--transition-speed);
+}
+
+.blog-card:hover {
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  transform: translateY(-4px);
+}
+
+.blog-card__image-wrapper {
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 16/9;
+  background-color: var(--color-background-light);
+}
+
+.blog-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-speed);
+}
+
+.blog-card:hover .blog-card__image {
+  transform: scale(1.05);
+}
+
+.blog-card__content {
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  flex: 1;
+}
+
+.blog-card__meta {
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.blog-card__separator {
+  color: var(--color-border);
+}
+
+.blog-card__title {
+  font-size: 1.5rem;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.blog-card__title a {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.blog-card__title a:hover {
+  color: var(--color-primary);
+}
+
+.blog-card__excerpt {
+  color: var(--color-text-light);
+  line-height: 1.6;
+}
+
+.blog-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-background-light);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  color: var(--color-text);
+  text-decoration: none;
+  transition: all var(--transition-speed);
+}
+
+.tag:hover {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.blog-card__link {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+  margin-top: auto;
+}
+
+.blog-card__link:hover {
+  text-decoration: underline;
+}
+
+/* Sidebar Styles */
+.blog-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.blog-widget {
+  padding: var(--spacing-md);
+  background-color: var(--color-background-light);
+  border-radius: var(--radius-md);
+}
+
+.blog-widget--newsletter {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.blog-widget--newsletter .blog-widget__title,
+.blog-widget--newsletter p {
+  color: white;
+}
+
+.blog-widget__title {
+  font-size: 1.25rem;
+  margin: 0 0 var(--spacing-sm);
+}
+
+.blog-widget p {
+  margin: var(--spacing-sm) 0;
+}
+
+.blog-search {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.blog-search input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.blog-categories {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.blog-categories li {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.blog-categories li:last-child {
+  border-bottom: none;
+}
+
+.blog-categories a {
+  display: block;
+  padding: 0.75rem 0;
+  color: var(--color-text);
+  text-decoration: none;
+  transition: color var(--transition-speed);
+}
+
+.blog-categories a:hover,
+.blog-categories li.active a {
+  color: var(--color-primary);
+}
+
+.blog-recent-posts {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.blog-recent-post {
+  display: flex;
+  gap: var(--spacing-sm);
+  text-decoration: none;
+  color: var(--color-text);
+  transition: opacity var(--transition-speed);
+}
+
+.blog-recent-post:hover {
+  opacity: 0.8;
+}
+
+.blog-recent-post img {
+  width: 100px;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.blog-recent-post__content h4 {
+  font-size: 0.875rem;
+  margin: 0 0 0.25rem;
+  line-height: 1.4;
+}
+
+.blog-recent-post__content time {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+}
+
+.blog-newsletter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: var(--spacing-sm);
+}
+
+.blog-newsletter-form input {
+  background-color: white;
+  color: var(--color-text);
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.blog-empty {
+  padding: var(--spacing-2xl);
+}
+
+.blog-empty p {
+  font-size: 1.125rem;
+  color: var(--color-text-light);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .blog-card__title {
+    font-size: 1.25rem;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Blog principal",
+  "class": "section-blog-main",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Paramètres généraux"
+    },
+    {
+      "type": "range",
+      "id": "articles_per_page",
+      "min": 6,
+      "max": 24,
+      "step": 3,
+      "label": "Articles par page",
+      "default": 12,
+      "info": "Nombre d'articles affichés par page"
+    },
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "Colonnes (Desktop)",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 colonne"
+        },
+        {
+          "value": "2",
+          "label": "2 colonnes"
+        },
+        {
+          "value": "3",
+          "label": "3 colonnes"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_tags",
+      "label": "Afficher les tags",
+      "default": true,
+      "info": "Affiche jusqu'à 3 tags par article"
+    },
+    {
+      "type": "header",
+      "content": "Sidebar / Barre latérale"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sidebar",
+      "label": "Afficher la barre latérale",
+      "default": true,
+      "info": "Affiche les widgets dans la barre latérale"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "Afficher la recherche",
+      "default": true,
+      "info": "Widget de recherche dans la sidebar"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_categories",
+      "label": "Afficher les catégories",
+      "default": true,
+      "info": "Liste des catégories (tags) dans la sidebar"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_recent_posts",
+      "label": "Afficher les articles récents",
+      "default": true,
+      "info": "Liste des articles récents dans la sidebar"
+    },
+    {
+      "type": "range",
+      "id": "recent_posts_count",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "label": "Nombre d'articles récents",
+      "default": 5,
+      "info": "Nombre d'articles à afficher dans le widget Articles récents"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_newsletter",
+      "label": "Afficher la newsletter",
+      "default": true,
+      "info": "Widget d'inscription à la newsletter"
+    }
+  ]
+}
+{% endschema %}

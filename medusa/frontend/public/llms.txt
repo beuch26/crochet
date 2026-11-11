@@ -1,0 +1,28 @@
+# Geniuz — Boutique Bebe & Maman
+
+## A propos
+Geniuz (geniuz.fr) est une boutique en ligne francaise specialisee dans les produits pour bebe et maman. Nous proposons une selection soigneusement choisie de produits de qualite pour accompagner chaque etape de la maternite : grossesse, allaitement, soins bebe, accessoires et bijoux.
+
+## Informations cles
+- Site : https://geniuz.fr
+- Entreprise : TN GROUP
+- Siege : 6 Rue d'Armaille, 75017 Paris, France
+- Contact : contact@geniuz.fr
+- Telephone : 09 51 76 17 11
+
+## Categories de produits
+- Allaitement : tire-lait, coussinet, bout de sein, coquillage allaitement, soutien-gorge, conservation lait maternel
+- Bebe : casque anti-bruit, tresse de lit, vaisselle bebe, biberons, trousse de soin, attache-tetine
+- Maman : soins grossesse, soins allaitement
+- Bijoux : bola de grossesse
+
+## Politique
+- Livraison gratuite des 50 EUR d'achat
+- Expedition sous 24-48h en France
+- Retours gratuits sous 30 jours
+- Paiement securise par Stripe (Visa, Mastercard, CB)
+
+## Contenu
+- Blog avec des articles sur la grossesse, l'allaitement, le developpement de bebe
+- FAQ detaillee
+- Guides et conseils d'experts

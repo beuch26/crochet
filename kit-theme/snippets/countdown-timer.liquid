@@ -1,0 +1,241 @@
+{%- comment -%}
+  Countdown Timer Component
+  Displays a countdown to create urgency for sales/promotions
+
+  Parameters:
+  - end_date: ISO format date string (e.g., "2024-12-31T23:59:59")
+  - title: Title for the countdown (default: "Limited Time Offer!")
+  - show_on_product: Show on product pages (default: true)
+
+  Usage:
+  {%- render 'countdown-timer', end_date: '2024-12-31T23:59:59', title: 'Flash Sale Ends In:' -%}
+{%- endcomment -%}
+
+{%- liquid
+  assign show_timer = false
+  assign timer_title = title | default: 'Limited Time Offer!'
+
+  if end_date and end_date != blank
+    assign show_timer = true
+  endif
+-%}
+
+{%- if show_timer -%}
+  <div class="countdown-timer" data-countdown-timer data-end-date="{{ end_date }}">
+    <div class="countdown-timer__header">
+      <svg class="countdown-timer__icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2"/>
+        <path d="M10 6V10L13 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <h3 class="countdown-timer__title">{{ timer_title }}</h3>
+    </div>
+
+    <div class="countdown-timer__display">
+      <div class="countdown-timer__unit">
+        <span class="countdown-timer__value" data-days>00</span>
+        <span class="countdown-timer__label">{{ 'countdown.days' | t | default: 'Days' }}</span>
+      </div>
+      <span class="countdown-timer__separator">:</span>
+      <div class="countdown-timer__unit">
+        <span class="countdown-timer__value" data-hours>00</span>
+        <span class="countdown-timer__label">{{ 'countdown.hours' | t | default: 'Hours' }}</span>
+      </div>
+      <span class="countdown-timer__separator">:</span>
+      <div class="countdown-timer__unit">
+        <span class="countdown-timer__value" data-minutes>00</span>
+        <span class="countdown-timer__label">{{ 'countdown.minutes' | t | default: 'Min' }}</span>
+      </div>
+      <span class="countdown-timer__separator">:</span>
+      <div class="countdown-timer__unit">
+        <span class="countdown-timer__value" data-seconds>00</span>
+        <span class="countdown-timer__label">{{ 'countdown.seconds' | t | default: 'Sec' }}</span>
+      </div>
+    </div>
+
+    <p class="countdown-timer__message" data-timer-message>
+      {{ 'countdown.message' | t | default: 'Don\'t miss out on this exclusive offer!' }}
+    </p>
+  </div>
+{%- endif -%}
+
+<style>
+.countdown-timer {
+  background: linear-gradient(135deg, #fff9e6 0%, #ffe9b3 100%);
+  border: 2px solid #ffa94d;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin: var(--spacing-md) 0;
+  text-align: center;
+}
+
+.countdown-timer__header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+.countdown-timer__icon {
+  color: #ff922b;
+  animation: timerPulse 1s ease-in-out infinite;
+}
+
+@keyframes timerPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.countdown-timer__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #d9480f;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.countdown-timer__display {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin: var(--spacing-sm) 0;
+}
+
+.countdown-timer__unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+}
+
+.countdown-timer__value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #d9480f;
+  background-color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 2px 8px rgba(217, 72, 15, 0.15);
+  min-width: 50px;
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown-timer__label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: #d9480f;
+  text-transform: uppercase;
+  margin-top: 0.25rem;
+  letter-spacing: 0.05em;
+}
+
+.countdown-timer__separator {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #d9480f;
+  margin: 0 0.25rem;
+  animation: separatorBlink 1s ease-in-out infinite;
+}
+
+@keyframes separatorBlink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.countdown-timer__message {
+  font-size: 0.75rem;
+  color: #d9480f;
+  margin: 0;
+  font-weight: 600;
+  margin-top: var(--spacing-sm);
+}
+
+.countdown-timer[data-expired="true"] {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .countdown-timer {
+    padding: var(--spacing-sm);
+  }
+
+  .countdown-timer__display {
+    gap: 0.25rem;
+  }
+
+  .countdown-timer__unit {
+    min-width: 50px;
+  }
+
+  .countdown-timer__value {
+    font-size: 1.25rem;
+    padding: 0.375rem 0.5rem;
+    min-width: 40px;
+  }
+
+  .countdown-timer__label {
+    font-size: 0.5625rem;
+  }
+
+  .countdown-timer__separator {
+    font-size: 1.125rem;
+    margin: 0 0.125rem;
+  }
+}
+</style>
+
+<script>
+(function() {
+  const timers = document.querySelectorAll('[data-countdown-timer]');
+
+  timers.forEach(timer => {
+    const endDate = timer.dataset.endDate;
+    if (!endDate) return;
+
+    const endTime = new Date(endDate).getTime();
+    const daysEl = timer.querySelector('[data-days]');
+    const hoursEl = timer.querySelector('[data-hours]');
+    const minutesEl = timer.querySelector('[data-minutes]');
+    const secondsEl = timer.querySelector('[data-seconds]');
+    const messageEl = timer.querySelector('[data-timer-message]');
+
+    function updateCountdown() {
+      const now = new Date().getTime();
+      const distance = endTime - now;
+
+      if (distance < 0) {
+        timer.dataset.expired = 'true';
+        if (messageEl) {
+          messageEl.textContent = {{ 'countdown.expired' | t | default: 'Offer has ended!' | json }};
+        }
+        clearInterval(countdownInterval);
+        return;
+      }
+
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      if (daysEl) daysEl.textContent = String(days).padStart(2, '0');
+      if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
+      if (minutesEl) minutesEl.textContent = String(minutes).padStart(2, '0');
+      if (secondsEl) secondsEl.textContent = String(seconds).padStart(2, '0');
+    }
+
+    updateCountdown();
+    const countdownInterval = setInterval(updateCountdown, 1000);
+  });
+})();
+</script>

@@ -1,0 +1,60 @@
+---
+/**
+ * Featured Collection - showcase a single collection with products
+ * Like Olympus theme's featured-collection section
+ */
+import ProductCard from '../product/ProductCard.astro'
+import { getProductPrice } from '../../lib/medusa'
+
+interface Props {
+  title?: string
+  subtitle?: string
+  collectionHandle?: string
+  products: any[]
+  ctaText?: string
+  ctaLink?: string
+  limit?: number
+}
+
+const {
+  title = '',
+  subtitle = '',
+  collectionHandle = '',
+  products = [],
+  ctaText = 'Voir tout',
+  ctaLink = '',
+  limit = 4,
+} = Astro.props
+
+const displayProducts = products.slice(0, limit)
+const link = ctaLink || (collectionHandle ? `/collections/${collectionHandle}/` : '/collections/')
+---
+
+{displayProducts.length > 0 && (
+  <section class="py-16 lg:py-20 reveal">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-10 gap-4">
+        <div>
+          {title && <h2>{title}</h2>}
+          {subtitle && <p class="mt-3 text-text-light text-lg">{subtitle}</p>}
+        </div>
+        <a href={link} class="btn btn-outline text-sm py-2.5 px-5 shrink-0">
+          {ctaText}
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+        </a>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-5 lg:gap-6">
+        {displayProducts.map((product: any) => (
+          <ProductCard
+            id={product.id}
+            title={product.title}
+            handle={product.handle}
+            price={getProductPrice(product)}
+            thumbnail={product.thumbnail}
+          />
+        ))}
+      </div>
+    </div>
+  </section>
+)}

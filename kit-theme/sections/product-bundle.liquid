@@ -1,0 +1,563 @@
+{%- comment -%}
+  Product Bundle Section
+  Displays grouped complementary products with combined discount
+
+  Features:
+  - Configurable discount (percentage or fixed amount)
+  - Add all to cart functionality
+  - Individual item selection
+  - Dynamic price calculation
+  - Responsive layout
+
+  Usage: Add to product page via Theme Editor
+{%- endcomment -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign heading = section.settings.heading
+  assign subheading = section.settings.subheading
+  assign discount_type = section.settings.discount_type
+  assign discount_value = section.settings.discount_value
+  assign show_savings = section.settings.show_savings
+  assign main_product = product
+  assign cta_text = section.settings.cta_text | default: 'Ajouter le lot au panier'
+
+  assign bundle_products = ''
+  assign total_original_price = 0
+  assign product_count = 0
+
+  if main_product != blank
+    assign total_original_price = main_product.selected_or_first_available_variant.price
+    assign product_count = 1
+  endif
+
+  for block in section.blocks
+    if block.type == 'product' and block.settings.product != blank
+      assign product_count = product_count | plus: 1
+      assign block_product = block.settings.product
+      assign total_original_price = total_original_price | plus: block_product.selected_or_first_available_variant.price
+    endif
+  endfor
+
+  if discount_type == 'percentage'
+    assign discount_multiplier = 100 | minus: discount_value
+    assign total_bundle_price = total_original_price | times: discount_multiplier | divided_by: 100
+  else
+    assign discount_cents = discount_value | times: 100
+    assign total_bundle_price = total_original_price | minus: discount_cents
+    if total_bundle_price < 0
+      assign total_bundle_price = 0
+    endif
+  endif
+
+  assign total_savings = total_original_price | minus: total_bundle_price
+-%}
+
+{%- if product_count > 1 -%}
+  <section class="product-bundle section section--{{ section_id }}" id="bundle-{{ section_id }}">
+    <div class="product-bundle__wrapper">
+      {%- if heading != blank or subheading != blank -%}
+        <div class="product-bundle__header">
+          {%- if heading != blank -%}
+            {%- if section.settings.enable_heading_style -%}
+              {%- render 'heading-styles',
+                text: heading,
+                tag: 'h2',
+                style: section.settings.heading_style,
+                color: section.settings.heading_style_color,
+                align: 'center',
+                size: 'xl',
+                typing_texts: section.settings.typing_texts
+              -%}
+            {%- else -%}
+              <h2 class="product-bundle__title">{{ heading }}</h2>
+            {%- endif -%}
+          {%- endif -%}
+          {%- if subheading != blank -%}
+            <p class="product-bundle__subtitle">{{ subheading }}</p>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      <div class="product-bundle__content"
+           data-product-bundle
+           data-discount-type="{{ discount_type }}"
+           data-discount-value="{{ discount_value }}">
+
+        <div class="product-bundle__items">
+          {%- comment -%} Main product {%- endcomment -%}
+          {%- if main_product != blank -%}
+            {%- render 'bundle-item',
+              product: main_product,
+              show_variant_selector: false,
+              show_price: true -%}
+          {%- endif -%}
+
+          {%- comment -%} Plus sign {%- endcomment -%}
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'product' and block.settings.product != blank -%}
+              <div class="product-bundle__plus" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+
+              {%- render 'bundle-item',
+                product: block.settings.product,
+                show_variant_selector: true,
+                show_price: true -%}
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+
+        <div class="product-bundle__summary">
+          <div class="product-bundle__pricing">
+            <div class="product-bundle__price-row">
+              <span class="product-bundle__label">{{ 'products.bundle.original_price' | t | default: "Prix d'origine" }}:</span>
+              <span class="product-bundle__original-price" data-bundle-original>{{ total_original_price | money }}</span>
+            </div>
+
+            {%- if show_savings and total_savings > 0 -%}
+              <div class="product-bundle__price-row product-bundle__price-row--savings">
+                <span class="product-bundle__label">{{ 'products.bundle.you_save' | t | default: 'Vous économisez' }}:</span>
+                <span class="product-bundle__savings" data-bundle-savings>
+                  -{{ total_savings | money }}
+                  {%- if discount_type == 'percentage' %} ({{ discount_value }}%){%- endif -%}
+                </span>
+              </div>
+            {%- endif -%}
+
+            <div class="product-bundle__price-row product-bundle__price-row--total">
+              <span class="product-bundle__label">{{ 'products.bundle.bundle_price' | t | default: 'Prix du lot' }}:</span>
+              <span class="product-bundle__total-price" data-bundle-total>{{ total_bundle_price | money }}</span>
+            </div>
+          </div>
+
+          <button type="button"
+                  class="btn btn--primary btn--large product-bundle__cta"
+                  data-bundle-add-all
+                  aria-label="{{ cta_text }}">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+              <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>{{ cta_text }}</span>
+          </button>
+
+          <p class="product-bundle__note">
+            {{ 'products.bundle.note' | t | default: 'Les articles seront ajoutés ensemble à votre panier' }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .product-bundle {
+      padding: var(--spacing-lg) 0;
+    }
+
+    .product-bundle__wrapper {
+      background: linear-gradient(135deg, var(--color-background-light) 0%, var(--color-background) 100%);
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+    }
+
+    .product-bundle__header {
+      text-align: center;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .product-bundle__title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      color: var(--color-text);
+    }
+
+    .product-bundle__subtitle {
+      font-size: 0.875rem;
+      color: var(--color-text-light);
+    }
+
+    .product-bundle__content {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--spacing-md);
+    }
+
+    @media (min-width: 768px) {
+      .product-bundle__content {
+        grid-template-columns: 2fr 1fr;
+        align-items: start;
+      }
+    }
+
+    .product-bundle__items {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    @media (min-width: 768px) {
+      .product-bundle__items {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--spacing-xs);
+      }
+
+      .product-bundle__items > .bundle-item {
+        flex: 1;
+        min-width: 150px;
+      }
+    }
+
+    .product-bundle__plus {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background-color: var(--color-primary);
+      color: white;
+      border-radius: var(--radius-full);
+      flex-shrink: 0;
+      margin: 0 auto;
+    }
+
+    @media (min-width: 768px) {
+      .product-bundle__plus {
+        margin: 0;
+      }
+    }
+
+    .product-bundle__summary {
+      background-color: var(--color-background);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      position: sticky;
+      top: 100px;
+    }
+
+    .product-bundle__pricing {
+      margin-bottom: var(--spacing-md);
+    }
+
+    .product-bundle__price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px dashed var(--color-border);
+    }
+
+    .product-bundle__price-row:last-child {
+      border-bottom: none;
+    }
+
+    .product-bundle__label {
+      font-size: 0.875rem;
+      color: var(--color-text-light);
+    }
+
+    .product-bundle__original-price {
+      text-decoration: line-through;
+      color: var(--color-text-light);
+    }
+
+    .product-bundle__price-row--savings {
+      color: var(--color-success);
+    }
+
+    .product-bundle__price-row--savings .product-bundle__label,
+    .product-bundle__savings {
+      color: var(--color-success);
+      font-weight: 600;
+    }
+
+    .product-bundle__price-row--total {
+      padding-top: var(--spacing-sm);
+      margin-top: var(--spacing-xs);
+      border-top: 2px solid var(--color-border);
+    }
+
+    .product-bundle__price-row--total .product-bundle__label {
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .product-bundle__total-price {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+
+    .product-bundle__cta {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .product-bundle__note {
+      margin-top: var(--spacing-sm);
+      font-size: 0.75rem;
+      color: var(--color-text-light);
+      text-align: center;
+    }
+  </style>
+
+  <script>
+    (function() {
+      const bundle = document.querySelector('[data-product-bundle]');
+      if (!bundle) return;
+
+      const items = bundle.querySelectorAll('[data-bundle-item]');
+      const checkboxes = bundle.querySelectorAll('[data-bundle-checkbox]');
+      const variantSelects = bundle.querySelectorAll('[data-bundle-variant-select]');
+      const originalPriceEl = bundle.querySelector('[data-bundle-original]');
+      const savingsEl = bundle.querySelector('[data-bundle-savings]');
+      const totalPriceEl = bundle.querySelector('[data-bundle-total]');
+      const addAllBtn = bundle.querySelector('[data-bundle-add-all]');
+
+      const discountType = bundle.dataset.discountType;
+      const discountValue = parseFloat(bundle.dataset.discountValue);
+
+      function formatMoney(cents) {
+        return Shopify.formatMoney ?
+          Shopify.formatMoney(cents, window.theme?.moneyFormat) :
+          (cents / 100).toFixed(2) + ' €';
+      }
+
+      function calculatePrices() {
+        let originalTotal = 0;
+        let selectedItems = [];
+
+        items.forEach(item => {
+          const checkbox = item.querySelector('[data-bundle-checkbox]');
+          if (checkbox && checkbox.checked) {
+            const price = parseInt(item.dataset.price);
+            originalTotal += price;
+            selectedItems.push({
+              variantId: item.dataset.variantId,
+              quantity: 1
+            });
+          }
+        });
+
+        let bundleTotal;
+        if (discountType === 'percentage') {
+          bundleTotal = Math.round(originalTotal * (100 - discountValue) / 100);
+        } else {
+          bundleTotal = Math.max(0, originalTotal - (discountValue * 100));
+        }
+
+        const savings = originalTotal - bundleTotal;
+
+        if (originalPriceEl) originalPriceEl.textContent = formatMoney(originalTotal);
+        if (savingsEl) savingsEl.textContent = '-' + formatMoney(savings) + (discountType === 'percentage' ? ` (${discountValue}%)` : '');
+        if (totalPriceEl) totalPriceEl.textContent = formatMoney(bundleTotal);
+
+        return selectedItems;
+      }
+
+      checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', calculatePrices);
+      });
+
+      variantSelects.forEach(select => {
+        select.addEventListener('change', (e) => {
+          const selectedOption = e.target.options[e.target.selectedIndex];
+          const newPrice = selectedOption.dataset.price;
+          const newVariantId = e.target.value;
+          const item = e.target.closest('[data-bundle-item]');
+
+          if (item) {
+            item.dataset.price = newPrice;
+            item.dataset.variantId = newVariantId;
+
+            const priceEl = item.querySelector('[data-item-price]');
+            if (priceEl) {
+              priceEl.textContent = formatMoney(parseInt(newPrice));
+            }
+          }
+
+          calculatePrices();
+        });
+      });
+
+      if (addAllBtn) {
+        addAllBtn.addEventListener('click', async () => {
+          const selectedItems = calculatePrices();
+
+          if (selectedItems.length === 0) {
+            alert(window.theme?.translations?.bundleEmpty || 'Veuillez sélectionner au moins un article');
+            return;
+          }
+
+          addAllBtn.classList.add('loading');
+          addAllBtn.disabled = true;
+
+          try {
+            const formData = {
+              items: selectedItems
+            };
+
+            const response = await fetch(window.Shopify?.routes?.root + 'cart/add.js', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) {
+              throw new Error('Failed to add bundle to cart');
+            }
+
+            const cart = await fetch(window.Shopify?.routes?.root + 'cart.js').then(r => r.json());
+
+            document.dispatchEvent(new CustomEvent('cart:updated', { detail: { cart } }));
+
+            if (typeof Cart !== 'undefined' && Cart.openDrawer) {
+              Cart.openDrawer();
+              Cart.refreshDrawer();
+            }
+
+          } catch (error) {
+            console.error('Bundle add error:', error);
+            alert(window.theme?.translations?.cartError || 'Erreur lors de l\'ajout au panier');
+          } finally {
+            addAllBtn.classList.remove('loading');
+            addAllBtn.disabled = false;
+          }
+        });
+      }
+
+      calculatePrices();
+    })();
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Lot de produits",
+  "tag": "section",
+  "class": "section-product-bundle",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre",
+      "default": "Fréquemment achetés ensemble"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Sous-titre",
+      "default": "Économisez en achetant ces articles ensemble"
+    },
+    {
+      "type": "select",
+      "id": "discount_type",
+      "label": "Type de réduction",
+      "options": [
+        { "value": "percentage", "label": "Pourcentage" },
+        { "value": "fixed", "label": "Montant fixe" }
+      ],
+      "default": "percentage"
+    },
+    {
+      "type": "range",
+      "id": "discount_value",
+      "label": "Valeur de la réduction",
+      "min": 5,
+      "max": 50,
+      "step": 5,
+      "default": 10,
+      "info": "Pourcentage ou montant dans votre devise"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_savings",
+      "label": "Afficher les économies",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "cta_text",
+      "label": "Texte du bouton",
+      "default": "Ajouter le lot au panier"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product",
+      "name": "Produit du lot",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Produit"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Lot de produits",
+      "blocks": [
+        { "type": "product" },
+        { "type": "product" }
+      ]
+    }
+  ],
+  "templates": ["product"]
+}
+{% endschema %}

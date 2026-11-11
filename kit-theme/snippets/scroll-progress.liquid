@@ -1,0 +1,97 @@
+{%- comment -%}
+  Scroll Progress Indicator
+  Shows reading progress at the top of the page
+
+  Configuration via theme settings:
+  - settings.enable_scroll_progress: Enable/disable
+  - settings.scroll_progress_color: Progress bar color
+  - settings.scroll_progress_height: Bar height
+
+  Usage: Include in theme.liquid
+  {%- render 'scroll-progress' -%}
+{%- endcomment -%}
+
+{%- if settings.enable_scroll_progress -%}
+  {%- liquid
+    assign progress_color = settings.scroll_progress_color | default: settings.color_primary
+    assign progress_height = settings.scroll_progress_height | default: 3
+    assign progress_position = settings.scroll_progress_position | default: 'top'
+  -%}
+
+  <div
+    class="scroll-progress scroll-progress--{{ progress_position }}"
+    data-scroll-progress
+    aria-hidden="true"
+    style="--progress-color: {{ progress_color }}; --progress-height: {{ progress_height }}px;"
+  >
+    <div class="scroll-progress__bar" data-scroll-progress-bar></div>
+  </div>
+
+  <style>
+    .scroll-progress {
+      position: fixed;
+      left: 0;
+      right: 0;
+      height: var(--progress-height);
+      background-color: rgba(0, 0, 0, 0.1);
+      z-index: 9999;
+      pointer-events: none;
+    }
+
+    .scroll-progress--top {
+      top: 0;
+    }
+
+    .scroll-progress--bottom {
+      bottom: 0;
+    }
+
+    .scroll-progress--below-header {
+      top: var(--header-height, 60px);
+    }
+
+    .scroll-progress__bar {
+      height: 100%;
+      width: 0%;
+      background-color: var(--progress-color);
+      transition: width 0.1s ease-out;
+      will-change: width;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .scroll-progress__bar {
+        transition: none;
+      }
+    }
+  </style>
+
+  <script>
+    (function() {
+      'use strict';
+
+      const progressBar = document.querySelector('[data-scroll-progress-bar]');
+      if (!progressBar) return;
+
+      let ticking = false;
+
+      function updateProgress() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+
+        progressBar.style.width = Math.min(100, Math.max(0, progress)) + '%';
+        ticking = false;
+      }
+
+      function onScroll() {
+        if (!ticking) {
+          requestAnimationFrame(updateProgress);
+          ticking = true;
+        }
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      updateProgress();
+    })();
+  </script>
+{%- endif -%}

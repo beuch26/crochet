@@ -1,0 +1,53 @@
+---
+import Layout from '../layouts/Layout.astro'
+import SchemaBreadcrumb from '../components/seo/SchemaBreadcrumb.astro'
+import { getPage } from '../lib/medusa'
+import { normalizeInternalHrefsInHTML } from '../lib/url'
+
+let page: any = null
+try { const data = await getPage('faq'); page = data.page } catch {}
+
+const title = page?.seo_title || page?.title || 'Questions fréquentes — Magic Crochet Kit'
+const description = page?.seo_description || 'Toutes les réponses sur nos kits de crochet, la livraison, les retours, les fils et accessoires Magic Crochet Kit.'
+const fallbackContent = `
+<h2>Sur nos kits</h2>
+<details><summary>Qu'est-ce qu'il y a dans un kit ?</summary><p>Chaque kit MCK contient tout le matériel nécessaire : le fil de qualité dans la bonne quantité, un crochet adapté, le rembourrage, les yeux de sécurité et un livret avec le tutoriel pas à pas. Plus rien à acheter.</p></details>
+<details><summary>Faut-il déjà savoir crocheter ?</summary><p>Non. Nos kits débutants partent vraiment de zéro. Le livret reprend chaque point depuis le début et nous proposons aussi des tutoriels vidéo gratuits.</p></details>
+<details><summary>Combien de temps pour terminer un projet ?</summary><p>Comptez 4 à 8 heures pour un kit débutant amigurumi. 8 à 15 heures pour un kit intermédiaire.</p></details>
+
+<h2>Sur les fils et matériaux</h2>
+<details><summary>Pourquoi certains produits redirigent vers LoveCrafts ?</summary><p>Les fils et accessoires complémentaires sont expédiés par notre partenaire LoveCrafts (UK), qui offre la plus grande sélection en Europe et la livraison rapide en France. Vous achetez chez eux, livré directement chez vous.</p></details>
+<details><summary>Quel fil choisir pour débuter ?</summary><p>L'acrylique est doux, peu cher, résistant au lavage et disponible dans une infinité de couleurs. C'est le fil idéal pour vos premiers amigurumis.</p></details>
+
+<h2>Sur la livraison</h2>
+<details><summary>Quand vais-je recevoir mon colis ?</summary><p>Préparation 1-2 jours ouvrés + livraison 2-5 jours selon votre adresse. La plupart des commandes arrivent en moins d'une semaine.</p></details>
+<details><summary>La livraison est-elle gratuite ?</summary><p>Oui, la livraison est offerte en France métropolitaine dès 50 € d'achat. En dessous, comptez 4,90 €. Express et cadeau offerts dès 100 € et 150 €.</p></details>
+
+<h2>Sur les retours</h2>
+<details><summary>Puis-je retourner un produit ?</summary><p>Oui, vous disposez de 30 jours après réception pour nous renvoyer un produit non utilisé dans son emballage d'origine.</p></details>
+<details><summary>Le retour est-il à mes frais ?</summary><p>Non, les retours sont gratuits pour les produits défectueux. Pour un changement d'avis, les frais de retour restent à votre charge.</p></details>
+
+<h2>Sur le paiement</h2>
+<details><summary>Quels moyens de paiement acceptez-vous ?</summary><p>Carte bancaire (Visa, Mastercard, American Express), Apple Pay, Google Pay et PayPal. Tous les paiements sont sécurisés par Stripe et 3D Secure.</p></details>
+<details><summary>Puis-je payer en plusieurs fois ?</summary><p>Nous travaillons à intégrer le paiement en 3 ou 4 fois. En attendant, contactez-nous à contact@magic-crochet-kit.com pour une demande personnalisée.</p></details>
+
+<h2>Service client</h2>
+<details><summary>Comment vous contacter ?</summary><p>Par email à <a href="mailto:contact@magic-crochet-kit.com">contact@magic-crochet-kit.com</a>. Nous répondons sous 24 h ouvrées.</p></details>
+`
+const content = normalizeInternalHrefsInHTML(page?.content || fallbackContent)
+---
+
+<Layout title={title} description={description}>
+  <SchemaBreadcrumb slot="head" items={[{ name: 'Magic Crochet Kit', url: '/' }, { name: 'FAQ', url: '/faq/' }]} />
+  <section class="py-12 lg:py-16">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="mb-8 text-sm text-text-muted flex items-center gap-2 animate-fade-up">
+        <a href="/" class="hover:text-primary transition-colors">Magic Crochet Kit</a>
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-text">{page?.title || 'FAQ'}</span>
+      </nav>
+      <h1 class="mb-8 animate-fade-up">{page?.title || 'FAQ'}</h1>
+      <div class="prose max-w-none animate-fade-up delay-1" set:html={content} />
+    </div>
+  </section>
+</Layout>

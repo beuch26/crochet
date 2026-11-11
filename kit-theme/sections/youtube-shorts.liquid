@@ -1,0 +1,681 @@
+{%- comment -%}
+  YouTube Shorts Section
+  Display YouTube Shorts in a vertical grid
+  Auto-fetches thumbnails from YouTube URLs
+
+  Usage: Add via Theme Editor
+{%- endcomment -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign heading = section.settings.heading
+  assign subheading = section.settings.subheading
+  assign layout = section.settings.layout | default: 'grid'
+  assign columns = section.settings.columns | default: 4
+  assign youtube_handle = section.settings.youtube_handle
+-%}
+
+<section class="youtube-shorts section section--{{ section_id }}" id="youtube-shorts-{{ section_id }}">
+  <div class="container">
+    {%- if heading != blank or subheading != blank -%}
+      <div class="section-header section-header--center">
+        {%- if heading != blank -%}
+          {%- if section.settings.enable_heading_style -%}
+            {%- render 'heading-styles',
+              text: heading,
+              tag: 'h2',
+              style: section.settings.heading_style,
+              color: section.settings.heading_style_color,
+              align: 'center',
+              size: 'xl',
+              typing_texts: section.settings.typing_texts
+            -%}
+          {%- else -%}
+            <h2 class="section-header__title">{{ heading }}</h2>
+          {%- endif -%}
+        {%- endif -%}
+        {%- if subheading != blank -%}
+          <p class="section-header__subtitle">{{ subheading }}</p>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <div
+        class="youtube-shorts__wrapper youtube-shorts__wrapper--{{ layout }}"
+        style="--yt-columns: {{ columns }};"
+        data-youtube-shorts
+        {% if layout == 'carousel' %}data-yt-carousel{% endif %}
+      >
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign video_url = block.settings.video_url
+            assign video_id = ''
+
+            # Extract YouTube video ID from various URL formats
+            if video_url contains 'youtube.com/shorts/'
+              assign video_id = video_url | split: 'youtube.com/shorts/' | last | split: '?' | first | split: '&' | first
+            elsif video_url contains 'youtube.com/watch'
+              assign video_id = video_url | split: 'v=' | last | split: '&' | first
+            elsif video_url contains 'youtu.be/'
+              assign video_id = video_url | split: 'youtu.be/' | last | split: '?' | first
+            endif
+
+            # Build thumbnail URL
+            assign thumbnail_url = ''
+            if video_id != ''
+              assign thumbnail_url = 'https://img.youtube.com/vi/' | append: video_id | append: '/maxresdefault.jpg'
+              assign thumbnail_fallback = 'https://img.youtube.com/vi/' | append: video_id | append: '/hqdefault.jpg'
+            endif
+
+            # Use custom thumbnail if provided
+            if block.settings.thumbnail != blank
+              assign has_custom_thumbnail = true
+            else
+              assign has_custom_thumbnail = false
+            endif
+          -%}
+
+          <div class="youtube-shorts__item" {{ block.shopify_attributes }}>
+            <button
+              type="button"
+              class="youtube-shorts__card"
+              data-video-id="{{ video_id }}"
+              data-video-url="{{ video_url }}"
+              aria-label="{{ block.settings.title | default: 'Lire la vidéo' }}"
+            >
+              <div class="youtube-shorts__thumbnail">
+                {%- if has_custom_thumbnail -%}
+                  <img
+                    src="{{ block.settings.thumbnail | image_url: width: 400 }}"
+                    alt="{{ block.settings.title | default: 'YouTube Short' }}"
+                    width="400"
+                    height="711"
+                    loading="lazy"
+                    class="youtube-shorts__image"
+                  >
+                {%- elsif thumbnail_url != '' -%}
+                  <img
+                    src="{{ thumbnail_url }}"
+                    alt="{{ block.settings.title | default: 'YouTube Short' }}"
+                    width="400"
+                    height="711"
+                    loading="lazy"
+                    class="youtube-shorts__image"
+                    onerror="this.onerror=null; this.src='{{ thumbnail_fallback }}';"
+                  >
+                {%- else -%}
+                  <div class="youtube-shorts__placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 3.993L9 16z"/>
+                    </svg>
+                  </div>
+                {%- endif -%}
+
+                {%- comment -%} YouTube badge {%- endcomment -%}
+                <div class="youtube-shorts__badge">
+                  <svg width="20" height="14" viewBox="0 0 24 17" fill="currentColor">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  </svg>
+                  <span>Shorts</span>
+                </div>
+
+                {%- comment -%} Play overlay {%- endcomment -%}
+                <div class="youtube-shorts__overlay">
+                  <svg class="youtube-shorts__play" width="64" height="64" viewBox="0 0 64 64" fill="none">
+                    <circle cx="32" cy="32" r="30" fill="rgba(0,0,0,0.6)" stroke="white" stroke-width="2"/>
+                    <path d="M26 20L46 32L26 44V20Z" fill="white"/>
+                  </svg>
+                </div>
+
+                {%- comment -%} Duration badge {%- endcomment -%}
+                {%- if block.settings.duration != blank -%}
+                  <div class="youtube-shorts__duration">{{ block.settings.duration }}</div>
+                {%- endif -%}
+
+                {%- comment -%} Inline video container {%- endcomment -%}
+                <div class="youtube-shorts__video-container" data-video-container style="display: none;"></div>
+              </div>
+
+              {%- if block.settings.title != blank or block.settings.views != blank -%}
+                <div class="youtube-shorts__content">
+                  {%- if block.settings.title != blank -%}
+                    <p class="youtube-shorts__title">{{ block.settings.title | truncate: 60 }}</p>
+                  {%- endif -%}
+                  {%- if block.settings.views != blank -%}
+                    <span class="youtube-shorts__views">{{ block.settings.views }} vues</span>
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+            </button>
+          </div>
+        {%- endfor -%}
+      </div>
+
+      {%- if layout == 'carousel' -%}
+        <div class="youtube-shorts__nav">
+          <button class="youtube-shorts__nav-btn youtube-shorts__nav-btn--prev" data-yt-prev aria-label="Précédent">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="youtube-shorts__nav-btn youtube-shorts__nav-btn--next" data-yt-next aria-label="Suivant">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      {%- endif -%}
+    {%- else -%}
+      <div class="youtube-shorts__empty">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/>
+          <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/>
+        </svg>
+        <p>{{ 'sections.youtube.add_videos' | t | default: "Ajoutez des vidéos YouTube Shorts via l'éditeur de thème" }}</p>
+      </div>
+    {%- endif -%}
+
+    {%- if youtube_handle != blank -%}
+      <div class="youtube-shorts__cta">
+        <a href="https://www.youtube.com/@{{ youtube_handle }}" class="btn btn--outline" target="_blank" rel="noopener noreferrer">
+          <svg width="20" height="14" viewBox="0 0 24 17" fill="currentColor">
+            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+          </svg>
+          {{ 'sections.youtube.subscribe' | t | default: "S'abonner à notre chaîne" }}
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<style>
+  .youtube-shorts {
+    padding: var(--spacing-2xl) 0;
+  }
+
+  /* Grid Layout */
+  .youtube-shorts__wrapper--grid {
+    display: grid;
+    grid-template-columns: repeat(var(--yt-columns, 4), 1fr);
+    gap: var(--spacing-md);
+  }
+
+  /* Carousel Layout */
+  .youtube-shorts__wrapper--carousel {
+    display: flex;
+    gap: var(--spacing-md);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: var(--spacing-sm);
+  }
+
+  .youtube-shorts__wrapper--carousel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .youtube-shorts__wrapper--carousel .youtube-shorts__item {
+    flex: 0 0 calc(100% / var(--yt-columns, 4) - var(--spacing-md));
+    scroll-snap-align: start;
+  }
+
+  /* Item Styles */
+  .youtube-shorts__item {
+    position: relative;
+  }
+
+  .youtube-shorts__card {
+    display: block;
+    width: 100%;
+    text-decoration: none;
+    color: inherit;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .youtube-shorts__thumbnail {
+    position: relative;
+    aspect-ratio: 9/16;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+  }
+
+  .youtube-shorts__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .youtube-shorts__card:hover .youtube-shorts__image {
+    transform: scale(1.05);
+  }
+
+  .youtube-shorts__placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+
+  /* YouTube Badge */
+  .youtube-shorts__badge {
+    position: absolute;
+    top: var(--spacing-sm);
+    left: var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #c00000;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .youtube-shorts__badge svg {
+    width: 14px;
+    height: 10px;
+  }
+
+  /* Play Overlay */
+  .youtube-shorts__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.6) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .youtube-shorts__card:hover .youtube-shorts__overlay {
+    opacity: 1;
+  }
+
+  .youtube-shorts__play {
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+  }
+
+  .youtube-shorts__card:hover .youtube-shorts__play {
+    transform: scale(1);
+  }
+
+  /* Duration Badge */
+  .youtube-shorts__duration {
+    position: absolute;
+    bottom: var(--spacing-sm);
+    right: var(--spacing-sm);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 0.15rem 0.4rem;
+    border-radius: var(--radius-xs);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  /* Content */
+  .youtube-shorts__content {
+    padding: var(--spacing-sm) 0;
+  }
+
+  .youtube-shorts__title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.4;
+    margin: 0 0 0.25rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .youtube-shorts__views {
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+  }
+
+  /* Navigation */
+  .youtube-shorts__nav {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+  }
+
+  .youtube-shorts__nav-btn {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-background);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .youtube-shorts__nav-btn:hover {
+    border-color: #ff0000;
+    background-color: #ff0000;
+    color: white;
+  }
+
+  .youtube-shorts__nav-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Empty State */
+  .youtube-shorts__empty {
+    text-align: center;
+    padding: var(--spacing-2xl);
+    color: var(--color-text-light);
+  }
+
+  .youtube-shorts__empty svg {
+    margin-bottom: var(--spacing-sm);
+    opacity: 0.3;
+  }
+
+  /* CTA */
+  .youtube-shorts__cta {
+    text-align: center;
+    margin-top: var(--spacing-lg);
+  }
+
+  .youtube-shorts__cta .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .youtube-shorts__cta .btn:hover {
+    background-color: #ff0000;
+    border-color: #ff0000;
+    color: white;
+  }
+
+  /* Responsive */
+  @media (max-width: 999px) {
+    .youtube-shorts__wrapper--grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .youtube-shorts__wrapper--carousel .youtube-shorts__item {
+      flex: 0 0 calc(100% / 3 - var(--spacing-md));
+    }
+  }
+
+  @media (max-width: 767px) {
+    .youtube-shorts__wrapper--grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .youtube-shorts__wrapper--carousel .youtube-shorts__item {
+      flex: 0 0 calc(50% - var(--spacing-sm));
+    }
+
+    .youtube-shorts__nav {
+      display: none;
+    }
+  }
+
+  @media (max-width: 479px) {
+    .youtube-shorts__wrapper--carousel .youtube-shorts__item {
+      flex: 0 0 80%;
+    }
+  }
+
+  /* Inline Video */
+  .youtube-shorts__video-container {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    background: #000;
+  }
+
+  .youtube-shorts__video-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  .youtube-shorts__card.is-playing .youtube-shorts__overlay,
+  .youtube-shorts__card.is-playing .youtube-shorts__badge,
+  .youtube-shorts__card.is-playing .youtube-shorts__duration,
+  .youtube-shorts__card.is-playing .youtube-shorts__image,
+  .youtube-shorts__card.is-playing .youtube-shorts__placeholder {
+    display: none;
+  }
+
+  .youtube-shorts__card.is-playing {
+    cursor: default;
+  }
+</style>
+
+<script>
+  (function() {
+    'use strict';
+
+    function initYouTubeShorts(container) {
+      const cards = container.querySelectorAll('.youtube-shorts__card');
+
+      // Carousel Navigation
+      const wrapper = container.querySelector('[data-yt-carousel]');
+      if (wrapper) {
+        const prevBtn = container.querySelector('[data-yt-prev]');
+        const nextBtn = container.querySelector('[data-yt-next]');
+        const items = wrapper.querySelectorAll('.youtube-shorts__item');
+
+        if (items.length) {
+          const itemWidth = items[0].offsetWidth + parseInt(getComputedStyle(wrapper).gap);
+
+          function updateButtons() {
+            if (prevBtn) prevBtn.disabled = wrapper.scrollLeft <= 0;
+            if (nextBtn) nextBtn.disabled = wrapper.scrollLeft >= wrapper.scrollWidth - wrapper.clientWidth - 10;
+          }
+
+          function scrollTo(direction) {
+            const scrollAmount = direction === 'next' ? itemWidth : -itemWidth;
+            wrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+          }
+
+          if (prevBtn) prevBtn.addEventListener('click', () => scrollTo('prev'));
+          if (nextBtn) nextBtn.addEventListener('click', () => scrollTo('next'));
+          wrapper.addEventListener('scroll', updateButtons);
+          updateButtons();
+        }
+      }
+
+      // Inline video playback
+      cards.forEach(card => {
+        card.addEventListener('click', () => {
+          // If already playing, do nothing
+          if (card.classList.contains('is-playing')) return;
+
+          const videoId = card.dataset.videoId;
+          const videoContainer = card.querySelector('[data-video-container]');
+
+          if (!videoId || !videoContainer) {
+            // Fallback: open video URL in new tab
+            const videoUrl = card.dataset.videoUrl;
+            if (videoUrl) window.open(videoUrl, '_blank');
+            return;
+          }
+
+          // Create YouTube embed
+          videoContainer.innerHTML = `
+            <iframe
+              src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+            ></iframe>
+          `;
+
+          videoContainer.style.display = 'block';
+          card.classList.add('is-playing');
+        });
+      });
+    }
+
+    document.querySelectorAll('.youtube-shorts').forEach(initYouTubeShorts);
+
+    if (Shopify.designMode) {
+      document.addEventListener('shopify:section:load', (e) => {
+        const section = e.target.querySelector('.youtube-shorts');
+        if (section) initYouTubeShorts(section);
+      });
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "YouTube Shorts",
+  "tag": "section",
+  "class": "section-youtube-shorts",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre",
+      "default": "Nos vidéos YouTube"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Sous-titre"
+    },
+    {
+      "type": "text",
+      "id": "youtube_handle",
+      "label": "Nom de la chaîne YouTube",
+      "info": "Sans le symbole @"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Disposition",
+      "options": [
+        { "value": "grid", "label": "Grille" },
+        { "value": "carousel", "label": "Carrousel" }
+      ],
+      "default": "grid"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Colonnes (bureau)",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#ff0000"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "video",
+      "name": "YouTube Short",
+      "settings": [
+        {
+          "type": "url",
+          "id": "video_url",
+          "label": "URL de la vidéo YouTube",
+          "info": "Formats acceptés: youtube.com/shorts/xxx, youtube.com/watch?v=xxx, youtu.be/xxx. La miniature est extraite automatiquement."
+        },
+        {
+          "type": "image_picker",
+          "id": "thumbnail",
+          "label": "Miniature personnalisée (optionnel)",
+          "info": "Si vide, la miniature YouTube est utilisée automatiquement"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Titre"
+        },
+        {
+          "type": "text",
+          "id": "duration",
+          "label": "Durée",
+          "info": "ex: 0:45"
+        },
+        {
+          "type": "text",
+          "id": "views",
+          "label": "Nombre de vues",
+          "info": "ex: 12K"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "YouTube Shorts",
+      "blocks": [
+        { "type": "video", "settings": { "title": "Notre dernier tutoriel", "duration": "0:58", "views": "15K" } },
+        { "type": "video", "settings": { "title": "Unboxing du kit", "duration": "0:32", "views": "8K" } },
+        { "type": "video", "settings": { "title": "Création en accéléré", "duration": "0:45", "views": "22K" } },
+        { "type": "video", "settings": { "title": "Résultat final", "duration": "0:28", "views": "11K" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,259 @@
+{%- comment -%}
+  Rich Text Section
+  Flexible content section for formatted text
+{%- endcomment -%}
+
+<div class="rich-text section section--{{ section.settings.color_scheme }}">
+  <div class="container">
+    <div class="rich-text__wrapper rich-text__wrapper--{{ section.settings.alignment }}">
+
+      {%- liquid
+        assign heading_tag = section.settings.heading_tag | default: 'h2'
+      -%}
+
+      {%- if section.settings.subtitle != blank -%}
+        <p class="rich-text__subtitle">{{ section.settings.subtitle }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.title != blank -%}
+        {%- if section.settings.enable_heading_style -%}
+          {%- render 'heading-styles',
+            text: section.settings.title,
+            tag: heading_tag,
+            style: section.settings.heading_style,
+            color: section.settings.heading_style_color,
+            align: section.settings.alignment | default: 'center',
+            size: 'xl',
+            typing_texts: section.settings.typing_texts
+          -%}
+        {%- else -%}
+          <{{ heading_tag }} class="rich-text__title">{{ section.settings.title }}</{{ heading_tag }}>
+        {%- endif -%}
+      {%- endif -%}
+
+      {%- if section.settings.text != blank -%}
+        <div class="rich-text__content rte">
+          {{ section.settings.text }}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.button_label != blank and section.settings.button_link != blank -%}
+        <a href="{{ section.settings.button_link }}" class="btn btn--{{ section.settings.button_style }}">
+          {{ section.settings.button_label }}
+        </a>
+      {%- endif -%}
+
+    </div>
+  </div>
+</div>
+
+<style>
+.rich-text {
+  padding: var(--spacing-3xl) 0;
+}
+
+.rich-text__wrapper {
+  max-width: 800px;
+}
+
+.rich-text__wrapper--left {
+  margin: 0 0 0 0;
+}
+
+.rich-text__wrapper--center {
+  margin: 0 auto;
+  text-align: center;
+}
+
+.rich-text__wrapper--right {
+  margin: 0 0 0 auto;
+  text-align: right;
+}
+
+.rich-text__subtitle {
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.rich-text__title {
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  margin-bottom: var(--spacing-md);
+}
+
+.rich-text__content {
+  font-size: 1.125rem;
+  line-height: 1.8;
+  color: var(--color-text-light);
+  margin-bottom: var(--spacing-lg);
+}
+
+.rich-text__content p {
+  margin-bottom: 1rem;
+}
+
+.rich-text__content ul,
+.rich-text__content ol {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.rich-text__content li {
+  margin-bottom: 0.5rem;
+}
+
+.rich-text__content a {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+</style>
+
+{% schema %}
+{
+  "name": "Texte enrichi",
+  "class": "section-rich-text",
+  "settings": [
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Sous-titre"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Titre",
+      "default": "Texte enrichi"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "SEO : Niveau de titre",
+      "options": [
+        {"value": "h1", "label": "H1"},
+        {"value": "h2", "label": "H2 (Recommandé)"},
+        {"value": "h3", "label": "H3"},
+        {"value": "h4", "label": "H4"}
+      ],
+      "default": "h2",
+      "info": "Choisissez le niveau de titre pour cette section."
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Texte",
+      "default": "<p>Utilisez cette section pour accueillir les clients dans votre boutique, présenter votre marque ou partager des actualités et promotions saisonnières.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Libellé du bouton"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Lien du bouton"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "Style du bouton",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Principal"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondaire"
+        }
+      ],
+      "default": "primary"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Alignement du texte",
+      "options": [
+        {
+          "value": "left",
+          "label": "Gauche"
+        },
+        {
+          "value": "center",
+          "label": "Centre"
+        },
+        {
+          "value": "right",
+          "label": "Droite"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Palette de couleurs",
+      "options": [
+        {
+          "value": "default",
+          "label": "Par défaut"
+        },
+        {
+          "value": "light",
+          "label": "Clair"
+        }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "header",
+      "content": "Style du titre"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_heading_style",
+      "label": "Activer le style du titre",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_style",
+      "label": "Style",
+      "options": [
+        { "value": "signature-1", "label": "Signature 1 (manuscrit)" },
+        { "value": "signature-2", "label": "Signature 2 (swoosh)" },
+        { "value": "signature-3", "label": "Signature 3 (double)" },
+        { "value": "signature-4", "label": "Signature 4 (gribouillis)" },
+        { "value": "signature-5", "label": "Signature 5 (courbe)" },
+        { "value": "underline-1", "label": "Soulignement 1 (pinceau)" },
+        { "value": "underline-2", "label": "Soulignement 2 (ligne)" },
+        { "value": "underline-3", "label": "Soulignement 3 (surligneur)" },
+        { "value": "highlight", "label": "Surligné" },
+        { "value": "reflection", "label": "Reflet brillant" },
+        { "value": "typing", "label": "Animation frappe" }
+      ],
+      "default": "signature-1"
+    },
+    {
+      "type": "color",
+      "id": "heading_style_color",
+      "label": "Couleur de l'effet",
+      "default": "#dc2626"
+    },
+    {
+      "type": "text",
+      "id": "typing_texts",
+      "label": "Textes pour animation frappe",
+      "info": "Séparés par des virgules"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Texte enrichi"
+    }
+  ]
+}
+{% endschema %}
