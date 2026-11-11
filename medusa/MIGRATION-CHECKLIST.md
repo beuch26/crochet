@@ -53,7 +53,7 @@ Le script [`migration/shopify-to-medusa.ts`](migration/shopify-to-medusa.ts) cou
 ```bash
 cd "C:\Users\Matthieu\Desktop\magic-crochet-medusa\migration"
 cp .env.example .env
-# Editer .env : SHOPIFY_ADMIN_TOKEN=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
+# Editer .env : SHOPIFY_ADMIN_TOKEN=YOUR_SHOPIFY_ACCESS_TOKEN
 # (Medusa local doit tourner et MEDUSA_ADMIN_TOKEN doit être obtenu via `npx medusa user`)
 DRY_RUN=1 npm run migrate:shopify          # test à blanc
 PRODUCT_LIMIT=5 npm run migrate:shopify    # vrai test sur 5 produits
