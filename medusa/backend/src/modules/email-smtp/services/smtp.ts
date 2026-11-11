@@ -1,6 +1,6 @@
 import { AbstractNotificationProviderService } from "@medusajs/framework/utils"
 import { Logger } from "@medusajs/framework/types"
-import nodemailer from "nodemailer"
+import nodemailer, { Transporter } from "nodemailer"
 
 type SmtpOptions = {
   host: string
@@ -17,7 +17,7 @@ type InjectedDependencies = {
 
 export class SmtpNotificationService extends AbstractNotificationProviderService {
   static identifier = "smtp"
-  private transporter: nodemailer.Transporter
+  private transporter: Transporter
   private from: string
   private logger: Logger
 
