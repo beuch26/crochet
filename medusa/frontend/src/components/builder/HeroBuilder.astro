@@ -104,8 +104,8 @@ const imageFirst = variant === 'split-left'
         )}
       </div>
     ) : (
-      <!-- Centered + Fullscreen variants -->
       <div class={`text-center max-w-3xl mx-auto ${isFullscreen ? 'text-white' : ''}`}>
+      {/* Centered + Fullscreen variants */}
         {badge && (
           <span class={`animate-fade-up inline-block px-4 py-1.5 ${isFullscreen ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'} text-sm font-semibold rounded-full mb-6 tracking-wide`}>
             {badge}
