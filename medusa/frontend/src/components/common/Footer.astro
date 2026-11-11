@@ -132,7 +132,11 @@ const description = 'Apprenez le crochet facilement avec nos kits tout-en-un pou
 
     <!-- Footer bottom: copyright + payment icons -->
     <div class="mt-12 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/60">
-      <p>{copyright}</p>
+      <div class="flex flex-col sm:flex-row items-center gap-2">
+        <p>{copyright}</p>
+        <span class="hidden sm:inline text-white/40">•</span>
+        <p>Site conçu avec ♥ par <a href="https://codiseo.com" target="_blank" rel="noopener" class="text-white/70 hover:text-white transition-colors">Codiseo</a></p>
+      </div>
       {showPayment && (
         <div class="flex items-center gap-2">
           <PaymentIcons />

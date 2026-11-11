@@ -24,7 +24,7 @@ git push
 
 ```
 SHOPIFY_SHOP_DOMAIN=crochetbox-2.myshopify.com
-SHOPIFY_ADMIN_ACCESS_TOKEN=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
+SHOPIFY_ADMIN_ACCESS_TOKEN=YOUR_SHOPIFY_ACCESS_TOKEN
 ```
 
 Fichier .env : `C:\Users\Matthieu\Desktop\magic-crochet-kit-theme\.env`
