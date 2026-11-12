@@ -61,10 +61,10 @@ try {
   // ignored — fallback chain below covers it
 }
 
-// Hardcoded last-resort fallbacks — ensures GTM/GA4 load even if both
-// the API and the theme settings are unreachable during SSG build.
-if (!gtmId) gtmId = import.meta.env.PUBLIC_GTM_ID || 'GTM-5T5V4PGT'
-if (!ga4Id) ga4Id = import.meta.env.PUBLIC_GA4_ID || 'G-JQWH974E4B'
+// Fallbacks from environment variables only — no hardcoded IDs to avoid
+// mixing analytics data between different stores.
+if (!gtmId) gtmId = import.meta.env.PUBLIC_GTM_ID || ''
+if (!ga4Id) ga4Id = import.meta.env.PUBLIC_GA4_ID || ''
 
 // Announcement bar settings
 const announcementSettings = themeSettings?.announcement || {}
